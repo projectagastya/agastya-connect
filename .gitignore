@@ -1,0 +1,7 @@
+students.json
+information/
+vectorstores/
+__pycache__/
+*.env
+*.log
+.DS_Store
