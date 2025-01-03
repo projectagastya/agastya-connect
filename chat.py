@@ -3,7 +3,6 @@ import streamlit as st
 
 from api_calls import get_api_response
 from dotenv import load_dotenv
-from time import sleep
 from utils import handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
 
 load_dotenv()
