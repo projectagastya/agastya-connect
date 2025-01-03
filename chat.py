@@ -3,6 +3,7 @@ import streamlit as st
 
 from api_calls import get_api_response
 from dotenv import load_dotenv
+from time import sleep
 from utils import handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
 
 load_dotenv()
@@ -18,19 +19,21 @@ def render_chat_history(chat_history):
             st.markdown(message["content"])
 
 def display_predefined_questions(current_chat_session, student_name, student_avatar):
-    if "next_questions" not in current_chat_session or current_chat_session.get("refresh_questions"):
-        chat_history = current_chat_session["chat_history"]
-        if len(current_chat_session["chat_history"])>1:
-            generated_questions = asyncio.run(generate_questions_with_openai(chat_history=chat_history, num_questions=4))
-            current_chat_session["next_questions"] = generated_questions
-        current_chat_session["refresh_questions"] = False
-
     with st.sidebar:
         st.markdown("---")
         cols = st.columns([0.5, 3, 0.5])
         with cols[1]:
             st.title("""You may also ask\n""")
             st.write("")
+
+    if "next_questions" not in current_chat_session or current_chat_session["refresh_questions"]==True:
+        chat_history = current_chat_session["chat_history"]
+        if len(chat_history) > 1:
+            with st.sidebar:
+                with st.spinner("Loading questions..."):
+                    generated_questions = asyncio.run(generate_questions_with_openai(chat_history=chat_history, num_questions=4))
+                    current_chat_session["next_questions"] = generated_questions
+        current_chat_session["refresh_questions"] = False
 
     for question in current_chat_session["next_questions"]:
         if st.sidebar.button(question, icon=":material/forum:", use_container_width=True):
