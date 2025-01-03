@@ -1,14 +1,11 @@
-import os
+import asyncio
 import streamlit as st
 
 from api_calls import get_api_response
 from dotenv import load_dotenv
-from openai import OpenAI
 from utils import handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
 
 load_dotenv()
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def render_chat_subheader(student_name):
     cols = st.columns([2, 4, 2], gap="small")
@@ -25,11 +22,12 @@ def render_chat_history(chat_history):
         with st.chat_message(name=message["role"], avatar=message["avatar"]):
             st.markdown(message["content"])
 
-def display_predefined_questions(current_chat_session, student_name, student_avatar):
+def display_predefined_questions(current_chat_session, student_name):
     if "next_questions" not in current_chat_session or current_chat_session.get("refresh_questions"):
         chat_history = current_chat_session.get("chat_history", [])
-        generated_questions = generate_questions_with_openai(chat_history)
-        current_chat_session["next_questions"] = generated_questions if generated_questions else ["No more suggestions available."]
+        if len(current_chat_session["chat_history"])>1:
+            generated_questions = asyncio.run(generate_questions_with_openai(chat_history, num_questions=4))
+            current_chat_session["next_questions"] = generated_questions
         current_chat_session["refresh_questions"] = False
 
     for question in current_chat_session["next_questions"]:
@@ -98,7 +96,7 @@ def load_chat_page():
 
     render_chat_history(current_chat_session["chat_history"])
     user_input = st.chat_input("Enter your message")
-    display_predefined_questions(current_chat_session, student_name, student_avatar)
+    display_predefined_questions(current_chat_session, student_name)
 
     if user_input:
         handle_user_input(user_input, current_chat_session, student_name)

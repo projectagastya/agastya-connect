@@ -1,6 +1,6 @@
 import json
 import streamlit as st
-
+import asyncio
 from time import sleep
 from utils import add_student, initialize_chat_session, switch_page
 
@@ -38,15 +38,16 @@ def load_choice_page():
             with cols[offset]:
                 st.image(student["image"], use_container_width=True)
                 if st.button(f"Chat with {student['name']}", key=student['name'], icon=":material/arrow_outward:", type="primary", use_container_width=True):
-                    initialize_chat_session(student_profile=student)
-                    progress_text = f"Loading chat session with {student['name']}..."
-                    progress_bar = st.progress(0, text=progress_text)
+                    progress_text=f"Loading chat session with {student['name']}..."
+                    progress_bar = st.progress(0, text=f"{progress_text} ({0}%)")
+                    asyncio.run(initialize_chat_session(student_profile=student))
                     for percent in range(100):
-                        progress_bar.progress(percent + 1, text=progress_text)
-                        sleep(0.02)
-                    progress_bar.empty()
+                        progress_bar.progress(percent + 1, text=f"{progress_text} ({percent + 1}%)")
+                        sleep(0.05)
+                    if st.session_state["login_sessions"]["active_chat_session"]:
+                        progress_bar.progress(100, text="Chat session loaded successfully!")
                     switch_page("chat")
-            
+
             with cols[offset + 1]:
                 st.write(f"**Name:** {student['name']}")
                 st.write(f"**Age:** {student['age']}")

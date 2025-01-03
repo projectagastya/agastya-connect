@@ -1,19 +1,16 @@
 import os
-import pytz
 import re
 import streamlit as st
 
 from api_calls import delete_session_document, upload_session_document
 from datetime import datetime
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from session_database import insert_chat_history
 from uuid import uuid4
 
 load_dotenv()
-embedding_function = OpenAIEmbeddings()
-timezone = pytz.timezone(os.getenv("TIMEZONE", "US/Central"))
 
 def validate_credentials(username, password):
     auth_username = os.getenv("AUTH_USERNAME")
@@ -43,7 +40,7 @@ def format_chat_history_for_openai(chat_history):
         for item in chat_history
     ]
 
-def generate_questions_with_openai(chat_history, num_questions=4):
+async def generate_questions_with_openai(chat_history, num_questions=4):
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, max_tokens=800)
 
     formatted_history = format_chat_history_for_openai(chat_history=chat_history)
@@ -87,7 +84,7 @@ def initialize_chat_history(current_chat_session, student_name, student_avatar):
         }
         current_chat_session["chat_history"].append(default_message)
 
-def initialize_chat_session(student_profile: dict):
+async def initialize_chat_session(student_profile: dict):
     new_chat_session = {
         "chat_session_id": generate_uuid(),
         "chat_start_timestamp": datetime.now(),
@@ -113,7 +110,7 @@ def initialize_chat_session(student_profile: dict):
         ai_output=f"Hi, I'm {student_profile['name']} from Agastya International Foundation. What would you like to know about me?",
     )
 
-    initial_questions = generate_questions_with_openai(new_chat_session["chat_history"])
+    initial_questions = await generate_questions_with_openai(new_chat_session["chat_history"])
     new_chat_session["next_questions"] = initial_questions
     initialize_chat_history(current_chat_session=new_chat_session, student_name=student_profile["name"], student_avatar=student_profile["image"])
 
