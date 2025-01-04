@@ -42,7 +42,7 @@ def upload_and_index_document_endpoint(chat_session_id: str, file: UploadFile = 
     file_extension = os.path.splitext(file.filename)[1].lower()
     if file_extension not in allowed_extensions:
         raise HTTPException(status_code=400, detail=f"Invalid file extension. Valid types: {', '.join(allowed_extensions)}")
-    temp_file_path = f"temp_{file.filename}"
+    temp_file_path = f"temp_{chat_session_id}_{file.filename}"
     try:
         with open(temp_file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
