@@ -1,3 +1,4 @@
+import asyncio
 import streamlit as st
 
 from add_student import load_add_student_page
@@ -20,10 +21,10 @@ all_pages = {
 
 st.set_page_config(page_title="Agastya Chatbot", page_icon="🏫", layout="wide", initial_sidebar_state="auto")
 
-# if st.checkbox("Show Session State Variables"):
-#     st.write(st.session_state)
-
 if "current_page" not in st.session_state:
     st.session_state.current_page = "login"
 
-all_pages[st.session_state.current_page]()
+if st.session_state.current_page == "chat":
+    asyncio.run(load_chat_page())
+else:
+    all_pages[st.session_state.current_page]()

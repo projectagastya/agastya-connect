@@ -101,7 +101,6 @@ async def initialize_chat_session(student_profile: dict):
         "selected_student": student_profile,
         "confirm_end_chat": None,
         "chat_history": [],
-        "refresh_questions": None,
         "next_questions": [],
         "recent_questions": []
     }
@@ -121,7 +120,6 @@ async def initialize_chat_session(student_profile: dict):
 
     initial_questions = await generate_questions_with_openai(new_chat_session["chat_history"])
     new_chat_session["next_questions"] = initial_questions
-    new_chat_session["refresh_questions"] = False
     initialize_chat_history(current_chat_session=new_chat_session, student_name=student_profile["name"], student_avatar=student_profile["image"])
 
 def end_login_session():

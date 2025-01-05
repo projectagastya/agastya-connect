@@ -1,4 +1,3 @@
-import asyncio
 import streamlit as st
 
 from api_calls import get_api_response
@@ -17,7 +16,7 @@ def render_chat_history(chat_history):
         with st.chat_message(name=message["role"], avatar=message["avatar"]):
             st.markdown(message["content"])
 
-def display_predefined_questions(current_chat_session, student_name, student_avatar):
+async def display_predefined_questions(current_chat_session, student_name, student_avatar):
     with st.sidebar:
         st.markdown("---")
         cols = st.columns([0.5, 4, 0.5])
@@ -25,17 +24,10 @@ def display_predefined_questions(current_chat_session, student_name, student_ava
             st.title("""You may also ask\n""")
             st.write("")
 
-    if current_chat_session["refresh_questions"]==True:
-        chat_history = current_chat_session["chat_history"]
-        with st.sidebar:
-            with st.spinner("Loading questions..."):
-                generated_questions = asyncio.run(generate_questions_with_openai(chat_history=chat_history, num_questions=4))
-                current_chat_session["next_questions"] = generated_questions
-        current_chat_session["refresh_questions"] = False
-
     for question in current_chat_session["next_questions"]:
         if st.sidebar.button(question, icon=":material/forum:", use_container_width=True):
-            handle_user_input(user_input=question, current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
+            await handle_user_input(user_input=question, current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
+            st.rerun()
 
 def render_sidebar_buttons(current_chat_session, buttons_config):
     for button in buttons_config:
@@ -44,26 +36,21 @@ def render_sidebar_buttons(current_chat_session, buttons_config):
             end_chat_session(chat_session_id=current_chat_session["chat_session_id"])
             st.rerun()
 
-def handle_user_input(user_input, current_chat_session, student_name, student_avatar):
-    add_message_to_history(current_chat_session=current_chat_session, role="user", content=user_input, avatar="user")
-    current_chat_session["refresh_questions"] = True
-    response = get_api_response_with_spinner(user_input, current_chat_session, student_name)
-    add_message_to_history(current_chat_session=current_chat_session, role="assistant", content=response.get('answer', 'Unexpected error. Please contact support'), avatar=student_avatar)
+async def handle_user_input(user_input, current_chat_session, student_name, student_avatar):
+    with st.chat_message(name="user", avatar="user"):
+        st.markdown(user_input)
 
-def add_message_to_history(current_chat_session, role, content, avatar):
-    if role == "user":
-        with st.chat_message(name=role, avatar=avatar):
-            st.markdown(content)
-    current_chat_session["chat_history"].append({"role": role, "content": content, "avatar": avatar})
-    if role == "assistant":
-        st.rerun()
-
-def get_api_response_with_spinner(user_input, current_chat_session, student_name, spinner_message=None):
-    spinner_message = spinner_message or f"{student_name} is typing..."
+    spinner_message = f"{student_name} is typing..."
     with st.spinner(spinner_message):
-        return get_api_response(question=user_input, chat_session_id=current_chat_session["chat_session_id"])
+        response = get_api_response(question=user_input, chat_session_id=current_chat_session["chat_session_id"])
+        current_chat_session["chat_history"].append({"role": "user", "content": user_input, "avatar": "user"})
+        current_chat_session["chat_history"].append({"role": "assistant", "content": response.get('answer', 'Unexpected error. Please contact support'), "avatar": student_avatar})
 
-def load_chat_page():
+        chat_history = current_chat_session["chat_history"]
+        generated_questions = await generate_questions_with_openai(chat_history=chat_history, num_questions=4)
+        current_chat_session["next_questions"] = generated_questions
+
+async def load_chat_page():
     if not st.session_state["login_sessions"]["chat_sessions"]:
         st.error("No active chat session found.")
         return
@@ -84,8 +71,11 @@ def load_chat_page():
     render_sidebar_buttons(current_chat_session=current_chat_session, buttons_config=sidebar_buttons_config)
 
     render_chat_history(chat_history=chat_history)
+
     user_input = st.chat_input(placeholder="Enter your message")
-    display_predefined_questions(current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
 
     if user_input:
-        handle_user_input(user_input=user_input, current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
+        await handle_user_input(user_input=user_input, current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
+        st.rerun()
+        
+    await display_predefined_questions(current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
