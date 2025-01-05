@@ -20,18 +20,17 @@ def render_chat_history(chat_history):
 def display_predefined_questions(current_chat_session, student_name, student_avatar):
     with st.sidebar:
         st.markdown("---")
-        cols = st.columns([0.5, 3, 0.5])
+        cols = st.columns([0.5, 4, 0.5])
         with cols[1]:
             st.title("""You may also ask\n""")
             st.write("")
 
-    if "next_questions" not in current_chat_session or current_chat_session["refresh_questions"]==True:
+    if current_chat_session["refresh_questions"]==True:
         chat_history = current_chat_session["chat_history"]
-        if len(chat_history) > 1:
-            with st.sidebar:
-                with st.spinner("Loading questions..."):
-                    generated_questions = asyncio.run(generate_questions_with_openai(chat_history=chat_history, num_questions=4))
-                    current_chat_session["next_questions"] = generated_questions
+        with st.sidebar:
+            with st.spinner("Loading questions..."):
+                generated_questions = asyncio.run(generate_questions_with_openai(chat_history=chat_history, num_questions=4))
+                current_chat_session["next_questions"] = generated_questions
         current_chat_session["refresh_questions"] = False
 
     for question in current_chat_session["next_questions"]:

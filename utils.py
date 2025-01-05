@@ -1,3 +1,4 @@
+import ast
 import os
 import re
 import streamlit as st
@@ -6,7 +7,7 @@ from api_calls import delete_session_document, upload_session_document
 from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 from session_database import insert_chat_history
 from uuid import uuid4
 
@@ -35,43 +36,51 @@ def add_student():
     switch_page("add_student")
 
 def format_chat_history_for_openai(chat_history):
-    return [
-        HumanMessage(content=item["content"]) if item["role"] == "user" else AIMessage(content=item["content"])
-        for item in chat_history
-    ]
+    formatted_history = []
+    for message in chat_history:
+        if message.get('role') == 'user':
+            formatted_message = f"Instructor: {message.get('content', '')}"
+        elif message.get('role') == 'assistant':
+            formatted_message = f"Student: {message.get('content', '')}"
+        formatted_history.append(formatted_message)
+
+    return "\n".join(formatted_history)
 
 async def generate_questions_with_openai(chat_history, num_questions=4):
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, max_tokens=800)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, max_tokens=800)
 
     formatted_history = format_chat_history_for_openai(chat_history=chat_history)
-    
+
     messages = [
-        SystemMessage(
-            content=f"""Read the following chat history line by line thoroughly.
-                            
-                        Chat history: ```{formatted_history}```
+            SystemMessage(
+                content=f"""
+                You are an expert conversational AI with a strong purpose to assist instructors in asking thoughtful, context-aware, and creative questions, to their students.
+                
+                Read the following chat history, line by line, thoroughly and help the instructor ask engaging questions to the student.
 
-                        Follow these instructions:
+                Chat history between instructor and student: ```{formatted_history}```
 
-                        - Generate EXACTLY 4 semantically distinct, context-aware questions using minimal words, that are appropriate to be posed to a child.
-                        - The questions must be new and relevant to the chat history to build a fruitful conversation.
-                        - If the chat history is empty, generate introductory questions by following all instructions
-                        - Ignore irrelevant questions that diverge from the topic.
-                        - Focus on asking questions about the student and their experience with Agastya International Foundation and their interests, passions, learnings etc.
-                        - Avoid personal, controversial, or repetitive questions.
-                        - Be mindful of the tone of the question as it is posed to a child.
-                        - Take a deep breath and think step by step
+                You must follow these instructions, carefully:
 
-                        Respond ONLY with a Python list in this format: ["question1", "question2", "question3", "question4"].
-                    """
-        )
-    ]
+                - Generate EXACTLY 4 semantically unique, highly creative, and engaging questions for the instructor to ask the child.
+                - The questions must be strictly related to the chat history and must be asked out of curiosity, for a meaningful dialogue.
+                - If the chat history is empty, return 4 unique introductory questions that are friendly and open-ended.
+                - Avoid questions that are personal, controversial, repetitive, or unrelated to the topic of the chat history.
+                - Prioritize questions that encourage the child to reflect on their experiences, passions, and interactions with other students/instructors at Agastya International Foundation.
+                - Ensure the tone of the questions is warm, child-friendly, and encouraging, fostering a safe space for dialogue.
+                - Aim for questions that are clear, concise, and use simple language suitable for children.
 
+                Take a moment to think deeply about the chat history, and then, compose questions that will add more value to the conversation.
+
+                Respond ONLY with a Python list in this format: ["Question 1", "Question 2", "Question 3", "Question 4"].
+                """
+            )
+        ]
     response = llm.invoke(messages)
     generated_text = response.content.strip()
 
     match = re.search(r'\[.*?\]', generated_text, re.DOTALL)
-    questions = eval(match.group(0)) if match else []
+    questions = ast.literal_eval(match.group(0)) if match else []
 
     return questions[:num_questions]
 
@@ -92,7 +101,7 @@ async def initialize_chat_session(student_profile: dict):
         "selected_student": student_profile,
         "confirm_end_chat": None,
         "chat_history": [],
-        "refresh_questions": True,
+        "refresh_questions": None,
         "next_questions": [],
         "recent_questions": []
     }
@@ -112,6 +121,7 @@ async def initialize_chat_session(student_profile: dict):
 
     initial_questions = await generate_questions_with_openai(new_chat_session["chat_history"])
     new_chat_session["next_questions"] = initial_questions
+    new_chat_session["refresh_questions"] = False
     initialize_chat_history(current_chat_session=new_chat_session, student_name=student_profile["name"], student_avatar=student_profile["image"])
 
 def end_login_session():
