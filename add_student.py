@@ -4,7 +4,7 @@ import streamlit as st
 
 from utils import switch_page
 
-def load_add_student_page():
+async def load_add_student_page():
     if st.button("Back to Choice Page", icon=":material/arrow_back:", type="primary"):
         switch_page("choice")
         

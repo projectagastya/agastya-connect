@@ -1,17 +1,17 @@
 import json
 import streamlit as st
-import asyncio
+
 from time import sleep
 from utils import add_student, initialize_chat_session, switch_page
 
-def load_choice_page():
+async def load_choice_page():
     if "login_sessions" not in st.session_state:
         st.error(body="You must log in first!", icon="⚠️")
         return
 
     with st.sidebar:
         if st.button(label="Add a New Student", icon=":material/add_circle:", use_container_width=True):
-            add_student()
+            await add_student()
 
         if st.button(label="Back to Main Page", icon=":material/arrow_back:", type="primary", use_container_width=True):
             switch_page("main")
@@ -40,7 +40,7 @@ def load_choice_page():
                 if st.button(f"Chat with {student['name']}", key=student['name'], icon=":material/arrow_outward:", type="primary", use_container_width=True):
                     progress_text=f"Loading chat session with {student['name']}..."
                     progress_bar = st.progress(0, text=f"{progress_text} ({0}%)")
-                    asyncio.run(initialize_chat_session(student_profile=student))
+                    await initialize_chat_session(student_profile=student)
                     for percent in range(100):
                         progress_bar.progress(percent + 1, text=f"{progress_text} ({percent + 1}%)")
                         sleep(0.05)

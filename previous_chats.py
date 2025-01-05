@@ -3,7 +3,7 @@ from utils import switch_page
 import io
 from docx import Document
 
-def load_previous_chats_page():
+async def load_previous_chats_page():
     with st.sidebar:
         if st.button(label="Back to Main Page", use_container_width=True, icon=":material/arrow_back:", type="primary"):
             switch_page(page_name="main")

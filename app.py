@@ -24,7 +24,4 @@ st.set_page_config(page_title="Agastya Chatbot", page_icon="🏫", layout="wide"
 if "current_page" not in st.session_state:
     st.session_state.current_page = "login"
 
-if st.session_state.current_page == "chat":
-    asyncio.run(load_chat_page())
-else:
-    all_pages[st.session_state.current_page]()
+asyncio.run(all_pages[st.session_state.current_page]())

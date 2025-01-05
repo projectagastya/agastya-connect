@@ -2,7 +2,7 @@ import streamlit as st
 
 from utils import switch_page, logout_and_redirect
 
-def load_main_page():
+async def load_main_page():
     st.title(body=f"Hello {st.session_state['username']}!", anchor=False)
 
     st.header(body="Welcome to your AI-driven instructor training program", anchor=False)
@@ -56,4 +56,4 @@ def load_main_page():
         """)
         
         if st.button(label="Logout", icon=":material/logout:", type="primary", use_container_width=True):
-                logout_and_redirect()
+            logout_and_redirect()

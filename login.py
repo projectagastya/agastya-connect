@@ -8,7 +8,7 @@ from utils import validate_credentials, generate_uuid, switch_page
 
 load_dotenv()
 
-def load_login_page():
+async def load_login_page():
     col1, col2 = st.columns(spec=[1.0, 0.5], gap="large")
 
     with col1:
