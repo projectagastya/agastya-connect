@@ -19,13 +19,12 @@ async def load_main_page():
         """,
         unsafe_allow_html=False)
     
-    cols = st.columns(spec=[4,8,3], gap="small")
-    with cols[1]:
+    cols = st.columns(spec=[4, 2, 4, 4], gap="small", vertical_alignment="center")
+    with cols[0]:
         st.subheader(body="Proceed to chat with a student:", anchor=False)
     
-    cols = st.columns([3,3,9], gap="small")
-    with cols[2]:
-         if st.button(label="Proceed", icon=":material/arrow_outward:", type="primary"):
+    with cols[1]:
+         if st.button(label="Proceed", icon=":material/arrow_outward:", type="primary", use_container_width=True):
             switch_page(page_name="choice")
     
     with st.sidebar:
