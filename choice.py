@@ -48,11 +48,11 @@ async def load_choice_page():
                         progress_bar.progress(100, text="Chat session loaded successfully!")
                     switch_page("chat")
 
-            with cols[offset + 1]:
-                st.write(f"**Name:** {student['name']}")
-                st.write(f"**Age:** {student['age']}")
-                st.write(f"**Sex:** {student['sex']}")
-                st.write(f"**Region:** {student['region']}")
+                with st.popover(label="Student Information", icon=":material/info:", use_container_width=True):
+                    st.write(f"**Name:** {student['name']}")
+                    st.write(f"**Age:** {student['age']}")
+                    st.write(f"**Sex:** {student['sex']}")
+                    st.write(f"**Region:** {student['region']}")
             
             if idx % 2 == 0:
                 st.markdown("---")
