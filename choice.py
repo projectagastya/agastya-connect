@@ -41,8 +41,6 @@ async def load_choice_page():
                     for percent in range(100):
                         progress_bar.progress(percent + 1, text=f"{progress_text} ({percent + 1}%)")
                         sleep(0.05)
-                    if st.session_state["login_sessions"]["active_chat_session"]:
-                        progress_bar.progress(100, text="Chat session loaded successfully!")
                     switch_page("chat")
 
                 with st.popover(label="Student Information", icon=":material/info:", use_container_width=True):
