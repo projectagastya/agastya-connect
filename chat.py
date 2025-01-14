@@ -2,14 +2,12 @@ import streamlit as st
 
 from api_calls import get_api_response
 from dotenv import load_dotenv
-from utils import handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
+from utils import add_aligned_text, handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
 
 load_dotenv()
 
 def render_chat_subheader(student_name):
-    cols = st.columns([2, 4, 2], gap="small")
-    with cols[1]:
-        st.subheader(body=f"Chat session with {student_name}", anchor=False)
+    add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=2)
 
 def render_chat_history(chat_history):
     for message in chat_history:
