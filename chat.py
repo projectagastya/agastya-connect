@@ -7,7 +7,7 @@ from utils import add_aligned_text, handle_end_chat_confirmation, end_chat_sessi
 load_dotenv()
 
 def render_chat_subheader(student_name):
-    add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=2)
+    add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=40, bold=True)
 
 def render_chat_history(chat_history):
     for message in chat_history:
