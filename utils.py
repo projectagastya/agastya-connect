@@ -34,8 +34,17 @@ def logout_and_redirect():
     end_login_session()
     switch_page("login")
 
-def add_aligned_text(content, alignment="left", size=1):
-    st.markdown(body=f"<div style='text-align: {alignment}; font-size: {size}rem;'><strong>{content}</strong></div>", unsafe_allow_html=True)
+def add_aligned_text(content, alignment="left", size=12, bold=False, italics=False, underline=False):
+    rem_size = size / 16
+    styles = []
+    if bold:
+        styles.append("font-weight: bold;")
+    if italics:
+        styles.append("font-style: italic;")
+    if underline:
+        styles.append("text-decoration: underline;")
+    style = f"text-align: {alignment}; font-size: {rem_size}rem; " + " ".join(styles)
+    st.markdown(body=f"<div style='{style}'>{content}</div>", unsafe_allow_html=True)
     
 def add_student():
     switch_page("add_student")
