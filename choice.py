@@ -47,5 +47,7 @@ async def load_choice_page():
                     st.write(f"**Sex:** {student['sex']}")
                     st.write(f"**Region:** {student['region']}")
         
-        with st.empty():
+        if row != rows[-1]:
             st.markdown("--- \n")
+        else:
+            st.markdown("")
