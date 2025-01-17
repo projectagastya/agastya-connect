@@ -11,13 +11,14 @@ async def load_previous_chats_page():
     current_login_session = st.session_state["login_sessions"]
     all_chats = current_login_session["chat_sessions"]
 
+    filtered_chats = [chat for chat in all_chats if len(chat["chat_history"]) > 1]
     st.header(body="Previous Chats", anchor=False)
 
-    if not all_chats:
+    if not filtered_chats:
         st.info(body="No previous chats available.")
         return
 
-    for index, chat in enumerate(iterable=all_chats):
+    for index, chat in enumerate(iterable=filtered_chats):
         selected_student = chat["selected_student"]["name"]
         chat_summary = f"{index + 1}. Chat with {selected_student}"
 
