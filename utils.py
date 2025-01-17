@@ -22,7 +22,7 @@ def validate_credentials(username, password):
     return username == auth_username and password == auth_password
 
 def switch_page(page_name):
-    sleep(0.1)
+    sleep(0)
     st.session_state.current_page = page_name
     st.rerun()
 
