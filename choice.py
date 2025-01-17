@@ -2,7 +2,7 @@ import json
 import streamlit as st
 
 from time import sleep
-from utils import add_student, initialize_chat_session, switch_page
+from utils import initialize_chat_session, switch_page
 
 async def load_choice_page():
     if "login_sessions" not in st.session_state:
@@ -10,9 +10,6 @@ async def load_choice_page():
         return
 
     with st.sidebar:
-        if st.button(label="Add a New Student", icon=":material/add_circle:", use_container_width=True):
-            await add_student()
-
         if st.button(label="Back to Main Page", icon=":material/arrow_back:", type="primary", use_container_width=True):
             switch_page("main")
 
