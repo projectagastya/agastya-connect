@@ -5,7 +5,7 @@ from utils import add_aligned_text, switch_page, logout_and_redirect
 async def load_main_page():
     add_aligned_text(content=f"Hello, {st.session_state['username']}!", alignment="center", bold=True, size=48)
     add_aligned_text(content="Welcome to your AI-driven instructor training program", alignment="center", bold=True, size=32)
-    add_aligned_text(content="At Agastya, we empower instructors for a bright future to engage with AI-driven student simulations", alignment="center", size=20)
+    add_aligned_text(content="At Agastya, we empower you for a bright future through engagement with AI-driven student simulations", alignment="center", size=20)
     st.markdown("<br>", unsafe_allow_html=True)
     add_aligned_text(content="On the next page, you'll interact with digital avatars of students from Agastya International Foundation.", alignment="center", size=20)
     add_aligned_text(content="You can ask questions and engage in a conversation to understand the student better.", alignment="center", size=20)
@@ -22,9 +22,9 @@ async def load_main_page():
     
     with st.sidebar:
         cols = st.columns([3.5, 7, 1], gap="small")
-        with cols[1]:
-            st.title(body="My Profile", anchor=False)
-            st.markdown(body=f"""Username: **{st.session_state['username']}**""")
+        add_aligned_text(content="My Profile", alignment="center", bold=True, size=32)
+        add_aligned_text(content=f"Username: {st.session_state['username']}", alignment="center", size=16)
+        st.markdown("<br>", unsafe_allow_html=True)
 
         if st.button(label="Edit Profile", icon=":material/edit:", use_container_width=True):
             st.write("Edit button clicked")
