@@ -1,5 +1,6 @@
 students.json
 information/
+images/
 vectorstores/
 __pycache__/
 *.env
