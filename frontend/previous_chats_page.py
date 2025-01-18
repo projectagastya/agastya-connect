@@ -27,7 +27,8 @@ async def load_previous_chats_page():
         if session_key not in current_login_session:
             current_login_session[session_key] = False
 
-        def toggle_chat_history():
+        def toggle_chat_history(index=index):
+            session_key = f"show_chat_{index}"
             current_login_session[session_key] = not current_login_session[session_key]
 
         def generate_word_document(chat):
