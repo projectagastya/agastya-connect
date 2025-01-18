@@ -1,30 +1,23 @@
 import streamlit as st
 
-from utils import switch_page, logout_and_redirect
+from utils import add_aligned_text, switch_page, logout_and_redirect
 
 async def load_main_page():
-    st.title(body=f"Hello {st.session_state['username']}!", anchor=False)
-
-    st.header(body="Welcome to your AI-driven instructor training program", anchor=False)
-    st.subheader(body="At Agastya, we empower instructors for a bright future to engage with AI-driven student simulations", anchor=False)
-    st.write(
-        """
-        On the next page, you'll interact with a digital avatar of a student from Agastya International Foundation.
-        
-        This session aims to help you understand how an Agastya student engages and learns.
-        
-        Feel free to ask your own questions or choose one from the sidebar options.
-        
-        ---
-        """,
-        unsafe_allow_html=False)
+    add_aligned_text(content=f"Hello, {st.session_state['username']}!", alignment="center", bold=True, size=48)
+    add_aligned_text(content="Welcome to your AI-driven instructor training program", alignment="center", bold=True, size=32)
+    add_aligned_text(content="At Agastya, we empower instructors for a bright future to engage with AI-driven student simulations", alignment="center", size=20)
+    st.markdown("<br>", unsafe_allow_html=True)
+    add_aligned_text(content="On the next page, you'll interact with digital avatars of students from Agastya International Foundation.", alignment="center", size=20)
+    add_aligned_text(content="You can ask questions and engage in a conversation to understand the student better.", alignment="center", size=20)
+    st.markdown("<br>", unsafe_allow_html=True)
+    add_aligned_text(content="We hope you enjoy the experience!", alignment="center", bold=True, size=20)
+    st.markdown("---", unsafe_allow_html=True)
+    add_aligned_text(content="Proceed to chat with a student", alignment="center", bold=True, size=32)
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    cols = st.columns(spec=[4, 2, 4, 4], gap="small", vertical_alignment="center")
-    with cols[0]:
-        st.subheader(body="Proceed to chat with a student:", anchor=False)
-    
-    with cols[1]:
-         if st.button(label="Proceed", icon=":material/arrow_outward:", type="primary", use_container_width=True):
+    cols = st.columns(5, gap="small")
+    with cols[2]:
+         if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
             switch_page(page_name="choice")
     
     with st.sidebar:
@@ -39,6 +32,7 @@ async def load_main_page():
         if st.button(label="Previous chats", icon=":material/history:", type="primary", use_container_width=True):
             switch_page(page_name="previous_chats")
 
+        st.markdown("---", unsafe_allow_html=True)
         st.markdown(body=f"""
 
             # Contact
