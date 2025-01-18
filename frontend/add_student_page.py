@@ -2,7 +2,7 @@ import json
 import os
 import streamlit as st
 
-from utils import switch_page
+from frontend.all_utils import switch_page
 
 async def load_add_student_page():
     if st.button("Back to Choice Page", icon=":material/arrow_back:", type="primary"):
@@ -21,8 +21,8 @@ async def load_add_student_page():
         elif age < 5 or age > 30:
             st.error("Age must be between 5 and 30.")
         else:
-            image_path = f"information/{name.lower().replace(' ', '-')}.png"
-            os.makedirs("information", exist_ok=True)
+            image_path = f"backend/information/{name.lower().replace(' ', '-')}.png"
+            os.makedirs("backend/information", exist_ok=True)
             with open(image_path, "wb") as f:
                 f.write(uploaded_image.read())
 
@@ -42,5 +42,3 @@ async def load_add_student_page():
                 st.success("Student added successfully!")
             except FileNotFoundError:
                 st.error("Students data file not found.")
-
-

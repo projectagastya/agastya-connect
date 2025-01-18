@@ -3,13 +3,13 @@ import os
 import re
 import streamlit as st
 
-from api_calls import delete_session_document, upload_session_document
+from frontend.api_calls import delete_session_document, upload_session_document
 from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 from time import sleep
-from session_database import insert_chat_history
+from backend.session_database import insert_chat_history
 from uuid import uuid4
 
 load_dotenv()
@@ -122,7 +122,7 @@ async def initialize_chat_session(student_profile: dict):
     st.session_state["login_sessions"]["active_chat_session"] = new_chat_session["chat_session_id"]
 
     document_name = student_profile['name'].lower().replace(" ", "-")
-    document_path = f"information/{document_name}.docx"
+    document_path = f"backend/information/{document_name}.docx"
 
     upload_session_document(chat_session_id=new_chat_session["chat_session_id"], file_path=document_path)
 
@@ -144,18 +144,29 @@ def end_chat_session(chat_session_id):
     delete_session_document(chat_session_id=chat_session_id)
 
 def handle_end_chat_confirmation(current_chat_session):
-    st.warning("Are you sure you want to end the current chat session?")
-    cols = st.columns(9, gap="small")
+    with st.container():
+        st.markdown(
+            """
+            <div style="display: flex; justify-content: center; align-items: center; height: 100px;">
+                <span style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; 
+                padding: 10px 20px; border-radius: 5px; font-size: 16px;">
+                    ⚠️ Are you sure you want to end the current chat session?
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        cols = st.columns([3, 1, 1, 3])
+        
+        with cols[1]:
+            if st.button("Confirm", use_container_width=True):
+                current_chat_session["chat_end_timestamp"] = datetime.now()
+                redirection_target = current_chat_session["confirm_end_chat"]
+                st.session_state['login_sessions']["active_chat_session"] = None
+                current_chat_session["confirm_end_chat"] = None
+                switch_page(redirection_target)
 
-    with cols[0]:
-        if st.button("Confirm", use_container_width=True):
-            current_chat_session["chat_end_timestamp"] = datetime.now()
-            redirection_target = current_chat_session["confirm_end_chat"]
-            st.session_state['login_sessions']["active_chat_session"] = None
-            current_chat_session["confirm_end_chat"] = None
-            switch_page(redirection_target)
-
-    with cols[1]:
-        if st.button("Cancel", type="primary", use_container_width=True):
-            current_chat_session["confirm_end_chat"] = None
-            st.rerun()
+        with cols[2]:
+            if st.button("Cancel", type="primary", use_container_width=True):
+                current_chat_session["confirm_end_chat"] = None
+                st.rerun()

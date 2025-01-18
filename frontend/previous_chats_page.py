@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import switch_page
+from frontend.all_utils import switch_page
 import io
 from docx import Document
 

@@ -1,8 +1,8 @@
 import streamlit as st
 
-from api_calls import get_api_response
+from frontend.api_calls import get_api_response
 from dotenv import load_dotenv
-from utils import add_aligned_text, handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
+from frontend.all_utils import add_aligned_text, handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
 
 load_dotenv()
 
@@ -12,15 +12,13 @@ def render_chat_subheader(student_name):
 def render_chat_history(chat_history):
     for message in chat_history:
         with st.chat_message(name=message["role"], avatar=message["avatar"]):
-            st.markdown(message["content"])
+            st.markdown(body=message["content"])
 
 async def display_predefined_questions(current_chat_session, student_name, student_avatar):
     with st.sidebar:
-        st.markdown("---")
-        cols = st.columns([0.5, 4, 0.5])
-        with cols[1]:
-            st.title("""You may also ask\n""")
-            st.write("")
+        st.markdown(body="---")
+        add_aligned_text(content="You may also ask me:", alignment="center", size=24, bold=True)
+        add_aligned_text(content="<br>", alignment="center")
 
     for question in current_chat_session["next_questions"]:
         if st.sidebar.button(question, icon=":material/forum:", use_container_width=True):
@@ -36,7 +34,7 @@ def render_sidebar_buttons(current_chat_session, buttons_config):
 
 async def handle_user_input(user_input, current_chat_session, student_name, student_avatar):
     with st.chat_message(name="user", avatar="user"):
-        st.markdown(user_input)
+        st.markdown(body=user_input)
 
     spinner_message = f"{student_name} is typing..."
     with st.spinner(spinner_message):
@@ -62,7 +60,6 @@ async def load_chat_page():
     render_chat_subheader(student_name)
 
     if current_chat_session["confirm_end_chat"]:
-        st.sidebar.write("")
         handle_end_chat_confirmation(current_chat_session=current_chat_session)
         return
     

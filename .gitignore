@@ -1,7 +1,7 @@
 students.json
-information/
-images/
-vectorstores/
+backend/information/
+frontend/images/
+backend/vectorstores/
 __pycache__/
 *.env
 *.log

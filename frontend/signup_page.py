@@ -1,6 +1,6 @@
 import streamlit as st
 
-from utils import switch_page
+from frontend.all_utils import switch_page
 
 async def load_signup_page():
     st.title("Page under construction")

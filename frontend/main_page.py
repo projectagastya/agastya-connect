@@ -1,6 +1,6 @@
 import streamlit as st
 
-from utils import add_aligned_text, switch_page, logout_and_redirect
+from frontend.all_utils import add_aligned_text, switch_page, logout_and_redirect
 
 async def load_main_page():
     add_aligned_text(content=f"Hello, {st.session_state['username']}!", alignment="center", bold=True, size=48)

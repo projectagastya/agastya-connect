@@ -2,7 +2,7 @@ import json
 import streamlit as st
 
 from time import sleep
-from utils import initialize_chat_session, switch_page
+from frontend.all_utils import initialize_chat_session, switch_page
 
 async def load_choice_page():
     if "login_sessions" not in st.session_state:
@@ -14,7 +14,7 @@ async def load_choice_page():
             switch_page("main")
 
     try:
-        with open("students.json", "r") as file:
+        with open("backend/students.json", "r") as file:
             students = json.load(file)
     except FileNotFoundError:
         st.error("Students data file not found.")

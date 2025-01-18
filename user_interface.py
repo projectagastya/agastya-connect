@@ -1,13 +1,13 @@
 import asyncio
 import streamlit as st
 
-from add_student import load_add_student_page
-from chat import load_chat_page
-from choice import load_choice_page
-from login import load_login_page
-from main import load_main_page
-from previous_chats import load_previous_chats_page
-from signup import load_signup_page
+from frontend.add_student_page import load_add_student_page
+from frontend.chat_page import load_chat_page
+from frontend.choice_page import load_choice_page
+from frontend.login_page import load_login_page
+from frontend.main_page import load_main_page
+from frontend.previous_chats_page import load_previous_chats_page
+from frontend.signup_page import load_signup_page
 
 all_pages = {
     "login": load_login_page,

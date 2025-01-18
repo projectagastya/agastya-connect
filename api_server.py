@@ -3,8 +3,8 @@ import shutil
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, UploadFile
-from pydantic_models import DeleteFileRequest, DocumentInfo, QueryInput, QueryResponse
-from session_database import (
+from backend.pydantic_models import DeleteFileRequest, DocumentInfo, QueryInput, QueryResponse
+from backend.session_database import (
     delete_all_documents,
     delete_session_document,
     get_all_documents,
@@ -13,8 +13,8 @@ from session_database import (
     insert_chat_history,
     insert_session_document,
 )
-from utils_langchain import get_rag_chain
-from utils_vectorstore import delete_doc_from_vectorstore, index_document_to_vectorstore, rag_vectorstore
+from backend.utils_langchain import get_rag_chain
+from backend.utils_vectorstore import delete_doc_from_vectorstore, index_document_to_vectorstore, rag_vectorstore
 
 load_dotenv()
 

@@ -38,4 +38,3 @@ def index_document_to_vectorstore(file_path: str, file_id: int, chat_session_id:
 def delete_doc_from_vectorstore(chat_session_id: str):
     rag_vectorstore._collection.delete(where={"chat_session_id": chat_session_id})
     return True
-
