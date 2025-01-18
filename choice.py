@@ -23,13 +23,13 @@ async def load_choice_page():
     rows = [students[i:i + 4] for i in range(0, len(students), 4)]
 
     for row in rows:
-        cols = st.columns(spec=[5, 1, 5, 1, 5, 1, 5, 1], gap="large")
+        cols = st.columns(spec=[5,1,5,1,5,1,5,1], gap="small")
         for idx, student in enumerate(row):
             with cols[2*idx]:
                 st.markdown(body=f"<div style='text-align: center; font-size: 1.5rem;'><strong>{student['name']}</strong></div>", unsafe_allow_html=True)
                 st.write(" ")
                 st.image(image=student["image"], use_container_width=True)
-                if st.button(label=f"Chat with {student['name']}", key=f"chat_with_{student['name']}", icon=":material/arrow_outward:", type="primary", use_container_width=True):
+                if st.button(label=f"Start chat", key=f"chat_with_{student['name']}", icon=":material/arrow_outward:", type="primary", use_container_width=True):
                     progress_text=f"Loading chat session with {student['name']}..."
                     progress_bar = st.progress(0, text=f"{progress_text} ({0}%)")
                     await initialize_chat_session(student_profile=student)
@@ -38,7 +38,7 @@ async def load_choice_page():
                         sleep(0.05)
                     switch_page("chat")
 
-                with st.popover(label="Student Information", icon=":material/info:", use_container_width=True):
+                with st.popover(label="View details", icon=":material/info:", use_container_width=True):
                     st.write(f"**Name:** {student['name']}")
                     st.write(f"**Age:** {student['age']}")
                     st.write(f"**Sex:** {student['sex']}")
