@@ -12,7 +12,7 @@ async def load_login_page():
     col1, col2 = st.columns(spec=[1.0, 0.5], gap="large")
 
     with col1:
-        st.image(image="agastya.png", use_container_width=True)
+        st.image(image="images/agastya.png", use_container_width=True)
         st.title(body="The world's largest ***'creativity laboratory'***", anchor=False)
         st.header(body="***\"Agastya is a cause - not just an organization\"***", anchor=False)
         st.write("""Agastya's vision is a creative world of tinkerers, innovators and solution-seekers who are humane, anchored and connected.
