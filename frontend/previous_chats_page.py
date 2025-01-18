@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend.all_utils import switch_page
+from frontend.all_utils import add_aligned_text, switch_page
 import io
 from docx import Document
 
@@ -12,7 +12,8 @@ async def load_previous_chats_page():
     all_chats = current_login_session["chat_sessions"]
 
     filtered_chats = [chat for chat in all_chats if len(chat["chat_history"]) > 1]
-    st.header(body="Previous Chats", anchor=False)
+    add_aligned_text(content="Previous Chats", alignment="center", size=32, bold=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
     if not filtered_chats:
         st.info(body="No previous chats available.")
