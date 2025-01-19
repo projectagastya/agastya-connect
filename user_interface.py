@@ -20,7 +20,7 @@ all_pages = {
 }
 
 st.set_page_config(page_title="Agastya Chatbot", page_icon="🏫", layout="wide", initial_sidebar_state="auto")
-
+st.logo(image="frontend/images/logo.png", size="large", icon_image="frontend/images/logo.png", link="https://www.agastya.org/")
 if "current_page" not in st.session_state:
     st.session_state.current_page = "login"
 
