@@ -45,9 +45,9 @@ async def load_login_page():
                             st.error(body="Invalid credentials.")
                 with subcols[1]:
                     if st.button(label="Forgot Password ?", icon=":material/lock_reset:", use_container_width=True):
-                        switch_page(page_name="signup")
+                        st.error("Invalid request")
                 if st.button(label="New User ? Sign Up", icon=":material/person_add:", use_container_width=True):
-                    switch_page(page_name="signup")
+                    st.error("Invalid request")
                 
                 with st.container(height=380, border=False):
                     st.image(image="frontend/images/login_pic.png", width=380)
