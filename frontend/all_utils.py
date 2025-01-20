@@ -8,7 +8,6 @@ from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
-from time import sleep
 from backend.session_database import insert_chat_history
 from uuid import uuid4
 
@@ -22,7 +21,6 @@ def validate_credentials(username, password):
     return username == auth_username and password == auth_password
 
 def switch_page(page_name):
-    sleep(0)
     st.session_state.current_page = page_name
     st.rerun()
 
