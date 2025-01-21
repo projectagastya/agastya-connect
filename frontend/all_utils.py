@@ -141,7 +141,7 @@ def end_login_session():
 def end_chat_session(chat_session_id):
     delete_session_document(chat_session_id=chat_session_id)
 
-def handle_end_chat_confirmation(current_chat_session):
+async def handle_end_chat_confirmation(current_chat_session):
     with st.container():
         st.markdown(
             """

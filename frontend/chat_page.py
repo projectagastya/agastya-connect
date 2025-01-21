@@ -6,10 +6,10 @@ from frontend.all_utils import add_aligned_text, handle_end_chat_confirmation, e
 
 load_dotenv()
 
-def render_chat_subheader(student_name):
+async def render_chat_subheader(student_name):
     add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=40, bold=True)
 
-def render_chat_history(chat_history):
+async def render_chat_history(chat_history):
     for message in chat_history:
         with st.chat_message(name=message["role"], avatar=message["avatar"]):
             st.markdown(body=message["content"])
@@ -25,7 +25,7 @@ async def display_predefined_questions(current_chat_session, student_name, stude
             await handle_user_input(user_input=question, current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
             st.rerun()
 
-def render_sidebar_buttons(current_chat_session, buttons_config):
+async def render_sidebar_buttons(current_chat_session, buttons_config):
     for button in buttons_config:
         if st.sidebar.button(label=button["label"], icon=button["icon"], use_container_width=True, type=button["type"]):
             current_chat_session["confirm_end_chat"] = button["action"]
@@ -57,15 +57,15 @@ async def load_chat_page():
     chat_history = current_chat_session["chat_history"]
     sidebar_buttons_config = [{"label": "Back to Main Page", "action": "main", "icon": ":material/arrow_back:", "type": "primary"}, {"label": "Start new session", "action": "choice", "icon": ":material/arrow_outward:", "type": "secondary"}]
 
-    render_chat_subheader(student_name)
+    await render_chat_subheader(student_name)
 
     if current_chat_session["confirm_end_chat"]:
-        handle_end_chat_confirmation(current_chat_session=current_chat_session)
+        await handle_end_chat_confirmation(current_chat_session=current_chat_session)
         return
     
-    render_sidebar_buttons(current_chat_session=current_chat_session, buttons_config=sidebar_buttons_config)
+    await render_sidebar_buttons(current_chat_session=current_chat_session, buttons_config=sidebar_buttons_config)
 
-    render_chat_history(chat_history=chat_history)
+    await render_chat_history(chat_history=chat_history)
 
     user_input = st.chat_input(placeholder="Enter your message")
 
