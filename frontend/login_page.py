@@ -47,7 +47,7 @@ async def load_login_page():
                     if st.button(label="Forgot Password ?", icon=":material/lock_reset:", use_container_width=True):
                         st.error("Invalid request")
                 if st.button(label="New User ? Sign Up", icon=":material/person_add:", use_container_width=True):
-                    st.error("Invalid request")
+                    switch_page("signup")
                 
                 with st.container(height=380, border=False):
                     st.image(image="frontend/images/login_pic.png", width=380)
