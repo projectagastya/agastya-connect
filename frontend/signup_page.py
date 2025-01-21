@@ -33,7 +33,7 @@ async def load_signup_page():
     confirm_password = st.text_input("Confirm Password", placeholder="Re-enter your password", type="password")
     users = await load_user_data()
 
-    if st.button(label="Submit", type="primary"):
+    if st.button(label="Submit", type="primary", icon=":material/check_circle:", use_container_width=True):
         if not (first_name and last_name and email and phone and username and password):
             st.error(body="All fields are required.")
         elif await is_username_taken(username, users):
