@@ -1,50 +1,9 @@
 import streamlit as st
 
-from frontend.api_calls import get_api_response
 from dotenv import load_dotenv
-from frontend.all_utils import add_aligned_text, handle_end_chat_confirmation, end_chat_session, generate_questions_with_openai
+from frontend.all_utils import handle_end_chat_confirmation, handle_user_input, render_chat_history, render_chat_subheader, render_sidebar_buttons, display_predefined_questions
 
 load_dotenv()
-
-async def render_chat_subheader(student_name):
-    add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=40, bold=True)
-
-async def render_chat_history(chat_history):
-    for message in chat_history:
-        with st.chat_message(name=message["role"], avatar=message["avatar"]):
-            st.markdown(body=message["content"])
-
-async def display_predefined_questions(current_chat_session, student_name, student_avatar):
-    with st.sidebar:
-        st.markdown(body="---")
-        add_aligned_text(content="You may also ask me:", alignment="center", size=24, bold=True)
-        add_aligned_text(content="<br>", alignment="center")
-
-    for question in current_chat_session["next_questions"]:
-        if st.sidebar.button(question, icon=":material/forum:", use_container_width=True):
-            await handle_user_input(user_input=question, current_chat_session=current_chat_session, student_name=student_name, student_avatar=student_avatar)
-            st.rerun()
-
-async def render_sidebar_buttons(current_chat_session, buttons_config):
-    for button in buttons_config:
-        if st.sidebar.button(label=button["label"], icon=button["icon"], use_container_width=True, type=button["type"]):
-            current_chat_session["confirm_end_chat"] = button["action"]
-            end_chat_session(chat_session_id=current_chat_session["chat_session_id"])
-            st.rerun()
-
-async def handle_user_input(user_input, current_chat_session, student_name, student_avatar):
-    with st.chat_message(name="user", avatar="user"):
-        st.markdown(body=user_input)
-
-    spinner_message = f"{student_name} is typing..."
-    with st.spinner(spinner_message):
-        response = get_api_response(question=user_input, chat_session_id=current_chat_session["chat_session_id"])
-        current_chat_session["chat_history"].append({"role": "user", "content": user_input, "avatar": "user"})
-        current_chat_session["chat_history"].append({"role": "assistant", "content": response.get('answer', 'Unexpected error. Please contact support'), "avatar": student_avatar})
-
-        chat_history = current_chat_session["chat_history"]
-        generated_questions = await generate_questions_with_openai(chat_history=chat_history, num_questions=4)
-        current_chat_session["next_questions"] = generated_questions
 
 async def load_chat_page():
     if not st.session_state["login_sessions"]["chat_sessions"]:

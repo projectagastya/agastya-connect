@@ -45,11 +45,13 @@ async def load_login_page():
                                 "active_chat_session": None
                             }
                             switch_page(page_name="main")
+                        elif not (username and password):
+                            st.error(body="Missing credentials.")
                         else:
                             st.error(body="Invalid credentials.")
                 with subcols[1]:
                     if st.button(label="Forgot Password ?", icon=":material/lock_reset:", use_container_width=True):
-                        st.error("Invalid request")
+                        switch_page("password_reset")
                 if st.button(label="New User ? Sign Up", icon=":material/person_add:", use_container_width=True):
                     switch_page("signup")
                 

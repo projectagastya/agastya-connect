@@ -3,24 +3,8 @@ import bcrypt
 import json
 import os
 
-from frontend.all_utils import add_aligned_text, switch_page
+from frontend.all_utils import add_aligned_text, is_username_taken, load_user_data, save_user_data, switch_page
 from time import sleep
-
-USER_DATA_FILE = "./backend/users.json"
-os.makedirs(os.path.dirname(USER_DATA_FILE), exist_ok=True)
-
-async def load_user_data():
-    if os.path.exists(USER_DATA_FILE):
-        with open(USER_DATA_FILE, "r") as file:
-            return json.load(file)
-    return []
-
-async def save_user_data(users):
-    with open(USER_DATA_FILE, "w") as file:
-        json.dump(users, file, indent=4)
-
-async def is_username_taken(username, users):
-    return any(user["username"] == username for user in users)
 
 async def load_signup_page():
     if st.sidebar.button(label="Back to Login page", icon=":material/arrow_back:", type="primary", use_container_width=True):
