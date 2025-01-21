@@ -4,6 +4,7 @@ import streamlit as st
 from frontend.add_student_page import load_add_student_page
 from frontend.chat_page import load_chat_page
 from frontend.choice_page import load_choice_page
+from frontend.edit_profile import load_edit_profile_page
 from frontend.login_page import load_login_page
 from frontend.main_page import load_main_page
 from frontend.previous_chats_page import load_previous_chats_page
@@ -14,6 +15,7 @@ all_pages = {
     "login": load_login_page,
     "signup": load_signup_page,
     "main": load_main_page,
+    "edit_profile": load_edit_profile_page,
     "previous_chats": load_previous_chats_page,
     "password_reset": load_password_reset_page,
     "choice": load_choice_page,

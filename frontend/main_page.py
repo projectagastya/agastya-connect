@@ -27,7 +27,7 @@ async def load_main_page():
         st.markdown("<br>", unsafe_allow_html=True)
 
         if st.button(label="Edit Profile", icon=":material/edit:", use_container_width=True):
-            st.write("Edit button clicked")
+            switch_page(page_name="edit_profile")
 
         if st.button(label="Previous chats", icon=":material/history:", type="primary", use_container_width=True):
             switch_page(page_name="previous_chats")
