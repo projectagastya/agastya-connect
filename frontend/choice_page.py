@@ -23,10 +23,10 @@ async def load_choice_page():
     rows = [students[i:i + 4] for i in range(0, len(students), 4)]
 
     for row in rows:
-        cols = st.columns(spec=[4,1,4,1,4,1,4,1], gap="small")
+        cols = st.columns(spec=[4,1.5,4,1.5,4,1.5,4,1.5], gap="small")
         for idx, student in enumerate(row):
             with cols[2*idx]:
-                add_aligned_text(content=student["name"], alignment="center", size = 24, bold=True)
+                add_aligned_text(content=student["name"], alignment="center", size = 22, bold=True)
                 st.image(image=student["image"], use_container_width=True)
                 if st.button(label=f"Start chat", key=f"chat_with_{student['name']}", icon=":material/arrow_outward:", type="primary", use_container_width=True):
                     progress_text=f"Loading chat session with {student['name']}..."
@@ -35,9 +35,9 @@ async def load_choice_page():
                     for percent in range(100):
                         progress_bar.progress(percent + 1, text=f"{progress_text} ({percent + 1}%)")
                         sleep(0.05)
-                    switch_page("chat")
+                    switch_page(page_name="chat")
 
-                with st.popover(label="View details", icon=":material/info:", use_container_width=True):
+                with st.popover(label="View Details", icon=":material/info:", use_container_width=True):
                     st.write(f"**Name:** {student['name']}")
                     st.write(f"**Age:** {student['age']}")
                     st.write(f"**Sex:** {student['sex']}")
