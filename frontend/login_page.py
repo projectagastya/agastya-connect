@@ -24,6 +24,10 @@ async def load_login_page():
 
         with col2:
             with st.container(border=False):
+                if st.session_state.get("user_just_created")==True:
+                    st.success("Account created successfully! You can now log in with your username and password.")
+                    st.session_state["user_just_created"] = False
+                    
                 add_aligned_text(content="User Login", size=39, alignment="center", bold=True)
                 username = st.text_input(label="Username", placeholder="Enter your username", type="default")
                 password = st.text_input(label="Password", placeholder="Enter your password", type="password")
