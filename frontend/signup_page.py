@@ -1,7 +1,5 @@
 import streamlit as st
 import bcrypt
-import json
-import os
 
 from frontend.all_utils import add_aligned_text, is_username_taken, load_user_data, save_user_data, switch_page
 from time import sleep
@@ -10,6 +8,21 @@ async def load_signup_page():
     if st.sidebar.button(label="Back to Login page", icon=":material/arrow_back:", type="primary", use_container_width=True):
         switch_page(page_name="login")
     
+    if not "account_creation_state" in st.session_state:
+        st.session_state["account_creation_state"] = None
+    if not "user_just_created" in st.session_state:
+        st.session_state["user_just_created"] = None
+
+    if st.session_state["account_creation_state"] == "creating":
+        with st.spinner("Creating account..."):
+            sleep(2)
+            st.session_state["user_just_created"] = True
+        with st.spinner("Redirecting to login page..."):
+            sleep(2)
+            st.session_state["account_creation_state"] = None
+        switch_page(page_name="login")
+        return
+
     add_aligned_text(content="Sign Up", alignment="center", size=30, bold=True)
     first_name = st.text_input("First Name", placeholder="Enter your first name")
     last_name = st.text_input("Last Name", placeholder="Enter your last name")
@@ -38,8 +51,6 @@ async def load_signup_page():
                 "password": hashed_password
             }
             users.append(new_user)
-            with st.spinner(text="Creating account..."):
-                await save_user_data(users=users)
-                st.session_state["user_just_created"] = True
-                sleep(2)
-                switch_page(page_name="login")
+            await save_user_data(users=users)
+            st.session_state["account_creation_state"] = "creating"
+            st.rerun()

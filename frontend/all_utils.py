@@ -1,4 +1,5 @@
 import ast
+import bcrypt
 import json
 import os
 import re
@@ -6,26 +7,26 @@ import streamlit as st
 
 from frontend.api_calls import delete_session_document, upload_session_document, get_api_response
 from datetime import datetime
-from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 from backend.session_database import insert_chat_history
 from uuid import uuid4
 
-load_dotenv()
+USER_DATA_FILE = "backend/users.json"
+os.makedirs(os.path.dirname(USER_DATA_FILE), exist_ok=True)
 
-USER_DATA_FILE = "./backend/users.json"
-os.makedirs(os.path.dirname(USER_DATA_FILE), exist_ok=True) 
-
-def validate_credentials(username, password):
-    auth_username = os.getenv("AUTH_USERNAME")
-    auth_password = os.getenv("AUTH_PASSWORD")
-
-    st.write()
-    return username == auth_username and password == auth_password
+async def validate_credentials(username, password):
+    users = await load_user_data()
+    for user in users:
+        if user["username"] == username:
+            if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
+                return True
+            else:
+                return False
+    return False
 
 def switch_page(page_name):
-    st.session_state.current_page = page_name
+    st.session_state["current_page"] = page_name
     st.rerun()
 
 def generate_uuid():
@@ -62,7 +63,7 @@ def format_chat_history_for_openai(chat_history):
 
     return "\n".join(formatted_history)
 
-async def generate_questions_with_openai(chat_history, num_questions=4):
+async def generate_next_questions(chat_history, num_questions=4):
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3, max_tokens=800)
 
     formatted_history = format_chat_history_for_openai(chat_history=chat_history)
@@ -134,7 +135,7 @@ async def initialize_chat_session(student_profile: dict):
         ai_output=f"Hi, I'm {student_profile['name']} from Agastya International Foundation. What would you like to know about me?",
     )
 
-    initial_questions = await generate_questions_with_openai(new_chat_session["chat_history"])
+    initial_questions = await generate_next_questions(new_chat_session["chat_history"])
     new_chat_session["next_questions"] = initial_questions
     initialize_chat_history(current_chat_session=new_chat_session, student_name=student_profile["name"], student_avatar=student_profile["image"])
 
@@ -223,5 +224,5 @@ async def handle_user_input(user_input, current_chat_session, student_name, stud
         current_chat_session["chat_history"].append({"role": "assistant", "content": response.get('answer', 'Unexpected error. Please contact support'), "avatar": student_avatar})
 
         chat_history = current_chat_session["chat_history"]
-        generated_questions = await generate_questions_with_openai(chat_history=chat_history, num_questions=4)
+        generated_questions = await generate_next_questions(chat_history=chat_history, num_questions=4)
         current_chat_session["next_questions"] = generated_questions

@@ -24,8 +24,8 @@ async def load_login_page():
 
         with col2:
             with st.container(border=False):
-                if st.session_state.get("user_just_created")==True:
-                    st.success("Account created successfully! You can now log in with your username and password.")
+                if st.session_state.get("user_just_created") is True:
+                    st.success("Account created successfully! You may now log in with your username and password.")
                     st.session_state["user_just_created"] = False
                     
                 add_aligned_text(content="User Login", size=39, alignment="center", bold=True)
@@ -35,7 +35,7 @@ async def load_login_page():
                 subcols = st.columns(spec=[1, 1], gap="small")
                 with subcols[0]:
                     if st.button(label="Login", icon= ":material/login:", type="primary", use_container_width=True):
-                        if validate_credentials(username=username, password=password):
+                        if await validate_credentials(username=username, password=password):
                             st.session_state["username"] = username
                             st.session_state["login_sessions"] = {
                                 "id": generate_uuid(),
@@ -48,7 +48,7 @@ async def load_login_page():
                         elif not (username and password):
                             st.error(body="Missing credentials.")
                         else:
-                            st.error(body="Invalid credentials.")
+                            st.error(body="Invalid credentials. Please try again")
                 with subcols[1]:
                     if st.button(label="Forgot Password ?", icon=":material/lock_reset:", use_container_width=True):
                         switch_page("password_reset")

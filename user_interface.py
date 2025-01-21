@@ -25,6 +25,6 @@ st.set_page_config(page_title="Agastya Chatbot", page_icon="🏫", layout="wide"
 st.logo(image="frontend/images/logo.png", size="large", icon_image="frontend/images/logo.png", link="https://www.agastya.org/")
 
 if "current_page" not in st.session_state:
-    st.session_state.current_page = "login"
+    st.session_state["current_page"] = "login"
 
-asyncio.run(all_pages[st.session_state.current_page]())
+asyncio.run(all_pages[st.session_state["current_page"]]())
