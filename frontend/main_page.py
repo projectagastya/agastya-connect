@@ -12,13 +12,22 @@ async def load_main_page():
     st.markdown("<br>", unsafe_allow_html=True)
     add_aligned_text(content="We hope you enjoy the experience!", alignment="center", bold=True, size=20)
     st.markdown("---", unsafe_allow_html=True)
-    add_aligned_text(content="Proceed to chat with a student", alignment="center", bold=True, size=32)
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    cols = st.columns(5, gap="small")
-    with cols[2]:
-         if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
-            switch_page(page_name="choice")
+    cols = st.columns([3, 3], gap="medium")
+    with cols[0]:
+        add_aligned_text(content="Past Conversations", alignment="center", bold=True, size=32)
+        st.markdown("<br>", unsafe_allow_html=True)
+        subcols = st.columns([3,4,3])
+        with subcols[1]:
+            if st.button(label="History", icon=":material/history:", type="primary", use_container_width=True):
+                switch_page(page_name="previous_chats")
+
+    with cols[1]:
+        add_aligned_text(content="Chat with a student", alignment="center", bold=True, size=32)
+        st.markdown("<br>", unsafe_allow_html=True)
+        subcols = st.columns([3,4,3])
+        with subcols[1]:
+            if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
+                switch_page(page_name="choice")
     
     with st.sidebar:
         cols = st.columns([3.5, 7, 1], gap="small")
@@ -26,11 +35,11 @@ async def load_main_page():
         add_aligned_text(content=f"Username: {st.session_state['username']}", alignment="center", size=16)
         st.markdown("<br>", unsafe_allow_html=True)
 
-        if st.button(label="Edit Profile", icon=":material/edit:", use_container_width=True):
+        if st.button(label="Account Settings", icon=":material/settings:", use_container_width=True):
             switch_page(page_name="edit_profile")
 
-        if st.button(label="Previous chats", icon=":material/history:", type="primary", use_container_width=True):
-            switch_page(page_name="previous_chats")
+        # if st.button(label="Previous chats", icon=":material/history:", type="primary", use_container_width=True):
+        #     switch_page(page_name="previous_chats")
 
         st.markdown("---", unsafe_allow_html=True)
         st.markdown(body=f"""
