@@ -17,15 +17,15 @@ async def load_signup_page():
     if st.session_state["account_creation_state"] == "creating":
         with st.spinner("Creating account..."):
             sleep(2)
-            st.session_state["user_just_created"] = True
         with st.spinner("Redirecting to login page..."):
             sleep(2)
+            st.session_state["user_just_created"] = True
             st.session_state["account_creation_state"] = None
         switch_page(page_name="login")
         return
 
-    add_aligned_text(content="Create a New Account", alignment="center", size=30, bold=True)
-    st.markdown("---", unsafe_allow_html=True)
+    add_aligned_text(content="Create a New Account", alignment="center", size=39, bold=True)
+    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         first_name = st.text_input("First Name", placeholder="Enter your first name")

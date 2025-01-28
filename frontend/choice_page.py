@@ -10,8 +10,11 @@ async def load_choice_page():
         return
 
     with st.sidebar:
+        st.markdown("---")
         if st.button(label="Back to Main Page", icon=":material/arrow_back:", type="primary", use_container_width=True):
             switch_page("main")
+        if st.button(label="Refresh Students List", icon=":material/refresh:", type="secondary", use_container_width=True):
+            pass
 
     try:
         with open("backend/students.json", "r") as file:

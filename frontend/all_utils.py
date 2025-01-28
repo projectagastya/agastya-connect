@@ -48,9 +48,6 @@ def add_aligned_text(content, alignment="left", size=12, bold=False, italics=Fal
         styles.append("text-decoration: underline;")
     style = f"text-align: {alignment}; font-size: {rem_size}rem; " + " ".join(styles)
     st.markdown(body=f"<div style='{style}'>{content}</div>", unsafe_allow_html=True)
-    
-def add_student():
-    switch_page("add_student")
 
 def format_chat_history_for_openai(chat_history):
     formatted_history = []
@@ -197,7 +194,7 @@ async def render_chat_history(chat_history):
 
 async def display_predefined_questions(current_chat_session, student_name, student_avatar):
     with st.sidebar:
-        st.markdown(body="---")
+        st.markdown("<br>", unsafe_allow_html=True)
         add_aligned_text(content="You may also ask me:", alignment="center", size=24, bold=True)
         add_aligned_text(content="<br>", alignment="center")
 
@@ -207,6 +204,7 @@ async def display_predefined_questions(current_chat_session, student_name, stude
             st.rerun()
 
 async def render_sidebar_buttons(current_chat_session, buttons_config):
+    st.sidebar.markdown("---")
     for button in buttons_config:
         if st.sidebar.button(label=button["label"], icon=button["icon"], use_container_width=True, type=button["type"]):
             current_chat_session["confirm_end_chat"] = button["action"]
@@ -221,6 +219,7 @@ async def handle_user_input(user_input, current_chat_session, student_name, stud
     with st.spinner(spinner_message):
         response = get_api_response(question=user_input, chat_session_id=current_chat_session["chat_session_id"])
         current_chat_session["chat_history"].append({"role": "user", "content": user_input, "avatar": "user"})
+        print(response)
         current_chat_session["chat_history"].append({"role": "assistant", "content": response.get('answer', 'Unexpected error. Please contact support'), "avatar": student_avatar})
 
         chat_history = current_chat_session["chat_history"]

@@ -36,10 +36,7 @@ async def load_main_page():
         st.markdown("<br>", unsafe_allow_html=True)
 
         if st.button(label="Account Settings", icon=":material/settings:", use_container_width=True):
-            switch_page(page_name="edit_profile")
-
-        # if st.button(label="Previous chats", icon=":material/history:", type="primary", use_container_width=True):
-        #     switch_page(page_name="previous_chats")
+            switch_page(page_name="account_settings")
 
         st.markdown("---", unsafe_allow_html=True)
         st.markdown(body=f"""

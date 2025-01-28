@@ -5,6 +5,7 @@ from docx import Document
 
 async def load_previous_chats_page():
     with st.sidebar:
+        st.markdown("---")
         if st.button(label="Back to Main Page", use_container_width=True, icon=":material/arrow_back:", type="primary"):
             switch_page(page_name="main")
 
