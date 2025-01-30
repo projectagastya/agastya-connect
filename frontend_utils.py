@@ -1,12 +1,14 @@
 import ast
 import bcrypt
+import io
 import json
 import os
 import re
 import streamlit as st
 
-from frontend.api_calls import delete_session_document, upload_session_document, get_api_response
+from frontend_api_calls import delete_session_document, upload_session_document, get_api_response
 from datetime import datetime
+from docx import Document
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 from backend.session_database import insert_chat_history
@@ -25,17 +27,13 @@ async def validate_credentials(username, password):
                 return False
     return False
 
-def switch_page(page_name):
-    st.session_state["current_page"] = page_name
-    st.rerun()
-
 def generate_uuid():
     new_uuid = str(uuid4())
     return new_uuid
 
-def logout_and_redirect():
-    end_login_session()
-    switch_page("login")
+async def logout_and_redirect():
+    await end_login_session()
+    st.switch_page("pages/login.py")
 
 def add_aligned_text(content, alignment="left", size=12, bold=False, italics=False, underline=False):
     rem_size = size / 16
@@ -136,7 +134,7 @@ async def initialize_chat_session(student_profile: dict):
     new_chat_session["next_questions"] = initial_questions
     initialize_chat_history(current_chat_session=new_chat_session, student_name=student_profile["name"], student_avatar=student_profile["image"])
 
-def end_login_session():
+async def end_login_session():
     for key in st.session_state:
         st.session_state.pop(key, default=None)
 
@@ -147,7 +145,7 @@ async def handle_end_chat_confirmation(current_chat_session):
     with st.container():
         st.markdown(
             """
-            <div style="display: flex; justify-content: center; align-items: center; height: 100px;">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100px; flex-direction: column;">
                 <span style="color: #856404; background-color: #fff3cd; border: 1px solid #ffeeba; 
                 padding: 10px 20px; border-radius: 5px; font-size: 16px;">
                     ⚠️ Are you sure you want to end the current chat session?
@@ -164,7 +162,7 @@ async def handle_end_chat_confirmation(current_chat_session):
                 redirection_target = current_chat_session["confirm_end_chat"]
                 st.session_state['login_sessions']["active_chat_session"] = None
                 current_chat_session["confirm_end_chat"] = None
-                switch_page(redirection_target)
+                st.switch_page(page=redirection_target)
 
         with cols[2]:
             if st.button("Cancel", type="primary", use_container_width=True):
@@ -185,7 +183,7 @@ async def is_username_taken(username, users):
     return any(user["username"] == username for user in users)
 
 async def render_chat_subheader(student_name):
-    add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=40, bold=True)
+    add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=35, bold=True)
 
 async def render_chat_history(chat_history):
     for message in chat_history:
@@ -207,7 +205,7 @@ async def render_sidebar_buttons(current_chat_session, buttons_config):
     st.sidebar.markdown("---")
     for button in buttons_config:
         if st.sidebar.button(label=button["label"], icon=button["icon"], use_container_width=True, type=button["type"]):
-            current_chat_session["confirm_end_chat"] = button["action"]
+            current_chat_session["confirm_end_chat"] = button["destination"]
             end_chat_session(chat_session_id=current_chat_session["chat_session_id"])
             st.rerun()
 
@@ -219,9 +217,26 @@ async def handle_user_input(user_input, current_chat_session, student_name, stud
     with st.spinner(spinner_message):
         response = get_api_response(question=user_input, chat_session_id=current_chat_session["chat_session_id"])
         current_chat_session["chat_history"].append({"role": "user", "content": user_input, "avatar": "user"})
-        print(response)
         current_chat_session["chat_history"].append({"role": "assistant", "content": response.get('answer', 'Unexpected error. Please contact support'), "avatar": student_avatar})
 
         chat_history = current_chat_session["chat_history"]
         generated_questions = await generate_next_questions(chat_history=chat_history, num_questions=4)
         current_chat_session["next_questions"] = generated_questions
+
+def generate_word_document(chat):
+    doc = Document()
+    doc.add_heading(text=f"Chat with {chat['selected_student']['name']}", level=1)
+    
+    for msg in chat["chat_history"]:
+        role = "You" if msg["role"] == "user" else chat['selected_student']['name']
+        content = msg["content"]
+        doc.add_paragraph(text=f"{role}: {content}")
+
+    buffer = io.BytesIO()
+    doc.save(path_or_stream=buffer)
+    buffer.seek(0)
+    return buffer
+
+def toggle_chat_history(index):
+    session_key = f"show_chat_{index}"
+    st.session_state["login_sessions"][session_key] = not st.session_state["login_sessions"][session_key]

@@ -7,3 +7,9 @@ font = "serif"
 
 [server]
 runOnSave=true
+
+[runner]
+fastReruns = true
+
+[client]
+showSidebarNavigation = false
