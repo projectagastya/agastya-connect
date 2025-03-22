@@ -158,7 +158,7 @@ def end_chat_dialog(current_chat_session: dict, student_name: str):
             st.rerun()
 
 def render_chat_subheader(student_name):
-    add_aligned_text(content=f"Chat with {student_name}", alignment="center", size=35, bold=True)
+    add_aligned_text(content=f"Chat with {formatted_name(student_name)}", alignment="center", size=35, bold=True)
 
 def render_chat_history(chat_history):
     for message in chat_history:
