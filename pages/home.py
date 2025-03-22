@@ -112,22 +112,22 @@ def render_home_page():
     st.markdown("<br>", unsafe_allow_html=True)
     add_aligned_text(content="We hope you enjoy the experience!", alignment="center", size=20)
     st.markdown("---", unsafe_allow_html=True)
+    
     cols = st.columns([4, 4], gap="medium")
     with cols[0]:
-        add_aligned_text(content="Past Conversations", alignment="center", bold=True, size=32)
-        st.markdown("<br>", unsafe_allow_html=True)
-        subcols = st.columns([3,4,3])
-        with subcols[1]:
-            if st.button(label="History", icon=":material/history:", type="secondary", use_container_width=True):
-                st.switch_page(page="pages/history.py")
-
-    with cols[1]:
         add_aligned_text(content="Chat with a student", alignment="center", bold=True, size=32)
         st.markdown("<br>", unsafe_allow_html=True)
         subcols = st.columns([3,4,3])
         with subcols[1]:
             if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
                 st.switch_page(page="pages/selection.py")
+    with cols[1]:
+        add_aligned_text(content="Past Conversations", alignment="center", bold=True, size=32)
+        st.markdown("<br>", unsafe_allow_html=True)
+        subcols = st.columns([3,4,3])
+        with subcols[1]:
+            if st.button(label="History", icon=":material/history:", type="secondary", use_container_width=True):
+                st.switch_page(page="pages/history.py")
 
 if __name__ == "__main__":
     render_home_page()
