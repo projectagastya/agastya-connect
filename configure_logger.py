@@ -7,7 +7,7 @@ from logging.handlers import TimedRotatingFileHandler
 load_dotenv(dotenv_path="secrets.env")
 
 def configure_logger(name: str):
-    log_dir = os.path.join(os.getenv("LOGS_FOLDER_PATH"), f"{name}_logs")
+    log_dir = os.path.join(os.getenv("LOGS_FOLDER_PATH", "logs"), f"{name}_logs")
     os.makedirs(name=log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, f"{name}_logs.log")
     logger = getLogger(name=f"{name}_logger")
