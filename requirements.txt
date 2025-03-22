@@ -1,3 +1,4 @@
 Authlib
 langchain-google-genai
+python-dotenv
 streamlit
