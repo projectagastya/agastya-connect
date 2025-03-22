@@ -1,0 +1,11 @@
+boto3
+fastapi
+langchain
+langchain-core
+langchain-chroma
+langchain-community
+langchain-google-genai
+mariadb
+python-docx
+python-dotenv
+uvicorn
