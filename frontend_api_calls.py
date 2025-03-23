@@ -146,7 +146,7 @@ def start_chat(email: str, login_session_id: str, chat_session_id: str, student_
         frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
     return success, message, data
 
-def chat(login_session_id: str, chat_session_id: str, question: str, input_type: str) -> tuple[bool, str, str]:
+def chat(login_session_id: str, chat_session_id: str, question: str, input_type: str, instructor_name: str, student_name: str) -> tuple[bool, str, str]:
     success = False
     message = ""
     data = ""
@@ -156,7 +156,9 @@ def chat(login_session_id: str, chat_session_id: str, question: str, input_type:
             "login_session_id": login_session_id,
             "chat_session_id": chat_session_id,
             "question": question,
-            "input_type": input_type
+            "input_type": input_type,
+            "instructor_name": instructor_name,
+            "student_name": student_name
         }
         response = requests.post(f"{backend_api_url}/chat", json=payload, headers=headers)
 

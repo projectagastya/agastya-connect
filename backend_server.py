@@ -146,7 +146,6 @@ def get_student_profiles_endpoint(api_request: GetStudentProfilesRequest):
                 sex=student["sex"],
                 age=student["age"],
                 state=student["state"],
-                #image=os.path.abspath(os.path.join(os.path.dirname(__file__), student["image"]))
                 image=student["image"]
             ) for student in students
         ]
@@ -251,6 +250,8 @@ def chat_endpoint(api_request: ChatMessageRequest):
         chat_session_id = api_request.chat_session_id.strip()
         question = api_request.question.strip()
         input_type = api_request.input_type.strip()
+        student_name = formatted_name(api_request.student_name.strip())
+        instructor_name = api_request.instructor_name.strip()
 
         if login_session_id not in vectorstore_map:
             backend_logger.error(f"Login session not found for login_session_id={login_session_id}")
@@ -279,7 +280,7 @@ def chat_endpoint(api_request: ChatMessageRequest):
             backend_logger.error(f"Error in getting RAG chain for login_session_id={login_session_id}, chat_session_id={chat_session_id}: {get_rag_chain_message}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain. Please try again.")
         
-        answer = rag_chain.invoke({"input": question, "chat_history": chat_history}).get("answer", None)
+        answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "instructor_name": instructor_name, "student_name": student_name}).get("answer", None)
         if answer is None:
             backend_logger.error(f"Error in getting RAG chain answer for login_session_id={login_session_id}, chat_session_id={chat_session_id} with question: {question}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain answer. Please try again.")

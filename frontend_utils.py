@@ -166,6 +166,13 @@ def render_chat_history(chat_history):
             st.markdown(body=message["content"])
 
 async def generate_next_questions(chat_history, student_name, num_questions=4):
+    if hasattr(st.experimental_user, "given_name") and hasattr(st.experimental_user, "family_name"):
+        user_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
+    else:
+        frontend_logger.error("generate_next_questions | User first name or last name not found in st.experimental_user")
+        st.warning("Unexpected internal error has occured. Please contact support")
+        st.stop()
+
     if hasattr(st.secrets, "LLM") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_ID") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_TEMPERATURE") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_MAX_TOKENS") and hasattr(st.secrets.LLM, "API_KEY"):
         llm = ChatGoogleGenerativeAI(
             model=st.secrets.LLM.QUESTIONS_GENERATION_MODEL_ID, 
@@ -181,22 +188,15 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     formatted_history = []
     for message in chat_history:
         if message.get('role') == 'user':
-            formatted_message = f"Instructor: {message.get('content', '')}"
+            formatted_message = f"{user_full_name}: {message.get('content', '')}"
         elif message.get('role') == 'assistant':
-            formatted_message = f"Student: {message.get('content', '')}"
+            formatted_message = f"{formatted_name(student_name)}: {message.get('content', '')}"
         formatted_history.append(formatted_message)
     formatted_history = "\n".join(formatted_history)
 
-    if hasattr(st.experimental_user, "given_name") and hasattr(st.experimental_user, "family_name"):
-        instructor_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
-    else:
-        frontend_logger.error("generate_next_questions | User first name or last name not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
-        st.stop()
-
     generate_next_questions_prompt = st.secrets.SYSTEM_PROMPTS.GENERATE_NEXT_QUESTIONS.format(
-        instructor=instructor_full_name,
-        student=student_name,
+        instructor=user_full_name,
+        student=formatted_name(student_name),
         formatted_history=formatted_history
     )
     response = await llm.ainvoke(generate_next_questions_prompt)
@@ -240,6 +240,13 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         st.warning("Unexpected internal error has occured. Please contact support")
         st.stop()
 
+    if hasattr(st.experimental_user, "given_name") and hasattr(st.experimental_user, "family_name"):
+        user_full_name = getattr(st.experimental_user, "given_name", " ") + " " + getattr(st.experimental_user, "family_name", " ")
+    else:
+        frontend_logger.error("handle_user_input | User given_name or family_name not found in st.experimental_user")
+        st.warning("Unexpected internal error has occured. Please contact support")
+        st.stop()
+
     with st.chat_message(name="user", avatar=user_image):
         st.markdown(body=user_input)
 
@@ -249,7 +256,9 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             login_session_id=user_login_session_id,
             chat_session_id=current_chat_session["id"],
             question=user_input,
-            input_type=input_type
+            input_type=input_type,
+            instructor_name=user_full_name,
+            student_name=student_name
         )
 
         if not success:

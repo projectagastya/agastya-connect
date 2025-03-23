@@ -113,6 +113,8 @@ class ChatMessageRequest(BaseModel):
     chat_session_id: str = Field(..., min_length=1, description="Unique identifier for the chat session.")
     question: str = Field(..., min_length=1, description="The question being asked to the LLM.")
     input_type: Literal["manual", "button", "default"] = Field(..., description="The type of input being provided to the LLM.")
+    student_name: str = Field(..., min_length=1, description="The student involved in this conversation")
+    instructor_name: str = Field(..., min_length=1, description="The instructor asking the question")
 
     @field_validator("login_session_id")
     def validate_login_session_id(cls, v):
