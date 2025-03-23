@@ -13,7 +13,7 @@ from backend_config import (
 )
 from backend_prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from backend_session_database import (
-    create_chat_history_table,
+    create_chat_message_table,
     create_chat_session_table,
     create_login_session_table,
     create_main_database,
@@ -41,7 +41,7 @@ def initialize_database():
         create_student_profile_table,
         create_login_session_table,
         create_chat_session_table,
-        create_chat_history_table,
+        create_chat_message_table,
         populate_student_profile_table
     ]
     

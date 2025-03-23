@@ -169,20 +169,20 @@ def create_chat_session_table() -> Tuple[bool, str]:
         backend_logger.error(f"create_chat_session_table | {message}")
     return success, message
 
-def create_chat_history_table() -> Tuple[bool, str]:
+def create_chat_message_table() -> Tuple[bool, str]:
     success = False
     message = ""
     get_db_conn_success, get_db_conn_message, conn = get_db_connection()
     if not get_db_conn_success:
-        message = f"Error creating chat history table: {get_db_conn_message}"
-        backend_logger.error(f"create_chat_history_table | {message}")
+        message = f"Error creating chat message table: {get_db_conn_message}"
+        backend_logger.error(f"create_chat_message_table | {message}")
         return success, message
     try:
         with conn:
             with conn.cursor() as cursor:
                 cursor.execute(
                     '''
-                        CREATE TABLE IF NOT EXISTS chat_history
+                        CREATE TABLE IF NOT EXISTS chat_message
                         (
                             id SERIAL PRIMARY KEY,
                             login_session_id CHAR(64) NOT NULL,
@@ -195,11 +195,11 @@ def create_chat_history_table() -> Tuple[bool, str]:
                     '''
                 )
         success = True
-        message = "Chat history table created successfully"
-        backend_logger.info(f"create_chat_history_table | {message}")
+        message = "Chat message table created successfully"
+        backend_logger.info(f"create_chat_message_table | {message}")
     except mariadb.Error as e:
         message = f"Error creating chat history table: {e}"
-        backend_logger.error(f"create_chat_history_table | {message}")
+        backend_logger.error(f"create_chat_message_table | {message}")
     return success, message
 
 def insert_user_profile(first_name: str, last_name: str, email: str ) -> Tuple[bool, str, bool]:
@@ -502,33 +502,33 @@ def populate_student_profile_table() -> Tuple[bool, str]:
         backend_logger.error(f"populate_student_profile_table | {message}")
     return success, message
 
-def insert_chat_history(login_session_id: str, chat_session_id: str, user_input: str, input_type: str, assistant_output: str) -> Tuple[bool, str]:
+def insert_chat_message(login_session_id: str, chat_session_id: str, user_input: str, input_type: str, assistant_output: str) -> Tuple[bool, str]:
     success = False
     message = ""
 
     valid_input_types = ['manual', 'button', 'default']
     if input_type not in valid_input_types:
         message = f"Invalid input_type: '{input_type}'. Must be one of: {', '.join(valid_input_types)}"
-        backend_logger.error(f"insert_chat_history | {message}")
+        backend_logger.error(f"insert_chat_message | {message}")
         return success, message
 
     get_db_conn_success, get_db_conn_message, conn = get_db_connection()
     if not get_db_conn_success:
-        message = f"Error inserting chat history: {get_db_conn_message}"
-        backend_logger.error(f"insert_chat_history | {message}")
+        message = f"Error inserting chat message: {get_db_conn_message}"
+        backend_logger.error(f"insert_chat_message | {message}")
         return success, message
     try:
         with conn.cursor() as cursor:
             cursor.execute(
                 '''
-                    INSERT INTO chat_history (login_session_id, chat_session_id, role, message, input_type)
+                    INSERT INTO chat_message (login_session_id, chat_session_id, role, message, input_type)
                     VALUES (%s, %s, 'user', %s, %s)
                 ''',
                 (login_session_id, chat_session_id, user_input, input_type)
             )
             cursor.execute(
                 '''
-                    INSERT INTO chat_history (login_session_id, chat_session_id, role, message)
+                    INSERT INTO chat_message (login_session_id, chat_session_id, role, message)
                     VALUES (%s, %s, 'assistant', %s)
                 ''',
                 (login_session_id, chat_session_id, assistant_output)
@@ -536,11 +536,11 @@ def insert_chat_history(login_session_id: str, chat_session_id: str, user_input:
             conn.commit()
         success = True
         message = "Chat history inserted successfully"
-        backend_logger.info(f"insert_chat_history | {message}")
+        backend_logger.info(f"insert_chat_message | {message}")
     except mariadb.Error as e:
         conn.rollback()
         message = f"Error inserting chat history: {e}"
-        backend_logger.error(f"insert_chat_history | {message}")
+        backend_logger.error(f"insert_chat_message | {message}")
     finally:
         conn.close()
     return success, message
@@ -567,7 +567,7 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
                 cursor.execute(
                     '''
                         SELECT role, message
-                        FROM chat_history
+                        FROM chat_message
                         WHERE login_session_id = %s AND chat_session_id = %s
                         ORDER BY created_at
                     ''',

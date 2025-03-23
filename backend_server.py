@@ -30,7 +30,7 @@ from backend_session_database import (
     get_chat_history,
     get_student_profiles,
     get_user_profile,
-    insert_chat_history,
+    insert_chat_message,
     insert_user_profile
 )
 from backend_utils import (
@@ -217,15 +217,15 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         first_user_message = f"Hi {formatted_name(student_name=student_name).split()[0]}, I'm {profile['first_name']} {profile['last_name']} and I'm your instructor. I would like to chat with you."
         first_assistant_message = f"Hi {profile['first_name']} {profile['last_name']}, I'm {formatted_name(student_name=student_name).split()[0]} from Agastya International Foundation. What would you like to know about me?"
     
-        insert_chat_history_success, insert_chat_history_message = insert_chat_history(
+        insert_chat_message_success, insert_chat_message_message = insert_chat_message(
             login_session_id=login_session_id,
             chat_session_id=chat_session_id,
             user_input=first_user_message,
             input_type="default",
             assistant_output=first_assistant_message
         )
-        if not insert_chat_history_success:
-            backend_logger.error(f"Error inserting chat history: {insert_chat_history_message}")
+        if not insert_chat_message_success:
+            backend_logger.error(f"Error inserting chat history: {insert_chat_message_message}")
             raise HTTPException(status_code=500, detail="Unexpected error. Please try again.")
         backend_logger.info(f"First message inserted for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
 
@@ -285,9 +285,9 @@ def chat_endpoint(api_request: ChatMessageRequest):
             backend_logger.error(f"Error in getting RAG chain answer for login_session_id={login_session_id}, chat_session_id={chat_session_id} with question: {question}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain answer. Please try again.")
         
-        insert_chat_history_success, insert_chat_history_message = insert_chat_history(login_session_id=login_session_id, chat_session_id=chat_session_id, user_input=question, input_type=input_type, assistant_output=answer)
-        if not insert_chat_history_success:
-            backend_logger.error(f"Failed to insert chat history for login_session_id={login_session_id}, chat_session_id={chat_session_id}: {insert_chat_history_message}")
+        insert_chat_message_success, insert_chat_message_message = insert_chat_message(login_session_id=login_session_id, chat_session_id=chat_session_id, user_input=question, input_type=input_type, assistant_output=answer)
+        if not insert_chat_message_success:
+            backend_logger.error(f"Failed to insert chat history for login_session_id={login_session_id}, chat_session_id={chat_session_id}: {insert_chat_message_message}")
             raise HTTPException(status_code=500, detail="Failed to insert chat history. Please try again.")
 
         backend_logger.info(f"Chat history inserted for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
