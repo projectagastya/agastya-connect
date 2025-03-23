@@ -87,6 +87,8 @@ async def initialize_chat_session(student_choice: dict):
     st.session_state["active_chat_session"]["student_profile"] = student_choice
 
     start_chat_success, start_chat_message, first_message = start_chat(
+        user_first_name=getattr(st.experimental_user, "given_name"),
+        user_last_name=getattr(st.experimental_user, "family_name"),
         email=email,
         student_name=student_name,
         login_session_id=login_session_id,
@@ -112,6 +114,8 @@ def cleanup_chat_session(email, chat_session_id, student_name):
         st.stop()
 
     success, message = end_chat(
+        user_first_name=getattr(st.experimental_user, "given_name"),
+        user_last_name=getattr(st.experimental_user, "family_name"),
         email=email,
         login_session_id=user_login_session_id,
         chat_session_id=chat_session_id,

@@ -18,10 +18,6 @@ from backend_pydantic_models import (
     EndChatResponse,
     GetStudentProfilesRequest,
     GetStudentProfilesResponse,
-    GetUserProfileRequest,
-    GetUserProfileResponse,
-    InsertUserProfileRequest,
-    InsertUserProfileResponse,
     StartEndChatRequest,
     StartChatResponse,
     StudentProfileSchema,
@@ -29,9 +25,7 @@ from backend_pydantic_models import (
 from backend_session_database import (
     get_chat_history,
     get_student_profiles,
-    get_user_profile,
-    insert_chat_message,
-    insert_user_profile
+    insert_chat_message
 )
 from backend_utils import (
     formatted_name,
@@ -73,62 +67,6 @@ def health_endpoint():
         backend_logger.error(f"Health check error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to check API health. Please try again.")
 
-@app.post("/insert-user-profile", summary="Insert user profile", response_model=InsertUserProfileResponse, dependencies=[Depends(get_api_key)])
-def insert_user_profile_endpoint(api_request: InsertUserProfileRequest):
-    try:
-        email = api_request.email.strip()
-        first_name = api_request.first_name.strip()
-        last_name = api_request.last_name.strip()
-
-        insert_user_profile_success, insert_user_profile_message, insert_user_profile_result = insert_user_profile(email=email, first_name=first_name, last_name=last_name)
-        if not insert_user_profile_success:
-            backend_logger.error(f"Database error in inserting user profile for email: {email}: {insert_user_profile_message}")
-            raise HTTPException(status_code=500, detail="Failed to insert user profile. Please try again.")
-        if not insert_user_profile_result:
-            backend_logger.error(f"User profile already exists for email: {email}")
-            raise HTTPException(status_code=400, detail="User profile already exists. Please try again.")
-        
-        backend_logger.info(f"User profile inserted for email={email}")
-        return InsertUserProfileResponse(
-            success=insert_user_profile_success,
-            message=insert_user_profile_message,
-            result=insert_user_profile_result,
-            timestamp=datetime.now().isoformat()
-        )
-    except HTTPException as http_e:
-        backend_logger.error(f"HTTP exception in inserting user profile for email: {email}: {http_e}")
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"Insert user profile endpoint error for email: {email}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to insert user profile for email: {email}. Please try again.")
-
-@app.post("/get-user-profile", summary="Get user profile", response_model=GetUserProfileResponse, dependencies=[Depends(get_api_key)])
-def get_user_profile_endpoint(api_request: GetUserProfileRequest):
-    try:
-        email = api_request.email.strip()
-        get_user_profile_success, get_user_profile_message, get_user_profile_result, profile = get_user_profile(email=email)
-        if not get_user_profile_success:
-            backend_logger.error(f"Database error in getting user profile for email: {email}: {get_user_profile_message}")
-            raise HTTPException(status_code=500, detail="Failed to retrieve user profile. Please try again.")
-        if not get_user_profile_result:
-            backend_logger.error(f"User profile not found for email: {email}")
-            raise HTTPException(status_code=404, detail="User profile not found. Please try again.")
-        
-        backend_logger.info(f"User profile retrieved for email={email}: {profile}")
-        return GetUserProfileResponse(
-            success=get_user_profile_success,
-            message=get_user_profile_message,
-            result=get_user_profile_result,
-            data=profile,
-            timestamp=datetime.now().isoformat()
-        )
-    except HTTPException as http_e:
-        backend_logger.error(f"HTTP exception in getting user profile for email: {email}: {http_e}")
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"Get user profile endpoint error for email: {email}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve user profile for email: {email}. Please try again.")
-
 @app.post("/get-student-profiles", summary="Get student profiles", response_model=GetStudentProfilesResponse, dependencies=[Depends(get_api_key)])
 def get_student_profiles_endpoint(api_request: GetStudentProfilesRequest):
     try:
@@ -168,21 +106,14 @@ def get_student_profiles_endpoint(api_request: GetStudentProfilesRequest):
 @app.post("/start-chat", summary="Initialize chat session with vectorstore", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
 def start_chat_endpoint(api_request: StartEndChatRequest):
     try:
+        user_first_name = api_request.user_first_name.strip()
+        user_last_name = api_request.user_last_name.strip()
         email = api_request.email.strip()
         login_session_id = api_request.login_session_id.strip()
         chat_session_id = api_request.chat_session_id.strip()
         student_name = api_request.student_name.strip()
-
-        get_user_profile_success, get_user_profile_message, get_user_profile_result, profile = get_user_profile(email=email)
-        if not get_user_profile_success:
-            backend_logger.error(f"Database error in getting user profile for email: {email}: {get_user_profile_message}")
-            raise HTTPException(status_code=500, detail="Failed to get user profile. Please try again.")
-        if not get_user_profile_result:
-            backend_logger.error(f"User profile not found for email: {email}")
-            raise HTTPException(status_code=404, detail="User profile not found. Please try again.")
-
-        backend_logger.info(f"User profile retrieved for email={email}: {profile}")
-
+        user_full_name = f"{user_first_name} {user_last_name}"
+        
         if login_session_id in vectorstore_map:
             if chat_session_id in vectorstore_map[login_session_id]:
                 backend_logger.info(f"Chat session already exists for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
@@ -214,8 +145,8 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         vectorstore_map[login_session_id][chat_session_id] = rag_vectorstore
         backend_logger.info(f"Initialized chat session vectorstore for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
 
-        first_user_message = f"Hi {formatted_name(student_name=student_name).split()[0]}, I'm {profile['first_name']} {profile['last_name']} and I'm your instructor. I would like to chat with you."
-        first_assistant_message = f"Hi {profile['first_name']} {profile['last_name']}, I'm {formatted_name(student_name=student_name).split()[0]} from Agastya International Foundation. What would you like to know about me?"
+        first_user_message = f"Hi {formatted_name(student_name=student_name).split()[0]}, I'm {user_full_name}, your instructor. I would like to chat with you."
+        first_assistant_message = f"Hi {user_full_name}, I'm {formatted_name(student_name=student_name).split()[0]} from Agastya International Foundation. What would you like to know about me?"
     
         insert_chat_message_success, insert_chat_message_message = insert_chat_message(
             login_session_id=login_session_id,

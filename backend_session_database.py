@@ -43,68 +43,6 @@ def get_db_connection() -> Tuple[bool, str, Optional[mariadb.Connection]]:
         backend_logger.error(f"get_db_connection | {message}")
         return success, message, conn
 
-def create_user_profile_table() -> Tuple[bool, str]:
-    success = False
-    message = ""
-    get_db_conn_success, get_db_conn_message, conn = get_db_connection()
-    if not get_db_conn_success:
-        message = f"Error creating user profile table: {get_db_conn_message}"
-        backend_logger.error(f"create_user_profile_table | {message}")
-        return success, message
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    '''
-                        CREATE TABLE IF NOT EXISTS user_profile
-                        (
-                            id SERIAL PRIMARY KEY,
-                            first_name VARCHAR(100) NOT NULL,
-                            last_name VARCHAR(100) NOT NULL,
-                            email VARCHAR(255) UNIQUE NOT NULL,
-                            last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                        )
-                    '''
-                )
-        success = True
-        message = "User profile table created successfully"
-        backend_logger.info(f"create_user_profile_table | {message}")
-    except mariadb.Error as e:
-        message = f"Error creating user profile table: {e}"
-        backend_logger.error(f"create_user_profile_table | {message}")
-    return success, message
-
-def create_login_session_table() -> Tuple[bool, str]:
-    success = False
-    message = ""
-    get_db_conn_success, get_db_conn_message, conn = get_db_connection()
-    if not get_db_conn_success:
-        message = f"Error creating login session table: {get_db_conn_message}"
-        backend_logger.error(f"create_login_session_table | {message}")
-        return success, message
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    '''
-                        CREATE TABLE IF NOT EXISTS login_session
-                        (
-                            id CHAR(64) PRIMARY KEY,
-                            email VARCHAR(255) NOT NULL,
-                            login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            logout_time TIMESTAMP DEFAULT NULL,
-                            status ENUM('active','ended') DEFAULT NULL
-                        )
-                    '''
-                )
-        success = True
-        message = "Login session table created successfully"
-        backend_logger.info(f"create_login_session_table | {message}")
-    except mariadb.Error as e:
-        message = f"Error creating login session table: {e}"
-        backend_logger.error(f"create_login_session_table | {message}")
-    return success, message
-    
 def create_student_profile_table() -> Tuple[bool, str]:
     success = False
     message = ""
@@ -135,38 +73,6 @@ def create_student_profile_table() -> Tuple[bool, str]:
     except mariadb.Error as e:
         message = f"Error creating student profile table: {e}"
         backend_logger.error(f"create_student_profile_table | {message}")
-    return success, message
-    
-def create_chat_session_table() -> Tuple[bool, str]:
-    success = False
-    message = ""
-    get_db_conn_success, get_db_conn_message, conn = get_db_connection()
-    if not get_db_conn_success:
-        message = f"Error creating chat session table: {get_db_conn_message}"
-        backend_logger.error(f"create_chat_session_table | {message}")
-        return success, message
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    '''
-                        CREATE TABLE IF NOT EXISTS chat_session
-                        (
-                            id CHAR(64) PRIMARY KEY NOT NULL,
-                            login_session_id CHAR(64) NOT NULL,
-                            student_name VARCHAR(100) NOT NULL,
-                            start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            end_time TIMESTAMP DEFAULT NULL,
-                            status ENUM('active','ended') DEFAULT NULL
-                        )
-                    '''
-                )
-        success = True
-        message = "Chat session table created successfully"
-        backend_logger.info(f"create_chat_session_table | {message}")
-    except mariadb.Error as e:
-        message = f"Error creating chat session table: {e}"
-        backend_logger.error(f"create_chat_session_table | {message}")
     return success, message
 
 def create_chat_message_table() -> Tuple[bool, str]:
@@ -201,89 +107,6 @@ def create_chat_message_table() -> Tuple[bool, str]:
         message = f"Error creating chat history table: {e}"
         backend_logger.error(f"create_chat_message_table | {message}")
     return success, message
-
-def insert_user_profile(first_name: str, last_name: str, email: str ) -> Tuple[bool, str, bool]:
-    success = False
-    message = ""
-    result = False
-
-    get_db_conn_success, get_db_conn_message, conn = get_db_connection()
-    if not get_db_conn_success:
-        message = f"Error inserting user profile: {get_db_conn_message}"
-        backend_logger.error(f"insert_user_profile | {message}")
-        return success, message, result
-    
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute(
-                '''
-                INSERT INTO user_profile (first_name, last_name, email)
-                VALUES (%s, %s, %s)
-                ''',
-                (first_name, last_name, email)
-            )
-            conn.commit()
-            if cursor.lastrowid:
-                success = True
-                message = f"User profile {first_name} {last_name} inserted successfully"
-                result = True
-                backend_logger.info(f"insert_user_profile | {message}")
-            else:
-                success = False
-                message = f"Error inserting user profile: {first_name} {last_name}"
-                backend_logger.error(f"insert_user_profile | {message}")
-    except mariadb.IntegrityError as e:
-        conn.rollback()
-        if e.errno == 1062 and "email" in str(e):
-            success = True
-            message = f"User profile for {email} already exists"
-            backend_logger.info(f"insert_user_profile | {message}")
-    except mariadb.Error as e:
-        conn.rollback()
-        message = f"Error inserting user profile: {first_name} {last_name}: {e}"
-        backend_logger.error(f"insert_user_profile | {message}")
-    return success, message, result
-
-def get_user_profile(email: str) -> Tuple[bool, str, Optional[bool], dict]:
-    success = False
-    message = ""
-    result = False
-    data = {}
-
-    get_db_conn_success, get_db_conn_message, conn = get_db_connection()
-    if not get_db_conn_success:
-        message = f"Error getting user profile for email: {email}: {get_db_conn_message}"
-        backend_logger.error(f"get_user_profile | {message}")
-        return success, message, result, data
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    '''
-                        SELECT first_name, last_name, email, last_login FROM user_profile WHERE email = %s
-                    ''',
-                    (email,)
-                )
-                fetch_result = cursor.fetchone()
-                if fetch_result:
-                    success = True
-                    message = f"User profile found for email: {email}"
-                    result = True
-                    data = {
-                        "first_name": fetch_result[0],
-                        "last_name": fetch_result[1],
-                        "email": fetch_result[2],
-                        "last_login": fetch_result[3]
-                    }
-                    backend_logger.info(f"get_user_profile | {message}")
-                else:
-                    success = True
-                    message = f"User profile not found for email: {email}"
-                    backend_logger.info(f"get_user_profile | {message}")
-    except mariadb.Error as e:
-        message = f"Error getting user profile for email: {email}: {e}"
-        backend_logger.error(f"get_user_profile | {message}")
-    return success, message, result, data
 
 def get_single_student_profile(name: str) -> Tuple[bool, str, Optional[bool], dict]:
     success = False

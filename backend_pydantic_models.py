@@ -72,11 +72,25 @@ class GetStudentProfilesResponse(BaseModel):
     timestamp: str | None = Field(None, description="Timestamp of the student profiles retrieval.")
 
 class StartEndChatRequest(BaseModel):
+    user_first_name: str = Field(..., min_length=1, description="First name of the instructor.")
+    user_last_name: str = Field(..., min_length=1, description="Last name of the instructor.")
     email: str = Field(..., min_length=1, description="Email of the user to initialize the chat session for.")
     login_session_id: str = Field(..., min_length=1, description="Login session ID for which the chat session needs to be initialized.")
     chat_session_id: str = Field(..., min_length=1, description="Chat session ID for which the vectorstore needs to be initialized.")
     student_name: str = Field(..., min_length=1, description="Name of the student to initialize the chat session for.")
 
+    @field_validator("user_first_name")
+    def validate_user_first_name(cls, v):
+        if not v.strip():
+            raise ValueError("First name cannot be a blank string")
+        return v
+    
+    @field_validator("user_last_name")
+    def validate_user_last_name(cls, v):
+        if not v.strip():
+            raise ValueError("Last name cannot be a blank string")
+        return v
+    
     @field_validator("email")
     def validate_email(cls, v):
         if not v.strip():

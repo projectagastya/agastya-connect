@@ -1,10 +1,6 @@
 import streamlit as st
 
 from configure_logger import frontend_logger
-from frontend_api_calls import (
-    get_user_profile,
-    insert_user_profile
-)
 from frontend_utils import (
     add_aligned_text,
     reset_session_state,
@@ -45,30 +41,6 @@ def render_home_page():
     
     if len(st.session_state) == 0:
         reset_session_state()
-
-    if "user_profile" not in st.session_state:
-        get_user_profile_success, get_user_profile_message, get_user_profile_result, user_profile = get_user_profile(email=user_email)
-        if get_user_profile_success:
-            if not get_user_profile_result:
-                insert_user_profile_success, insert_user_profile_message, insert_user_profile_result = insert_user_profile(
-                    first_name=user_first_name,
-                    last_name=user_last_name,
-                    email=user_email
-                )
-                if not insert_user_profile_success or not insert_user_profile_result:
-                    st.error(insert_user_profile_message)
-                    st.stop()
-                else:
-                    get_user_profile_success, get_user_profile_message, get_user_profile_result, user_profile = get_user_profile(email=user_email)
-                    if get_user_profile_success:
-                        if get_user_profile_result:
-                            st.session_state["user_profile"] = user_profile
-                        else:
-                            st.error(get_user_profile_message)
-                            st.stop()
-                    else:
-                        st.error(get_user_profile_message)
-                        st.stop()
 
     with st.sidebar:
         add_aligned_text(content="My Profile", alignment="center", bold=True, size=30)

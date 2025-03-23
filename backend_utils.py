@@ -14,11 +14,8 @@ from backend_config import (
 from backend_prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from backend_session_database import (
     create_chat_message_table,
-    create_chat_session_table,
-    create_login_session_table,
     create_main_database,
     create_student_profile_table,
-    create_user_profile_table,
     populate_student_profile_table,
 )
 from configure_logger import backend_logger
@@ -37,10 +34,7 @@ from typing import List, Optional, Tuple
 def initialize_database():
     steps = [
         create_main_database,
-        create_user_profile_table,
         create_student_profile_table,
-        create_login_session_table,
-        create_chat_session_table,
         create_chat_message_table,
         populate_student_profile_table
     ]
