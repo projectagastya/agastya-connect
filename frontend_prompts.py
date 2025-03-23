@@ -31,7 +31,7 @@ Chat history:
 {student}: Hi {instructor}, I"m {student} from Agastya International Foundation. What would you like to know about me ?
 
 Your output:
-["Please tell me something about yourself and your interests", "How are you doing ?", "It's a pleasure to meet you. Where are you from?", "What is your favourite subject?"]
+["Great to meet you. Please tell me something about yourself and your interests", "Hi, {student}, how are you doing ?", "Pleasure to meet you. Where are you from?", "Hi {student}, what is your favourite subject?"]
 
 Example 2:
 Chat history:
