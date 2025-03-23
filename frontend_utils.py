@@ -10,6 +10,7 @@ from frontend_api_calls import (
     healthy,
     start_chat
 )
+from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from uuid import uuid4
 
@@ -194,7 +195,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
         formatted_history.append(formatted_message)
     formatted_history = "\n".join(formatted_history)
 
-    generate_next_questions_prompt = st.secrets.SYSTEM_PROMPTS.GENERATE_NEXT_QUESTIONS.format(
+    generate_next_questions_prompt = SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS.format(
         instructor=user_full_name,
         student=formatted_name(student_name),
         formatted_history=formatted_history
