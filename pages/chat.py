@@ -3,6 +3,7 @@ import streamlit as st
 
 from frontend_utils import (
     end_chat_dialog,
+    formatted_name,
     handle_user_input,
     render_chat_history,
     render_chat_subheader,
@@ -41,14 +42,10 @@ async def render_chat_page():
             student_name=student_name
         )
 
-    user_input = st.chat_input(
-        placeholder="Enter your message",
-        accept_file=True,
-        file_type=[".jpg", ".jpeg", ".png"]
-    )
+    user_input = st.chat_input(placeholder=f"Ask {formatted_name(student_name).split(' ')[0]} a question")
     await render_next_questions(next_questions=current_chat_session["next_questions"])
 
-    if user_input and user_input.text:
+    if user_input:
         await handle_user_input(
             user_input=user_input.text,
             current_chat_session=current_chat_session,
