@@ -47,7 +47,7 @@ async def render_chat_page():
 
     if user_input:
         await handle_user_input(
-            user_input=user_input.text,
+            user_input=user_input,
             current_chat_session=current_chat_session,
             student_name=student_name,
             student_avatar=student_avatar,
