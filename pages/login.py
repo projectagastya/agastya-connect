@@ -24,36 +24,86 @@ def render_login_page():
         elif st.button("Cancel", type="secondary", icon=":material/close:", use_container_width=True):
             reset_session_state()
             st.switch_page(page="pages/home.py")
-
     else:
-        add_aligned_text(content="""
-                        Welcome to Agastya International Foundation!
-                        """,
+        add_aligned_text(content="Welcome to Agastya International Foundation's Instructor Onboarding Program!",
                         alignment="center",
                         bold=True,
-                        size=40
-        )
-        add_aligned_text(content="""
-                        Our vision is to build a new world of tinkerers, creators, innovators, and solution-seekers who are humane, anchored and connected
-                        """,
+                        size=36)
+        add_aligned_text(content="The world's largest \"Creativity Laboratory\"",
                         alignment="center",
-                        bold=False,
-                        size=20
-        )
-        st.markdown("<br><br>", unsafe_allow_html=True)
+                        bold=True,
+                        italics=True,
+                        size=24)
         
-        add_aligned_text(content="""
-                        Please sign in to access your onboarding portal
-                        """,
-                        alignment="center",
-                        bold=True,
-                        size=30
-        )
-        st.markdown("<br>", unsafe_allow_html=True)
-        button_cols = st.columns([1,1,1,1,1])
-        with button_cols[2]:
-            if st.button("Sign in with Google",type="primary", use_container_width=True):
-                st.login()
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        main_cols = st.columns(spec=[1, 1, 1], gap="medium")
+        with main_cols[0]:
+            with st.container(border=True, height=300):
+                add_aligned_text(
+                    content="Our Vision",
+                    alignment="center",
+                    bold=True,
+                    size=28
+                )
+                st.markdown("<br>", unsafe_allow_html=True)
+                add_aligned_text(
+                    content="We aim to build a new world of tinkerers, creators, innovators, and solution-seekers who are humane, anchored and connected",
+                    alignment="left",
+                    bold=False,
+                    size=18
+                )
+                st.markdown("<br>", unsafe_allow_html=True)
 
+        with main_cols[1]:
+            with st.container(border=True, height=300):
+                add_aligned_text(
+                    content="Our mission",
+                    alignment="center",
+                    bold=True,
+                    size=28
+                )
+                st.markdown("<br>", unsafe_allow_html=True)
+                add_aligned_text(
+                    content="This program is designed to help new instructors understand the learning methodology at Agastya International Foundation through AI-simulated interactions with students.",
+                    alignment="left",
+                    bold=False,
+                    size=18
+                )
+
+        with main_cols[2]:
+            with st.container(border=True, height=300):
+                add_aligned_text(
+                    content="What we offer",
+                    alignment="center",
+                    bold=True,
+                    size=28
+                )
+                st.markdown("<br>", unsafe_allow_html=True)
+                add_aligned_text(
+                    content="""
+                    <ul>
+                        <li><strong>Interactive Learning</strong>: Practice conversations with AI-simulated students</li>
+                        <li><strong>Personalized Feedback</strong>: Receive guidance on your teaching approach</li>
+                        <li><strong>Real Scenarios</strong>: Encounter diverse student backgrounds and learning styles</li>
+                    </ul>
+                    """,
+                    size=18
+                )
+    
+        main_2_cols = st.columns([2, 2.5, 2])
+        with main_2_cols[1]:
+            with st.container():
+                st.markdown("---")
+                add_aligned_text(content="Please sign in to access your portal",
+                                alignment="center",
+                                bold=True,
+                                size=28)
+                st.markdown(" ", unsafe_allow_html=True)
+                button_cols = st.columns([2, 2.5, 2])
+                with button_cols[1]:
+                    if st.button("Sign in with Google", type="primary", use_container_width=True):
+                        st.login()
+                st.markdown("---")
+                
 if __name__ == "__main__":
     render_login_page()
