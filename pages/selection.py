@@ -26,7 +26,7 @@ def render_selection_page():
     success, message, students = get_student_profiles(count=8)
     if not success:
         frontend_logger.error(f"render_selection_page | Error loading student profiles from backend : {message}")
-        st.error("We're facing an unexpected internal issue. Please contact support")
+        st.error("Sorry, we're facing an unexpected issue while loading our student profiles. Please try again later.")
         st.stop()
     with cols[1]:
         add_aligned_text(content="Select a student to chat with", alignment="center", bold=True, size=35)

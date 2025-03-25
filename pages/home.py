@@ -16,25 +16,25 @@ def render_home_page():
         user_first_name = getattr(st.experimental_user, "given_name")
     else:
         frontend_logger.error("render_home_page | User first name not found in user object")
-        st.error("We're facing an unexpected internal issue. Please contact support")
+        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
         st.stop()
     if hasattr(st.experimental_user, "family_name"):
         user_last_name = getattr(st.experimental_user, "family_name")
     else:
         frontend_logger.error("render_home_page | User last name not found in user object")
-        st.error("We're facing an unexpected internal issue. Please contact support")
+        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
         st.stop()
     if hasattr(st.experimental_user, "email"):
         user_email = getattr(st.experimental_user, "email")
     else:
         frontend_logger.error("render_home_page | User email not found in user object")
-        st.error("We're facing an unexpected internal issue. Please contact support")
+        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
         st.stop()
     if hasattr(st.experimental_user, "picture"):
         user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
     else:
         frontend_logger.error("render_home_page | User image not found in user object")
-        st.error("We're facing an unexpected internal issue. Please contact support")
+        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
         st.stop()
     
     user_full_name = user_first_name + " " + user_last_name

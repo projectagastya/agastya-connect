@@ -26,10 +26,7 @@ async def render_loading_page():
         st.switch_page(page="pages/home.py")
 
     if "student_choice" not in st.session_state or st.session_state["student_choice"] is None:
-        st.error("No student selected. Please return to the selection page.")
-        if st.button("Go to Selection Page", type="primary"):
-            st.switch_page(page="pages/selection.py")
-        st.stop()
+        st.switch_page(page="pages/selection.py")
 
     if not st.session_state["loading_page"]:
         st.session_state["loading_page"] = True

@@ -65,14 +65,14 @@ async def initialize_chat_session(student_choice: dict):
         email = getattr(st.experimental_user, "email")
     else:
         frontend_logger.error("initialize_chat_session | User email not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
         st.stop()
         
     if hasattr(st.experimental_user, "nonce"):
         login_session_id = getattr(st.experimental_user, "nonce")
     else:
         frontend_logger.error("initialize_chat_session | User nonce not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
         st.stop()
     
     chat_session_id = generate_uuid()
@@ -96,7 +96,8 @@ async def initialize_chat_session(student_choice: dict):
     )
 
     if not start_chat_success:
-        st.error(start_chat_message)
+        frontend_logger.error(f"initialize_chat_session | start_chat failed with message: {start_chat_message}")
+        st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
         st.stop()
 
     st.session_state["active_chat_session"]["chat_history"].append({"role": "assistant", "content": first_message, "avatar": student_choice["image"]})
@@ -110,7 +111,7 @@ def cleanup_chat_session(email, chat_session_id, student_name):
         user_login_session_id = getattr(st.experimental_user, "nonce")
     else:
         frontend_logger.error("cleanup_chat_session | User nonce not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected issue while ending your chat session. Please try again later.")
         st.stop()
 
     success, message = end_chat(
@@ -122,7 +123,8 @@ def cleanup_chat_session(email, chat_session_id, student_name):
         student_name=student_name
     )
     if not success:
-        st.error(message)
+        frontend_logger.error(f"cleanup_chat_session | end_chat failed: {message}")
+        st.error("Sorry, we're facing an unexpected issue while ending your chat session. Please try again later.")
         st.stop()
     else:
         st.session_state["active_chat_session"] = {
@@ -139,7 +141,7 @@ def cleanup_chat_session(email, chat_session_id, student_name):
 def end_chat_dialog(current_chat_session: dict, student_name: str):
     if not hasattr(st.experimental_user, "email"):
         frontend_logger.error("end_chat_dialog | User email not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
         st.stop()
 
     user_email = getattr(st.experimental_user, "email")
@@ -175,7 +177,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
         user_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
     else:
         frontend_logger.error("generate_next_questions | User first name or last name not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
         st.stop()
 
     if hasattr(st.secrets, "LLM") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_ID") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_TEMPERATURE") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_MAX_TOKENS") and hasattr(st.secrets.LLM, "API_KEY"):
@@ -187,7 +189,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
         )
     else:
         frontend_logger.error("generate_next_questions | LLM secrets not found in st.secrets")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
         st.stop()
 
     formatted_history = []
@@ -235,21 +237,21 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         user_image = getattr(st.experimental_user, "picture")
     else:
         frontend_logger.error("handle_user_input | User picture not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected internal error. Please contact support")
         st.stop()
     
     if hasattr(st.experimental_user, "nonce"):
         user_login_session_id = getattr(st.experimental_user, "nonce")
     else:
         frontend_logger.error("handle_user_input | User nonce not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected internal error. Please contact support")
         st.stop()
 
     if hasattr(st.experimental_user, "given_name") and hasattr(st.experimental_user, "family_name"):
         user_full_name = getattr(st.experimental_user, "given_name", " ") + " " + getattr(st.experimental_user, "family_name", " ")
     else:
         frontend_logger.error("handle_user_input | User given_name or family_name not found in st.experimental_user")
-        st.warning("Unexpected internal error has occured. Please contact support")
+        st.error("Sorry, we're facing an unexpected internal error. Please contact support")
         st.stop()
 
     with st.chat_message(name="user", avatar=user_image):
@@ -267,7 +269,8 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         )
 
         if not success:
-            st.error(message)
+            frontend_logger.error(f"handle_user_input | Getting chat response failed: {message}")
+            st.error("Sorry, we're facing an unexpected issue on our end while processing your request. Please try again later.")
             st.stop()
         
         current_chat_session["chat_history"].append({"role": "user", "content": user_input, "avatar": user_image})
@@ -298,6 +301,7 @@ def authenticated():
 
 def security_check():
     if not healthy():
+        frontend_logger.error("security_check | Health check failed")
         st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
         st.stop()
     elif not authenticated():
