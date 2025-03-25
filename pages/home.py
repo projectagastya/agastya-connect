@@ -76,25 +76,36 @@ def render_home_page():
             st.link_button("Donate", "https://www.agastya.org/donate", icon=":material/attach_money:", use_container_width=True)
 
     add_aligned_text(content=f"Hello, {user_first_name}!", alignment="center", bold=True, size=40)
-    add_aligned_text(content="Welcome to your instructor training program", alignment="center", bold=True, size=32)
-    add_aligned_text(content="At Agastya International Foundation, we empower you for a bright future through engagement with AI-driven student simulations", alignment="center", size=20)
+    add_aligned_text(content="Welcome to your instructor program", alignment="center", bold=True, size=32)
+
     st.markdown("<br>", unsafe_allow_html=True)
-    add_aligned_text(content="On the next page, you'll interact with digital avatars of students from Agastya International Foundation.", alignment="center", size=20)
-    add_aligned_text(content="You can ask questions and engage in a conversation to understand the student better.", alignment="center", size=20)
+    add_aligned_text(
+        content="""
+        At Agastya, we empower you for a bright future through engagement with AI-driven student simulations. As an instructor, you'll interact with digital avatars of students from Agastya. These AI-simulated students will provide you with real-world experiences and insights into their learning process. You can choose a student to chat with, ask questions and engage in a conversation to understand the student better.""",
+        alignment="left",
+        size=20
+    )
     st.markdown("<br>", unsafe_allow_html=True)
-    add_aligned_text(content="We hope you enjoy the experience!", alignment="center", size=20)
+    add_aligned_text(
+        content="""
+        We hope you enjoy the experience!
+        """,
+        alignment="center",
+        size=20,
+        bold=True
+    )
     st.markdown("---", unsafe_allow_html=True)
     
     cols = st.columns([4, 4], gap="medium")
     with cols[0]:
-        add_aligned_text(content="Chat with a student", alignment="center", bold=True, size=32)
+        add_aligned_text(content="Chat with a Student", alignment="center", bold=True, size=32)
         st.markdown("<br>", unsafe_allow_html=True)
         subcols = st.columns([3,4,3])
         with subcols[1]:
             if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
                 st.switch_page(page="pages/selection.py")
     with cols[1]:
-        add_aligned_text(content="Past Conversations", alignment="center", bold=True, size=32)
+        add_aligned_text(content="Previous Conversations", alignment="center", bold=True, size=32)
         st.markdown("<br>", unsafe_allow_html=True)
         subcols = st.columns([3,4,3])
         with subcols[1]:

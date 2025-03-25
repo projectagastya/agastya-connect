@@ -25,7 +25,7 @@ def render_login_page():
             reset_session_state()
             st.switch_page(page="pages/home.py")
     else:
-        add_aligned_text(content="Welcome to Agastya International Foundation's Instructor Onboarding Program!",
+        add_aligned_text(content="Welcome to Agastya International Foundation's Instructor Training Program!",
                         alignment="center",
                         bold=True,
                         size=36)
@@ -57,7 +57,7 @@ def render_login_page():
         with main_cols[1]:
             with st.container(border=True, height=300):
                 add_aligned_text(
-                    content="Our mission",
+                    content="Our Mission",
                     alignment="center",
                     bold=True,
                     size=28
