@@ -76,7 +76,7 @@ def render_home_page():
             st.link_button("Donate", "https://www.agastya.org/donate", icon=":material/attach_money:", use_container_width=True)
 
     add_aligned_text(content=f"Hello, {user_first_name}!", alignment="center", bold=True, size=40)
-    add_aligned_text(content="Welcome to your instructor program", alignment="center", bold=True, size=32)
+    add_aligned_text(content="Welcome to your training program", alignment="center", bold=True, size=32)
 
     st.markdown("<br>", unsafe_allow_html=True)
     add_aligned_text(
