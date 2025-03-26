@@ -9,6 +9,7 @@ from backend_config import (
 )
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Security, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from configure_logger import backend_logger
 
@@ -44,6 +45,14 @@ app = FastAPI(title="Agastya API", description="API for the Agastya application"
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://agastya.streamlit.app"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["X-API-Key"]
+)
+
 def get_api_key(api_key: str = Security(api_key_header)):
     if not api_key:
         backend_logger.error("API key not provided")
@@ -59,7 +68,7 @@ def get_api_key(api_key: str = Security(api_key_header)):
         )
     return api_key
 
-@app.get("/health", summary="Check API health", dependencies=[Depends(get_api_key)])
+@app.get("/health", summary="Check API health")
 def health_endpoint():
     try:
         return {"success": True, "message": "Backend is healthy", "timestamp": datetime.now().isoformat()}
