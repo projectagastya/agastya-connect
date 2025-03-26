@@ -4,6 +4,7 @@ import shutil
 from collections import defaultdict
 from backend_config import (
     BACKEND_API_KEY,
+    BACKEND_ORIGINS,
     MAX_DOCS_TO_RETRIEVE,
     TEMPORARY_VECTORSTORES_DIRECTORY,
 )
@@ -47,7 +48,7 @@ api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://agastya.streamlit.app"],
+    allow_origins=[origin for origin in BACKEND_ORIGINS],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["X-API-Key"]

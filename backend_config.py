@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path="secrets.env")
 
 BACKEND_API_KEY = os.getenv("BACKEND_API_KEY")
+BACKEND_ORIGINS = ["https://agastya.streamlit.app"]
 LOGS_FOLDER_PATH = os.getenv("LOGS_FOLDER_PATH")
 
 DB_CONFIG = {
