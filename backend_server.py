@@ -1,40 +1,39 @@
 import os
 import shutil
 
-from collections import defaultdict
 from backend_config import (
     BACKEND_API_KEY,
     BACKEND_ORIGINS,
     MAX_DOCS_TO_RETRIEVE,
     TEMPORARY_VECTORSTORES_DIRECTORY,
 )
-from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, Security, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security.api_key import APIKeyHeader
-from configure_logger import backend_logger
-
 from backend_pydantic_models import (
     ChatMessageRequest,
     ChatMessageResponse,
     EndChatResponse,
     GetStudentProfilesRequest,
     GetStudentProfilesResponse,
-    StartEndChatRequest,
     StartChatResponse,
+    StartEndChatRequest,
     StudentProfileSchema,
 )
 from backend_session_database import (
     get_chat_history,
-    get_student_profiles,
     insert_chat_message
 )
 from backend_utils import (
-    formatted_name,
     fetch_vectorstore_from_s3,
+    formatted_name,
+    get_student_profiles,
     get_rag_chain,
     load_vectorstore_from_path
 )
+from collections import defaultdict
+from configure_logger import backend_logger
+from datetime import datetime
+from fastapi import FastAPI, HTTPException, Depends, Security, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security.api_key import APIKeyHeader
 
 if BACKEND_API_KEY is None:
     backend_logger.error("BACKEND_API_KEY is not set")
