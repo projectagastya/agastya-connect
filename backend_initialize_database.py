@@ -1,4 +1,4 @@
-from backend_utils import create_student_table, initialize_sql_database, populate_student_table
+from backend_utils import create_chat_message_table, create_chat_session_table, create_student_table, populate_student_table
 from configure_logger import backend_logger
 
 def initialize_all_databases() -> tuple[bool, str]:
@@ -17,10 +17,16 @@ def initialize_all_databases() -> tuple[bool, str]:
         backend_logger.error(f"initialize_all_databases | {populate_student_table_message}")
         return success, message
     
-    initialize_sql_database_success = initialize_sql_database()
-    if not initialize_sql_database_success:
-        message = "Failed to initialize all database components"
-        backend_logger.error(message)
+    create_chat_message_table_success, create_chat_message_table_message = create_chat_message_table()
+    if not create_chat_message_table_success:
+        message = f"Failed to create chat message table: {create_chat_message_table_message}"
+        backend_logger.error(f"initialize_all_databases | {message}")
+        return success, message
+    
+    create_chat_session_table_success, create_chat_session_table_message = create_chat_session_table()
+    if not create_chat_session_table_success:
+        message = f"Failed to create chat message table: {create_chat_session_table_message}"
+        backend_logger.error(f"initialize_all_databases | {message}")
         return success, message
     
     return True, "Database initialization completed successfully"

@@ -17,15 +17,15 @@ from backend_pydantic_models import (
     StartEndChatRequest,
     StudentProfileSchema,
 )
-from backend_session_database import (
-    get_chat_history,
-    insert_chat_message
-)
 from backend_utils import (
+    end_chat_session,
     fetch_vectorstore_from_s3,
     formatted_name,
-    get_student_profiles,
+    get_chat_history,
     get_rag_chain,
+    get_student_profiles,
+    initialize_chat_session,
+    insert_chat_message,
     load_vectorstore_from_path
 )
 from collections import defaultdict
@@ -154,6 +154,19 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         vectorstore_map[login_session_id][chat_session_id] = rag_vectorstore
         backend_logger.info(f"Initialized chat session vectorstore for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
 
+        init_chat_success, init_chat_message = initialize_chat_session(
+            email=email,
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id,
+            user_first_name=user_first_name,
+            user_last_name=user_last_name,
+            student_name=student_name
+        )
+        
+        if not init_chat_success:
+            backend_logger.error(f"Error initializing chat session in DynamoDB: {init_chat_message}")
+            raise HTTPException(status_code=500, detail="Failed to initialize chat session in database. Please try again.")
+
         first_user_message = f"Hi {formatted_name(student_name=student_name).split()[0]}, I'm {user_full_name}, your instructor. I would like to chat with you."
         first_assistant_message = f"Hi {user_full_name}, I'm {formatted_name(student_name=student_name).split()[0]} from Agastya International Foundation. What would you like to know about me?"
     
@@ -248,6 +261,15 @@ def end_chat_endpoint(api_request: StartEndChatRequest):
         login_session_id = api_request.login_session_id.strip()
         chat_session_id = api_request.chat_session_id.strip()
         
+        end_chat_success, end_chat_message = end_chat_session(
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id
+        )
+        
+        if not end_chat_success:
+            backend_logger.error(f"Error ending chat session in DynamoDB: {end_chat_message}")
+            count += 1
+        
         if login_session_id in vectorstore_map:
             if chat_session_id in vectorstore_map[login_session_id]:
                 del vectorstore_map[login_session_id][chat_session_id]
@@ -268,7 +290,7 @@ def end_chat_endpoint(api_request: StartEndChatRequest):
             count += 1
             backend_logger.warning(f"Vectorstore directory {vectorstore_path} not found. It may have been already removed for login_session_id={login_session_id}, chat_session_id={chat_session_id}.")
         
-        if count == 2:
+        if count == 3:
             raise HTTPException(status_code=500, detail="Failed to end chat session. Please try again.")
         
         return EndChatResponse(

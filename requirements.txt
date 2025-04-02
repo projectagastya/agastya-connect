@@ -1,4 +1,12 @@
 Authlib
+boto3
+fastapi
+langchain
+langchain-core
+langchain-chroma
+langchain-community
 langchain-google-genai
+python-docx
 python-dotenv
 streamlit
+uvicorn

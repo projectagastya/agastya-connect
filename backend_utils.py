@@ -3,10 +3,15 @@ import json
 import os
 import random
 import shutil
+import time 
 
 from backend_config import (
     AWS_DEFAULT_REGION,
     DOCUMENT_EMBEDDING_MODEL_ID,
+    DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
+    DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
+    DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG,
+    DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG,
     DYNAMODB_STUDENT_TABLE_CONFIG,
     DYNAMODB_STUDENT_TABLE_NAME,
     MAIN_S3_BUCKET_NAME,
@@ -19,12 +24,10 @@ from backend_config import (
     TEMPORARY_VECTORSTORES_DIRECTORY,
 )
 from backend_prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
-from backend_session_database import (
-    create_chat_message_table,
-    create_main_database,
-)
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from configure_logger import backend_logger
+from datetime import datetime, timedelta
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.base import Chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -35,25 +38,12 @@ from langchain_community.document_loaders import (
     UnstructuredHTMLLoader,
 )
 from langchain_core.documents import Document
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
 from langchain_google_genai.embeddings import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from typing import Dict, List, Optional, Tuple
-
-def initialize_sql_database():
-    steps = [
-        create_main_database,
-        create_chat_message_table
-    ]
-    
-    for step in steps:
-        success, message = step()
-        if not success:
-            backend_logger.error(f"Database initialization failed at {step.__name__}: {message}")
-            return False
-    backend_logger.info("Database initialization completed successfully.")
-    return True
 
 def formatted_name(student_name: str):
     return student_name.replace('-', ' ').title()
@@ -448,6 +438,247 @@ def populate_student_table() -> Tuple[bool, str]:
     success = True
     message = f"Student table populated successfully from S3 with {len(students)} student profiles"
     backend_logger.info(f"populate_student_table | Completed populating {len(students)} profiles: {success_count} new inserts, {already_exists_count} already existed, {error_count} errors")
+    
+    return success, message
+
+def create_chat_message_table() -> Tuple[bool, str]:
+    success = False
+    message = ""
+    
+    try:
+        dynamodb = get_dynamodb_resource()
+        chat_messages_table = dynamodb.create_table(**DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG)
+        chat_messages_table.meta.client.get_waiter('table_exists').wait(TableName=DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
+        
+        success = True
+        message = "Chat message table created successfully"
+        backend_logger.info(f"create_chat_message_table | {message}")
+    except boto3.exceptions.botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceInUseException':
+            success = True
+            message = "Chat message table already exists"
+            backend_logger.info(f"create_chat_message_table | {message}")
+        else:
+            message = f"Error creating chat message table: {e}"
+            backend_logger.error(f"create_chat_message_table | {message}")
+    except Exception as e:
+        message = f"Unexpected error creating chat message table: {e}"
+        backend_logger.error(f"create_chat_message_table | {message}")
+    
+    return success, message
+
+def create_chat_session_table() -> Tuple[bool, str]:
+    success = False
+    message = ""
+    
+    try:
+        dynamodb = get_dynamodb_resource()
+        
+        chat_sessions_table = dynamodb.create_table(**DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG)
+        chat_sessions_table.meta.client.get_waiter('table_exists').wait(TableName=DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+
+        success = True
+        message = "Chat session table created successfully"
+        backend_logger.info(f"create_chat_session_table | {message}")
+    except boto3.exceptions.botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceInUseException':
+            success = True
+            message = "Chat session table already exists"
+            backend_logger.info(f"create_chat_session_table | {message}")
+        else:
+            message = f"Error creating chat session table: {e}"
+            backend_logger.error(f"create_chat_session_table | {message}")
+    except Exception as e:
+        message = f"Unexpected error creating chat session table: {e}"
+        backend_logger.error(f"create_chat_session_table | {message}")
+    
+    return success, message
+
+def initialize_chat_session(email: str, login_session_id: str, chat_session_id: str, user_first_name: str, user_last_name: str, student_name: str) -> Tuple[bool, str]:
+    success = False
+    message = ""
+    
+    try:
+        dynamodb = get_dynamodb_resource()
+        table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        
+        session_id = f"{login_session_id}#{chat_session_id}"
+        
+        now = datetime.now().isoformat()
+        
+        table.put_item(
+            Item={
+                'session_id': session_id,
+                'login_session_id': login_session_id,
+                'chat_session_id': chat_session_id,
+                'instructor_email': email,
+                'instructor_name': f"{user_first_name} {user_last_name}",
+                'student_name': student_name,
+                'session_status': 'active',
+                'created_at': now,
+                'last_updated_at': now,
+                'message_count': 0
+            }
+        )
+        
+        success = True
+        message = f"Chat session initialized successfully for email={email}"
+        backend_logger.info(f"initialize_chat_session | {message}")
+    except Exception as e:
+        message = f"Error initializing chat session: {e}"
+        backend_logger.error(f"initialize_chat_session | {message}")
+    
+    return success, message
+
+def insert_chat_message(login_session_id: str, chat_session_id: str, user_input: str, input_type: str, assistant_output: str) -> Tuple[bool, str]:
+    success = False
+    message = ""
+
+    valid_input_types = ['audio', 'button', 'default', 'manual']
+    if input_type not in valid_input_types:
+        message = f"Invalid input_type: '{input_type}'. Must be one of: {', '.join(valid_input_types)}"
+        backend_logger.error(f"insert_chat_message | {message}")
+        return success, message
+
+    try:
+        dynamodb = get_dynamodb_resource()
+        messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
+        sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        
+        session_id = f"{login_session_id}#{chat_session_id}"
+        
+        now = datetime.now()
+        
+        user_timestamp = now.isoformat()
+        user_message_timestamp = f"{user_timestamp}#user"
+        
+        messages_table.put_item(
+            Item={
+                'session_id': session_id,
+                'message_timestamp': user_message_timestamp,
+                'role': 'user',
+                'message': user_input,
+                'input_type': input_type,
+                'created_at': user_timestamp
+            }
+        )
+        
+        assistant_timestamp = (now + timedelta(milliseconds=100)).isoformat()
+        assistant_message_timestamp = f"{assistant_timestamp}#assistant"
+        
+        messages_table.put_item(
+            Item={
+                'session_id': session_id,
+                'message_timestamp': assistant_message_timestamp,
+                'role': 'assistant',
+                'message': assistant_output,
+                'input_type': 'default',
+                'created_at': assistant_timestamp
+            }
+        )
+        
+        sessions_table.update_item(
+            Key={'session_id': session_id},
+            UpdateExpression="SET message_count = message_count + :inc, last_updated_at = :time",
+            ExpressionAttributeValues={
+                ':inc': 2,
+                ':time': assistant_timestamp
+            }
+        )
+        
+        success = True
+        message = "Chat history inserted successfully"
+        backend_logger.info(f"insert_chat_message | {message}")
+    except Exception as e:
+        message = f"Error inserting chat history: {e}"
+        backend_logger.error(f"insert_chat_message | {message}")
+
+    return success, message
+    
+def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool, str, Optional[bool], list]:
+    success = False
+    message = ""
+    result = False
+    data = []
+
+    if not login_session_id or not chat_session_id:
+        message = "Login session id and chat session id are required"
+        backend_logger.error(f"get_chat_history | {message}")
+        return success, message, result, data
+    
+    try:
+        dynamodb = get_dynamodb_resource()
+        table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
+        
+        session_id = f"{login_session_id}#{chat_session_id}"
+        
+        max_retries = 3
+        retry_delay = 0.5
+        
+        for attempt in range(max_retries):
+            response = table.query(
+                KeyConditionExpression=Key('session_id').eq(session_id),
+                ScanIndexForward=True
+            )
+            
+            messages = []
+            for item in response.get('Items', []):
+                role = item.get('role')
+                msg = item.get('message')
+                
+                if msg and msg.strip():
+                    if role == 'user':
+                        messages.append(HumanMessage(content=msg))
+                    elif role == 'assistant':
+                        messages.append(AIMessage(content=msg))
+                else:
+                    backend_logger.warning(f"get_chat_history | Skipping invalid message with empty content from role: {role} for session_id: {session_id}")
+            
+            if len(messages) > 0:
+                success = True
+                message = "Chat history found for the given login session id and chat session id"
+                result = True
+                data = messages
+                backend_logger.info(f"get_chat_history | {message}")
+                break
+            elif attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                continue
+            else:
+                success = True
+                message = "Chat history not found for the given login session id and chat session id"
+                backend_logger.info(f"get_chat_history | {message}")
+    except Exception as e:
+        message = f"Error getting chat history: {str(e)}"
+        backend_logger.error(f"get_chat_history | {message}")
+    
+    return success, message, result, data
+
+def end_chat_session(login_session_id: str, chat_session_id: str) -> Tuple[bool, str]:
+    success = False
+    message = ""
+    
+    try:
+        dynamodb = get_dynamodb_resource()
+        table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        
+        session_id = f"{login_session_id}#{chat_session_id}"
+        
+        table.update_item(
+            Key={'session_id': session_id},
+            UpdateExpression="SET session_status = :status, last_updated_at = :time",
+            ExpressionAttributeValues={
+                ':status': 'ended',
+                ':time': datetime.now().isoformat()
+            }
+        )
+        
+        success = True
+        message = f"Chat session ended successfully for login_session_id={login_session_id}, chat_session_id={chat_session_id}"
+        backend_logger.info(f"end_chat_session | {message}")
+    except Exception as e:
+        message = f"Error ending chat session: {e}"
+        backend_logger.error(f"end_chat_session | {message}")
     
     return success, message
 

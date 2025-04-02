@@ -20,13 +20,6 @@ if not BACKEND_ORIGINS_STR or BACKEND_ORIGINS_STR.strip() == "" or not isinstanc
 else:
     BACKEND_ORIGINS = BACKEND_ORIGINS_STR.split(",")
 
-DB_CONFIG = {
-    "user": os.getenv("DB_USERNAME"),
-    "password": os.getenv("DB_PASSWORD"),
-    "host": os.getenv("DB_HOST"),
-    "database": os.getenv("DB_NAME")
-}
-
 DYNAMODB_STUDENT_TABLE_BILLING_MODE = os.getenv("DYNAMODB_STUDENT_TABLE_BILLING_MODE")
 if not DYNAMODB_STUDENT_TABLE_BILLING_MODE or not isinstance(DYNAMODB_STUDENT_TABLE_BILLING_MODE, str) or DYNAMODB_STUDENT_TABLE_BILLING_MODE.strip() == "" or  DYNAMODB_STUDENT_TABLE_BILLING_MODE not in ["PAY_PER_REQUEST", "PROVISIONED"]:
     DYNAMODB_STUDENT_TABLE_BILLING_MODE = "PAY_PER_REQUEST"
@@ -69,6 +62,63 @@ if DYNAMODB_STUDENT_TABLE_BILLING_MODE == "PROVISIONED":
         'ReadCapacityUnits': DYNAMODB_STUDENT_TABLE_READ_CAPACITY,
         'WriteCapacityUnits': DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY
     }
+
+DYNAMODB_CHAT_SESSIONS_TABLE_NAME = os.getenv("DYNAMODB_CHAT_SESSIONS_TABLE_NAME", "chat-sessions")
+DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
+    'TableName': DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
+    'KeySchema': [
+        {'AttributeName': 'session_id', 'KeyType': 'HASH'}
+    ],
+    'AttributeDefinitions': [
+        {'AttributeName': 'session_id', 'AttributeType': 'S'},
+        {'AttributeName': 'instructor_email', 'AttributeType': 'S'},
+        {'AttributeName': 'student_name', 'AttributeType': 'S'},
+        {'AttributeName': 'last_updated_at', 'AttributeType': 'S'},
+        {'AttributeName': 'created_at', 'AttributeType': 'S'},
+        {'AttributeName': 'login_session_id', 'AttributeType': 'S'}
+    ],
+    'GlobalSecondaryIndexes': [
+        {
+            'IndexName': 'InstructorSessionsIndex',
+            'KeySchema': [
+                {'AttributeName': 'instructor_email', 'KeyType': 'HASH'},
+                {'AttributeName': 'last_updated_at', 'KeyType': 'RANGE'}
+            ],
+            'Projection': {'ProjectionType': 'ALL'}
+        },
+        {
+            'IndexName': 'StudentSessionsIndex',
+            'KeySchema': [
+                {'AttributeName': 'student_name', 'KeyType': 'HASH'},
+                {'AttributeName': 'last_updated_at', 'KeyType': 'RANGE'}
+            ],
+            'Projection': {'ProjectionType': 'ALL'}
+        },
+        {
+            'IndexName': 'LoginSessionIndex',
+            'KeySchema': [
+                {'AttributeName': 'login_session_id', 'KeyType': 'HASH'},
+                {'AttributeName': 'created_at', 'KeyType': 'RANGE'}
+            ],
+            'Projection': {'ProjectionType': 'ALL'}
+        }
+    ],
+    'BillingMode': 'PAY_PER_REQUEST'
+}
+
+DYNAMODB_CHAT_MESSAGES_TABLE_NAME = os.getenv("DYNAMODB_CHAT_MESSAGES_TABLE_NAME", "chat-messages")
+DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG = {
+    'TableName': DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
+    'KeySchema': [
+        {'AttributeName': 'session_id', 'KeyType': 'HASH'},
+        {'AttributeName': 'message_timestamp', 'KeyType': 'RANGE'}
+    ],
+    'AttributeDefinitions': [
+        {'AttributeName': 'session_id', 'AttributeType': 'S'},
+        {'AttributeName': 'message_timestamp', 'AttributeType': 'S'}
+    ],
+    'BillingMode': 'PAY_PER_REQUEST'
+}
 
 LOGS_FOLDER_PATH = os.getenv("LOGS_FOLDER_PATH")
 if not LOGS_FOLDER_PATH or LOGS_FOLDER_PATH.strip() == "" or not isinstance(LOGS_FOLDER_PATH, str):
