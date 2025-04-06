@@ -14,7 +14,7 @@ def healthy() -> bool:
     response = requests.get(f"{backend_api_url}/health", headers=headers)
     return response.status_code == 200
 
-@st.cache_resource(ttl=3600, show_spinner=True)
+@st.cache_resource(ttl=3600, show_spinner=False)
 def get_student_profiles(count: int) -> tuple[bool, str, list]:
     success = False
     message = ""
