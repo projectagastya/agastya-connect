@@ -1,59 +1,72 @@
 import os
 
+from configure_logger import backend_logger
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path="secrets.env")
 
-MAIN_S3_BUCKET_NAME = os.getenv("MAIN_S3_BUCKET_NAME")
-if not MAIN_S3_BUCKET_NAME or MAIN_S3_BUCKET_NAME.strip() == "" or not isinstance(MAIN_S3_BUCKET_NAME, str):
-    MAIN_S3_BUCKET_NAME = "agastya-main-bucket"
+def validate_env_var(var_name: str, required: bool = True, default: str = None, allowed_values: list = None) -> str:
+    value = os.getenv(var_name)
+    if not value or value.strip() == "" or not isinstance(value, str):
+        if required:
+            backend_logger.error(f"{var_name} not set in secrets.env")
+            exit(1)
+        return default
+    if allowed_values and value not in allowed_values:
+        return default
+    return value
 
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+def validate_int_env_var(var_name: str, required: bool = True, default: int = None) -> int:
+    value = os.getenv(var_name)
+    try:
+        int_value = int(value)
+        if not int_value and required:
+            backend_logger.error(f"{var_name} not set in secrets.env")
+            exit(1)
+        return int_value
+    except (ValueError, TypeError):
+        if required:
+            backend_logger.error(f"{var_name} not set in secrets.env")
+            exit(1)
+        return default
 
-AWS_DEFAULT_REGION = "ap-south-1"
-AWS_REGION = os.getenv("AWS_REGION")
-if not AWS_REGION or AWS_REGION.strip() == "" or not isinstance(AWS_REGION, str):
-    AWS_REGION = AWS_DEFAULT_REGION
+def validate_float_env_var(var_name: str, required: bool = True, default: float = None) -> float:
+    value = os.getenv(var_name)
+    try:
+        float_value = float(value)
+        if not float_value and required:
+            backend_logger.error(f"{var_name} not set in secrets.env")
+            exit(1)
+        return float_value
+    except (ValueError, TypeError):
+        if required:
+            backend_logger.error(f"{var_name} not set in secrets.env")
+            exit(1)
+        return default
 
-BACKEND_API_KEY = os.getenv("BACKEND_API_KEY")
+MAIN_S3_BUCKET_NAME = validate_env_var("MAIN_S3_BUCKET_NAME")
+AWS_ACCESS_KEY_ID = validate_env_var("AWS_ACCESS_KEY_ID") 
+AWS_SECRET_ACCESS_KEY = validate_env_var("AWS_SECRET_ACCESS_KEY")
+AWS_DEFAULT_REGION = validate_env_var("AWS_DEFAULT_REGION")
+AWS_REGION = validate_env_var("AWS_REGION", required=False, default=AWS_DEFAULT_REGION)
 
-BACKEND_ORIGINS_STR = os.getenv("BACKEND_ORIGINS")
-if not BACKEND_ORIGINS_STR or BACKEND_ORIGINS_STR.strip() == "" or not isinstance(BACKEND_ORIGINS_STR, str):
-    BACKEND_ORIGINS = ["*"]
-else:
-    BACKEND_ORIGINS = BACKEND_ORIGINS_STR.split(",")
+BACKEND_API_KEY = validate_env_var("BACKEND_API_KEY")
+BACKEND_ORIGINS_STR = validate_env_var("BACKEND_ORIGINS", required=False)
+BACKEND_ORIGINS = BACKEND_ORIGINS_STR.split(",") if BACKEND_ORIGINS_STR else ["*"]
 
-DYNAMODB_STUDENT_TABLE_BILLING_MODE = os.getenv("DYNAMODB_STUDENT_TABLE_BILLING_MODE")
-if not DYNAMODB_STUDENT_TABLE_BILLING_MODE or not isinstance(DYNAMODB_STUDENT_TABLE_BILLING_MODE, str) or DYNAMODB_STUDENT_TABLE_BILLING_MODE.strip() == "" or  DYNAMODB_STUDENT_TABLE_BILLING_MODE not in ["PAY_PER_REQUEST", "PROVISIONED"]:
-    DYNAMODB_STUDENT_TABLE_BILLING_MODE = "PAY_PER_REQUEST"
+DYNAMODB_STUDENT_TABLE_BILLING_MODE = validate_env_var(
+    "DYNAMODB_STUDENT_TABLE_BILLING_MODE", 
+    required=False,
+    default="PAY_PER_REQUEST",
+    allowed_values=["PAY_PER_REQUEST", "PROVISIONED"]
+)
+DYNAMODB_STUDENT_TABLE_NAME = validate_env_var("DYNAMODB_STUDENT_TABLE_NAME")
+DYNAMODB_STUDENT_TABLE_READ_CAPACITY = max(1, validate_int_env_var("DYNAMODB_STUDENT_TABLE_READ_CAPACITY", required=False, default=1))
+DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY = max(1, validate_int_env_var("DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY", required=False, default=1))
 
-DYNAMODB_STUDENT_TABLE_NAME = os.getenv("DYNAMODB_STUDENT_TABLE_NAME")
-if not DYNAMODB_STUDENT_TABLE_NAME or DYNAMODB_STUDENT_TABLE_NAME.strip() == "" or not isinstance(DYNAMODB_STUDENT_TABLE_NAME, str):
-    DYNAMODB_STUDENT_TABLE_NAME = "student"
+DYNAMODB_STUDENT_TABLE_KEY_SCHEMA = [{'AttributeName': 'name', 'KeyType': 'HASH'}]
+DYNAMODB_STUDENT_TABLE_ATTRIBUTE_DEFINITIONS = [{'AttributeName': 'name', 'AttributeType': 'S'}]
 
-DYNAMODB_STUDENT_TABLE_READ_CAPACITY_STR = os.getenv("DYNAMODB_STUDENT_TABLE_READ_CAPACITY")
-if not DYNAMODB_STUDENT_TABLE_READ_CAPACITY_STR or DYNAMODB_STUDENT_TABLE_READ_CAPACITY_STR.strip() == "":
-    DYNAMODB_STUDENT_TABLE_READ_CAPACITY = "1"
-DYNAMODB_STUDENT_TABLE_READ_CAPACITY = max(1, int(DYNAMODB_STUDENT_TABLE_READ_CAPACITY)) if DYNAMODB_STUDENT_TABLE_READ_CAPACITY.isdigit() else 1
-
-DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY_STR = os.getenv("DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY")
-if not DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY_STR or DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY_STR.strip() == "":
-    DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY = "1"
-DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY = max(1, int(DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY)) if DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY.isdigit() else 1
-
-DYNAMODB_STUDENT_TABLE_KEY_SCHEMA = [
-    {
-        'AttributeName': 'name',
-        'KeyType': 'HASH'
-    }
-]
-DYNAMODB_STUDENT_TABLE_ATTRIBUTE_DEFINITIONS = [
-    {
-        'AttributeName': 'name',
-        'AttributeType': 'S'
-    }
-]
 DYNAMODB_STUDENT_TABLE_CONFIG = {
     'TableName': DYNAMODB_STUDENT_TABLE_NAME,
     'KeySchema': DYNAMODB_STUDENT_TABLE_KEY_SCHEMA,
@@ -67,7 +80,7 @@ if DYNAMODB_STUDENT_TABLE_BILLING_MODE == "PROVISIONED":
         'WriteCapacityUnits': DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY
     }
 
-DYNAMODB_CHAT_SESSIONS_TABLE_NAME = os.getenv("DYNAMODB_CHAT_SESSIONS_TABLE_NAME", "chat-sessions")
+DYNAMODB_CHAT_SESSIONS_TABLE_NAME = validate_env_var("DYNAMODB_CHAT_SESSIONS_TABLE_NAME")
 DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
     'TableName': DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
     'KeySchema': [
@@ -110,7 +123,7 @@ DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
     'BillingMode': 'PAY_PER_REQUEST'
 }
 
-DYNAMODB_CHAT_MESSAGES_TABLE_NAME = os.getenv("DYNAMODB_CHAT_MESSAGES_TABLE_NAME", "chat-messages")
+DYNAMODB_CHAT_MESSAGES_TABLE_NAME = validate_env_var("DYNAMODB_CHAT_MESSAGES_TABLE_NAME")
 DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG = {
     'TableName': DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
     'KeySchema': [
@@ -124,21 +137,13 @@ DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG = {
     'BillingMode': 'PAY_PER_REQUEST'
 }
 
-LOGS_FOLDER_PATH = os.getenv("LOGS_FOLDER_PATH")
-if not LOGS_FOLDER_PATH or LOGS_FOLDER_PATH.strip() == "" or not isinstance(LOGS_FOLDER_PATH, str):
-    LOGS_FOLDER_PATH = "logs"
-
-MAX_DOCS_TO_RETRIEVE = int(os.getenv("RAG_MAX_DOC_RETRIEVE", "4"))
-
-TEMPORARY_VECTORSTORES_DIRECTORY = os.getenv("TEMPORARY_VECTORSTORES_DIRECTORY", "temporary-student-vectorstores")
-
-DOCUMENT_EMBEDDING_MODEL_ID = os.getenv("DOCUMENT_EMBEDDING_MODEL_ID", "models/text-embedding-004")
-
-RESPONSE_GENERATION_MODEL_ID = os.getenv("RESPONSE_GENERATION_MODEL_ID", "gemini-2.0-flash")
-RESPONSE_GENERATION_MODEL_TEMPERATURE = float(os.getenv("RESPONSE_GENERATION_MODEL_TEMPERATURE", "0.0"))
-RESPONSE_GENERATION_MODEL_MAX_TOKENS = int(os.getenv("RESPONSE_GENERATION_MODEL_MAX_TOKENS", "100"))
-
-STUDENT_METADATA_FILE_NAME = os.getenv("STUDENT_METADATA_FILE_NAME")
-STUDENT_METADATA_FOLDER_PATH = os.getenv("STUDENT_METADATA_FOLDER_PATH")
-
-STUDENT_VECTORSTORE_FOLDER_PATH = os.getenv("STUDENT_VECTORSTORE_FOLDER_PATH", "vectorstores")
+LOGS_FOLDER_PATH = validate_env_var("LOGS_FOLDER_PATH")
+MAX_DOCS_TO_RETRIEVE = validate_int_env_var("RAG_MAX_DOC_RETRIEVE")
+TEMPORARY_VECTORSTORES_DIRECTORY = validate_env_var("TEMPORARY_VECTORSTORES_DIRECTORY")
+DOCUMENT_EMBEDDING_MODEL_ID = validate_env_var("DOCUMENT_EMBEDDING_MODEL_ID")
+RESPONSE_GENERATION_MODEL_ID = validate_env_var("RESPONSE_GENERATION_MODEL_ID")
+RESPONSE_GENERATION_MODEL_TEMPERATURE = validate_float_env_var("RESPONSE_GENERATION_MODEL_TEMPERATURE")
+RESPONSE_GENERATION_MODEL_MAX_TOKENS = validate_int_env_var("RESPONSE_GENERATION_MODEL_MAX_TOKENS")
+STUDENT_METADATA_FILE_NAME = validate_env_var("STUDENT_METADATA_FILE_NAME")
+STUDENT_METADATA_FOLDER_PATH = validate_env_var("STUDENT_METADATA_FOLDER_PATH")
+STUDENT_VECTORSTORE_FOLDER_PATH = validate_env_var("STUDENT_VECTORSTORE_FOLDER_PATH")
