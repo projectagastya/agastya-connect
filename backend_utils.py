@@ -6,7 +6,9 @@ import shutil
 import time 
 
 from backend_config import (
-    AWS_DEFAULT_REGION,
+    AWS_ACCESS_KEY_ID,
+    AWS_REGION,
+    AWS_SECRET_ACCESS_KEY,
     DOCUMENT_EMBEDDING_MODEL_ID,
     DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
     DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
@@ -67,7 +69,12 @@ def fetch_vectorstore_from_s3(email: str, login_session_id: str, chat_session_id
         os.makedirs(local_dir, exist_ok=True)
         created_dir = True
         backend_logger.info(f"fetch_vectorstore_from_s3 | Created directory {local_dir}")
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client(
+            "s3",
+            region_name = AWS_REGION,
+            aws_access_key_id = AWS_ACCESS_KEY_ID,
+            aws_secret_access_key = AWS_SECRET_ACCESS_KEY
+        )
         bucket_name = MAIN_S3_BUCKET_NAME
         s3_prefix = f"{STUDENT_VECTORSTORE_FOLDER_PATH}/{student_name}/"
         response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=s3_prefix)
@@ -185,7 +192,12 @@ def get_rag_chain(retriever: Chroma) -> Tuple[bool, str, Optional[Chain]]:
     return success, message, data
 
 def get_dynamodb_resource():
-    return boto3.resource('dynamodb', region_name=AWS_DEFAULT_REGION)
+    return boto3.resource(
+        'dynamodb', 
+        region_name=AWS_REGION,
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+    )
 
 def create_student_table() -> tuple[bool, str]:
     success = False
@@ -226,7 +238,7 @@ def load_student_metadata_from_s3() -> Tuple[bool, str, Optional[List[Dict]]]:
     data = None
     
     try:
-        s3_client = boto3.client('s3', region_name=AWS_DEFAULT_REGION)
+        s3_client = boto3.client('s3', region_name=AWS_REGION)
         
         s3_key = f"{STUDENT_METADATA_FOLDER_PATH}/{STUDENT_METADATA_FILE_NAME}"
         

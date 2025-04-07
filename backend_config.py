@@ -6,11 +6,15 @@ load_dotenv(dotenv_path="secrets.env")
 
 MAIN_S3_BUCKET_NAME = os.getenv("MAIN_S3_BUCKET_NAME")
 if not MAIN_S3_BUCKET_NAME or MAIN_S3_BUCKET_NAME.strip() == "" or not isinstance(MAIN_S3_BUCKET_NAME, str):
-    MAIN_S3_BUCKET_NAME = "agastya-student-narratives"
+    MAIN_S3_BUCKET_NAME = "agastya-main-bucket"
 
-AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
-if not AWS_DEFAULT_REGION or AWS_DEFAULT_REGION.strip() == "" or not isinstance(AWS_DEFAULT_REGION, str):
-    AWS_DEFAULT_REGION = "us-east-1"
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+AWS_DEFAULT_REGION = "ap-south-1"
+AWS_REGION = os.getenv("AWS_REGION")
+if not AWS_REGION or AWS_REGION.strip() == "" or not isinstance(AWS_REGION, str):
+    AWS_REGION = AWS_DEFAULT_REGION
 
 BACKEND_API_KEY = os.getenv("BACKEND_API_KEY")
 
