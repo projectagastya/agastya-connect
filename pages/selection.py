@@ -22,7 +22,12 @@ def render_selection_page():
     with cols[0]:
         if st.button(label="Back", icon=":material/arrow_back:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
             st.switch_page(page="pages/home.py")
-        
+
+    with cols[2]:
+        if st.button(label="Refresh", icon=":material/refresh:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
+            st.cache_resource.clear()
+            st.rerun()
+    
     success, message, students = get_student_profiles(count=8)
     if not success:
         frontend_logger.error(f"render_selection_page | Error loading student profiles from backend : {message}")
@@ -31,11 +36,6 @@ def render_selection_page():
     with cols[1]:
         add_aligned_text(content="Select a student to chat with", alignment="center", bold=True, size=35)
     st.markdown("<br>", unsafe_allow_html=True)
-
-    with cols[2]:
-        if st.button(label="Refresh", icon=":material/refresh:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
-            st.cache_resource.clear()
-            st.rerun()
 
     rows = [students[i:i + 4] for i in range(0, len(students), 4)]
 
