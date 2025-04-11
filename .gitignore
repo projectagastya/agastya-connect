@@ -4,4 +4,4 @@
 .streamlit/secrets.toml
 __pycache__/
 venv/
-agastya-local-s3-bucket/
+misc/
