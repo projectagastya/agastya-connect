@@ -43,21 +43,21 @@ def render_selection_page():
         cols = st.columns(4, gap="small")
         for col_idx, student in enumerate(row):
             with cols[col_idx]:
-                student_age = student["age"]
-                student_state = student["state"]
-                student_sex = "Male" if student["sex"] == "male" else "Female"
+                student_age = student["student_age"]
+                student_state = student["student_state"]
+                student_sex = student["student_sex"]
                 
                 with st.container(border=True):
-                    add_aligned_text(content=formatted_name(student["name"]), alignment="center", size=20, bold=True)
+                    add_aligned_text(content=formatted_name(student["student_name"]), alignment="center", size=20, bold=True)
                     subcols = st.columns([2,2])
                     
                     with subcols[0]:
                         
                         st.markdown("<br>", unsafe_allow_html=True)
-                        st.image(image=student["image"], use_container_width=True)
+                        st.image(image=student["student_image"], use_container_width=True)
                         if st.button(
                             label=f"Start Chat",
-                            key=f"chat_with_{formatted_name(student['name'])}",
+                            key=f"chat_with_{student['student_name']}",
                             type="primary",
                             icon=":material/arrow_outward:",
                             use_container_width=True
@@ -69,7 +69,7 @@ def render_selection_page():
                     with subcols[1]:
                         st.markdown("<br>", unsafe_allow_html=True)
                         st.markdown(f"**Age:** {student_age}")
-                        st.markdown(f"**Sex:** {student_sex}")
+                        st.markdown(f"**Sex:** {formatted_name(student_sex)}")
                         st.markdown(f"**State:** {formatted_name(student_state)}")
                         st.markdown(" ", unsafe_allow_html=True)
 

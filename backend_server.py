@@ -15,7 +15,7 @@ from backend_pydantic_models import (
     GetStudentProfilesResponse,
     StartChatResponse,
     StartEndChatRequest,
-    StudentProfileSchema,
+    StudentProfileSchema
 )
 from backend_utils import (
     end_chat_session,
@@ -89,11 +89,11 @@ def get_student_profiles_endpoint(api_request: GetStudentProfilesRequest):
         
         student_profiles = [
             StudentProfileSchema(
-                name=student["name"],
-                sex=student["sex"],
-                age=student["age"],
-                state=student["state"],
-                image=student["image"]
+                student_name=student["student_name"],
+                student_sex=student["student_sex"],
+                student_age=student["student_age"],
+                student_state=student["student_state"],
+                student_image=student["student_image"]
             ) for student in students
         ]
         backend_logger.info(f"Retrieved {len(student_profiles)} student profiles successfully for a request to get {count} student profiles")

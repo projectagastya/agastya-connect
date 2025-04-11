@@ -76,7 +76,7 @@ async def initialize_chat_session(student_choice: dict):
         st.stop()
     
     chat_session_id = generate_uuid()
-    student_name = student_choice['name']
+    student_name = student_choice['student_name']
     
     st.session_state["active_chat_session"]["id"] = chat_session_id
     st.session_state["active_chat_session"]["chat_history"] = []
@@ -100,7 +100,7 @@ async def initialize_chat_session(student_choice: dict):
         st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
         st.stop()
 
-    st.session_state["active_chat_session"]["chat_history"].append({"role": "assistant", "content": first_message, "avatar": student_choice["image"]})
+    st.session_state["active_chat_session"]["chat_history"].append({"role": "assistant", "content": first_message, "avatar": student_choice["student_image"]})
     st.session_state["active_chat_session"]["next_questions"] = await generate_next_questions(
         chat_history=st.session_state["active_chat_session"]["chat_history"],
         student_name=student_name
@@ -227,8 +227,8 @@ async def render_next_questions(next_questions):
             await handle_user_input(
                 user_input=question,
                 current_chat_session=current_chat_session,
-                student_name=student_profile["name"],
-                student_avatar=student_profile["image"],
+                student_name=student_profile["student_name"],
+                student_avatar=student_profile["student_image"],
                 input_type="button"
             )
 

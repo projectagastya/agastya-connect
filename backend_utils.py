@@ -262,17 +262,17 @@ def load_student_metadata_from_s3() -> Tuple[bool, str, Optional[List[Dict]]]:
     
     return success, message, data
 
-def validate_student(name: str, sex: str, age: int, state: str) -> Tuple[bool, str]:
+def validate_student(student_name: str, student_sex: str, student_age: int, student_state: str) -> Tuple[bool, str]:
     success = False
     message = ""
 
     valid_sexes = ['male', 'female']
-    if sex.lower() not in valid_sexes:
-        message = f"Invalid sex: '{sex}' for student: '{name}'. Must be one of: {', '.join(valid_sexes)}"
+    if student_sex.lower() not in valid_sexes:
+        message = f"Invalid sex: '{student_sex}' for student: '{student_name}'. Must be one of: {', '.join(valid_sexes)}"
         return success, message
     
-    if age < 0:
-        message = f"Invalid age: '{age}' for student: '{name}'. Must be greater than 0"
+    if student_age < 0:
+        message = f"Invalid age: '{student_age}' for student: '{student_name}'. Must be greater than 0"
         return success, message
     
     valid_states = [
@@ -284,34 +284,34 @@ def validate_student(name: str, sex: str, age: int, state: str) -> Tuple[bool, s
         "uttar-pradesh", "uttarakhand", "west-bengal"
     ]
 
-    if state.lower().replace(' ', '-') not in valid_states:
-        message = f"Invalid state: '{state}' for student: '{name}'. Must be one of: {', '.join(valid_states)}"
+    if student_state.lower().replace(' ', '-') not in valid_states:
+        message = f"Invalid state: '{student_state}' for student: '{student_name}'. Must be one of: {', '.join(valid_states)}"
         return success, message
     
     success = True
     message = "Student profile data is valid"
     return success, message
 
-def insert_student(name: str, sex: str, age: int, state: str, image: str) -> Tuple[bool, str, Optional[bool], Optional[str]]:
+def insert_student(student_name: str, student_sex: str, student_age: int, student_state: str, student_image: str) -> Tuple[bool, str, Optional[bool], Optional[str]]:
     success = False
     message = ""
     result = False
     data = None
     
-    validation_success, validation_message = validate_student(name, sex, age, state)
+    validation_success, validation_message = validate_student(student_name, student_sex, student_age, student_state)
     if not validation_success:
-        backend_logger.error(f"insert_student | Validation error for {name}: {validation_message}")
+        backend_logger.error(f"insert_student | Validation error for {student_name}: {validation_message}")
         return success, validation_message, result, data
     
-    get_profile_success, get_profile_message, get_profile_result, _ = get_single_student_profile(name)
+    get_profile_success, get_profile_message, get_profile_result, _ = get_single_student_profile(student_name)
     if not get_profile_success:
-        message = f"Error getting student profile for name: {name}: {get_profile_message}"
+        message = f"Error getting student profile for name: {student_name}: {get_profile_message}"
         backend_logger.error(f"insert_student | {message}")
         return success, message, result, data
     
     if get_profile_result:
         success = True
-        message = f"Student profile already exists for name: {name}"
+        message = f"Student profile already exists for name: {student_name}"
         backend_logger.info(f"insert_student | {message}")
         return success, message, result, data
     
@@ -320,25 +320,25 @@ def insert_student(name: str, sex: str, age: int, state: str, image: str) -> Tup
         
         _ = table.put_item(
             Item={
-                'name': name,
-                'sex': sex,
-                'age': age,
-                'state': state,
-                'image': image
+                'student_name': student_name,
+                'student_sex': student_sex,
+                'student_age': student_age,
+                'student_state': student_state,
+                'student_image': student_image
             }
         )
         success = True
-        message = f"Student profile for {name} inserted successfully"
+        message = f"Student profile for {student_name} inserted successfully"
         result = True
-        data = name
+        data = student_name
         backend_logger.info(f"insert_student | {message}")
     except ClientError as e:
-        message = f"Error inserting student profile for name: {name}: {e}"
+        message = f"Error inserting student profile for name: {student_name}: {e}"
         backend_logger.error(f"insert_student | {message}")
     
     return success, message, result, data
 
-def get_single_student_profile(name: str) -> Tuple[bool, str, Optional[bool], Dict]:
+def get_single_student_profile(student_name: str) -> Tuple[bool, str, Optional[bool], Dict]:
     success = False
     message = ""
     result = False
@@ -347,27 +347,27 @@ def get_single_student_profile(name: str) -> Tuple[bool, str, Optional[bool], Di
     try:
         table = get_student_table()
         
-        response = table.get_item(Key={'name': name})
+        response = table.get_item(Key={'student_name': student_name})
         
         if 'Item' in response:
             student = response['Item']
             success = True
-            message = f"Student profile found for name: {name}"
+            message = f"Student profile found for name: {student_name}"
             result = True
             data = {
-                "name": student.get('name'),
-                "sex": student.get('sex'),
-                "age": student.get('age'),
-                "state": student.get('state'),
-                "image": student.get('image')
+                "student_name": student.get('student_name'),
+                "student_sex": student.get('student_sex'),
+                "student_age": student.get('student_age'),
+                "student_state": student.get('student_state'),
+                "student_image": student.get('student_image')
             }
             backend_logger.info(f"get_single_student | {message}")
         else:
             success = True
-            message = f"Student profile not found for name: {name}"
+            message = f"Student profile not found for name: {student_name}"
             backend_logger.info(f"get_single_student | {message}")
     except ClientError as e:
-        message = f"Error getting student profile for name: {name}: {e}"
+        message = f"Error getting student profile for name: {student_name}: {e}"
         backend_logger.error(f"get_single_student | {message}")
     
     return success, message, result, data
@@ -386,11 +386,11 @@ def get_student_profiles(count: int = 8) -> Tuple[bool, str, Optional[bool], Lis
             students = response['Items']
             data = [
                 {
-                    "name": student.get('name'),
-                    "sex": student.get('sex'),
-                    "age": student.get('age'),
-                    "state": student.get('state'),
-                    "image": student.get('image')
+                    "student_name": student.get('student_name'),
+                    "student_sex": student.get('student_sex'),
+                    "student_age": student.get('student_age'),
+                    "student_state": student.get('student_state'),
+                    "student_image": student.get('student_image')
                 }
                 for student in students
             ]
@@ -425,24 +425,24 @@ def populate_student_table() -> Tuple[bool, str]:
     already_exists_count = 0
     
     for student in students:
-        name = student.get('name')
-        sex = student.get('sex')
-        age = student.get('age', None)
-        state = student.get('state')
-        image = student.get('image', None)
+        student_name = student.get('student_name')
+        student_sex = student.get('student_sex')
+        student_age = student.get('student_age', None)
+        student_state = student.get('student_state')
+        student_image = student.get('student_image', None)
         
         insert_success, insert_message, insert_result, _ = insert_student(
-            name, sex, age, state, image
+            student_name, student_sex, student_age, student_state, student_image
         )
         
         if not insert_success:
-            backend_logger.error(f"populate_student_table | Error inserting student profile for name: {name}: {insert_message}")
+            backend_logger.error(f"populate_student_table | Error inserting student profile for name: {student_name}: {insert_message}")
             error_count += 1
         elif not insert_result:
             if "already exists" in insert_message:
                 already_exists_count += 1
             else:
-                backend_logger.error(f"populate_student_table | Error inserting student profile for name: {name}: {insert_message}")
+                backend_logger.error(f"populate_student_table | Error inserting student profile for name: {student_name}: {insert_message}")
                 error_count += 1
         else:
             success_count += 1

@@ -64,8 +64,8 @@ DYNAMODB_STUDENT_TABLE_NAME = validate_env_var("DYNAMODB_STUDENT_TABLE_NAME")
 DYNAMODB_STUDENT_TABLE_READ_CAPACITY = max(1, validate_int_env_var("DYNAMODB_STUDENT_TABLE_READ_CAPACITY", required=False, default=1))
 DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY = max(1, validate_int_env_var("DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY", required=False, default=1))
 
-DYNAMODB_STUDENT_TABLE_KEY_SCHEMA = [{'AttributeName': 'name', 'KeyType': 'HASH'}]
-DYNAMODB_STUDENT_TABLE_ATTRIBUTE_DEFINITIONS = [{'AttributeName': 'name', 'AttributeType': 'S'}]
+DYNAMODB_STUDENT_TABLE_KEY_SCHEMA = [{'AttributeName': 'student_name', 'KeyType': 'HASH'}]
+DYNAMODB_STUDENT_TABLE_ATTRIBUTE_DEFINITIONS = [{'AttributeName': 'student_name', 'AttributeType': 'S'}]
 
 DYNAMODB_STUDENT_TABLE_CONFIG = {
     'TableName': DYNAMODB_STUDENT_TABLE_NAME,

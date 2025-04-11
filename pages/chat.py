@@ -1,6 +1,7 @@
 import asyncio
 import streamlit as st
 
+from configure_logger import frontend_logger
 from frontend_utils import (
     end_chat_dialog,
     formatted_name,
@@ -21,10 +22,14 @@ async def render_chat_page():
         st.switch_page(page="pages/selection.py")
     
     current_chat_session = st.session_state["active_chat_session"]
-    student_name = current_chat_session["student_profile"]["name"]
-    student_avatar = current_chat_session["student_profile"]["image"]
-    chat_history = current_chat_session["chat_history"]
-
+    if current_chat_session:
+        student_name = current_chat_session["student_profile"]["student_name"]
+        student_avatar = current_chat_session["student_profile"]["student_image"]
+    else:
+        frontend_logger.error(f"render_chat_page | No active chat session found for user {getattr(st.experimental_user, "email")}")
+        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
+        st.stop()
+    
     render_chat_subheader(student_name)
 
     with st.sidebar:
@@ -34,7 +39,7 @@ async def render_chat_page():
             st.rerun()
         st.markdown("---")
     
-    render_chat_history(chat_history=chat_history)
+    render_chat_history(chat_history=current_chat_session["chat_history"])
 
     if st.session_state["end_chat_dialog"]:
         end_chat_dialog(

@@ -49,11 +49,11 @@ class GetUserProfileResponse(BaseModel):
     timestamp: str | None = Field(None, description="Timestamp of the user profile retrieval.")
 
 class StudentProfileSchema(BaseModel):
-    name: str = Field(..., description="Name of the student.")
-    sex: Literal["male", "female"] = Field(..., description="Sex of the student.")
-    age: Optional[int] = Field(None, description="Age of the student.")
-    state: str = Field(..., description="State of the student.")
-    image: Optional[str] = Field(None, description="Image of the student.")
+    student_name: str = Field(..., description="Name of the student.")
+    student_sex: Literal["male", "female"] = Field(..., description="Sex of the student.")
+    student_age: Optional[int] = Field(None, description="Age of the student.")
+    student_state: str = Field(..., description="State of the student.")
+    student_image: Optional[str] = Field(None, description="Image of the student.")
 
 class GetStudentProfilesRequest(BaseModel):
     count: int = Field(..., description="Number of student profiles to retrieve.")
