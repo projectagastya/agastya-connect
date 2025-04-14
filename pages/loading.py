@@ -42,9 +42,9 @@ async def render_loading_page():
     with st.container(border=True):
         st.markdown("<br>", unsafe_allow_html=True)
         add_aligned_text(content=f"Setting up chat session with {formatted_name(student_choice['student_name'])}", alignment="center", size=36, bold=True)
-        st.markdown("###")
-        cols = st.columns([1, 2])
-        with cols[0]:
+        st.markdown("<br>", unsafe_allow_html=True)
+        cols = st.columns([1, 1, 1, 1, 1])
+        with cols[2]:
             st.image(image=student_choice["student_image"], use_container_width=True)
             st.markdown(f"**Name:** {formatted_name(student_choice['student_name'])}")
             st.markdown(f"**Age:** {student_choice['student_age']}")
