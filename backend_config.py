@@ -84,10 +84,10 @@ DYNAMODB_CHAT_SESSIONS_TABLE_NAME = validate_env_var("DYNAMODB_CHAT_SESSIONS_TAB
 DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
     'TableName': DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
     'KeySchema': [
-        {'AttributeName': 'session_id', 'KeyType': 'HASH'}
+        {'AttributeName': 'global_session_id', 'KeyType': 'HASH'}
     ],
     'AttributeDefinitions': [
-        {'AttributeName': 'session_id', 'AttributeType': 'S'},
+        {'AttributeName': 'global_session_id', 'AttributeType': 'S'},
         {'AttributeName': 'instructor_email', 'AttributeType': 'S'},
         {'AttributeName': 'student_name', 'AttributeType': 'S'},
         {'AttributeName': 'last_updated_at', 'AttributeType': 'S'},
@@ -127,11 +127,11 @@ DYNAMODB_CHAT_MESSAGES_TABLE_NAME = validate_env_var("DYNAMODB_CHAT_MESSAGES_TAB
 DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG = {
     'TableName': DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
     'KeySchema': [
-        {'AttributeName': 'session_id', 'KeyType': 'HASH'},
+        {'AttributeName': 'global_session_id', 'KeyType': 'HASH'},
         {'AttributeName': 'message_timestamp', 'KeyType': 'RANGE'}
     ],
     'AttributeDefinitions': [
-        {'AttributeName': 'session_id', 'AttributeType': 'S'},
+        {'AttributeName': 'global_session_id', 'AttributeType': 'S'},
         {'AttributeName': 'message_timestamp', 'AttributeType': 'S'}
     ],
     'BillingMode': 'PAY_PER_REQUEST'

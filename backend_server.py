@@ -123,9 +123,11 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         student_name = api_request.student_name.strip()
         user_full_name = f"{user_first_name} {user_last_name}"
         
+        global_session_id = f"{login_session_id}#{chat_session_id}"
+        
         if login_session_id in vectorstore_map:
             if chat_session_id in vectorstore_map[login_session_id]:
-                backend_logger.info(f"Chat session already exists for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
+                backend_logger.info(f"Chat session already exists for global_session_id={global_session_id}")
                 raise HTTPException(status_code=400, detail=f"Chat session {chat_session_id} already exists for login_session_id={login_session_id}")
 
         fetch_vectorstore_from_s3_success, fetch_vectorstore_from_s3_message, fetch_vectorstore_from_s3_result, fetch_vectorstore_from_s3_data = fetch_vectorstore_from_s3(
@@ -138,13 +140,13 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             backend_logger.error(f"Error in fetching vectorstore from S3: {fetch_vectorstore_from_s3_message}")
             raise HTTPException(status_code=500, detail="Failed to fetch vectorstore from S3. Please try again.")
         if not fetch_vectorstore_from_s3_result:
-            backend_logger.error(f"Vectorstore not found for email={email}, student_name={student_name}, login_session_id={login_session_id}, chat_session_id={chat_session_id}")
+            backend_logger.error(f"Vectorstore not found for email={email}, student_name={student_name}, global_session_id={global_session_id}")
             raise HTTPException(status_code=404, detail="Vectorstore not found. Please try again.")
         
         if not fetch_vectorstore_from_s3_success or not fetch_vectorstore_from_s3_result:
             if os.path.exists(os.path.join(TEMPORARY_VECTORSTORES_DIRECTORY, f"{email}_{student_name}_{login_session_id}_{chat_session_id}")):
                 shutil.rmtree(os.path.join(TEMPORARY_VECTORSTORES_DIRECTORY, f"{email}_{student_name}_{login_session_id}_{chat_session_id}"))
-                backend_logger.info(f"Roll back folder creation for email={email}, student_name={student_name}, login_session_id={login_session_id}, chat_session_id={chat_session_id}.")
+                backend_logger.info(f"Roll back folder creation for email={email}, student_name={student_name}, global_session_id={global_session_id}.")
 
         load_vectorstore_from_path_success, load_vectorstore_from_path_message, rag_vectorstore = load_vectorstore_from_path(local_dir=fetch_vectorstore_from_s3_data)
         if not load_vectorstore_from_path_success:
@@ -152,7 +154,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             raise HTTPException(status_code=500, detail="Failed to load vectorstore from path. Please try again.")
 
         vectorstore_map[login_session_id][chat_session_id] = rag_vectorstore
-        backend_logger.info(f"Initialized chat session vectorstore for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
+        backend_logger.info(f"Initialized chat session vectorstore for global_session_id={global_session_id}")
 
         init_chat_success, init_chat_message = initialize_chat_session(
             email=email,
@@ -180,7 +182,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         if not insert_chat_message_success:
             backend_logger.error(f"Error inserting chat history: {insert_chat_message_message}")
             raise HTTPException(status_code=500, detail="Unexpected error. Please try again.")
-        backend_logger.info(f"First message inserted for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
+        backend_logger.info(f"First message inserted for global_session_id={global_session_id}")
 
         return StartChatResponse(
             success=True,
@@ -206,45 +208,47 @@ def chat_endpoint(api_request: ChatMessageRequest):
         student_name = formatted_name(api_request.student_name.strip())
         instructor_name = api_request.instructor_name.strip()
 
+        global_session_id = f"{login_session_id}#{chat_session_id}"
+        
         if login_session_id not in vectorstore_map:
             backend_logger.error(f"Login session not found for login_session_id={login_session_id}")
             raise HTTPException(status_code=404, detail="Login session not found in vectorstore map. Please try again.")
         if chat_session_id not in vectorstore_map[login_session_id]:
-            backend_logger.error(f"Chat session not found for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
+            backend_logger.error(f"Chat session not found for global_session_id={global_session_id}")
             raise HTTPException(status_code=404, detail="Chat session not found in vectorstore map. Please try again.")
         
         rag_vectorstore = vectorstore_map[login_session_id][chat_session_id]
         
         get_chat_history_success, get_chat_history_message, get_chat_history_result, chat_history = get_chat_history(login_session_id=login_session_id, chat_session_id=chat_session_id)
         if not get_chat_history_success:
-            backend_logger.error(f"Database error in getting chat history for login_session_id={login_session_id}, chat_session_id={chat_session_id}: {get_chat_history_message}")
+            backend_logger.error(f"Database error in getting chat history for global_session_id={global_session_id}: {get_chat_history_message}")
             raise HTTPException(status_code=500, detail="Failed to retrieve chat history. Please try again.")
         if not get_chat_history_result:
-            backend_logger.error(f"Chat history not found for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
+            backend_logger.error(f"Chat history not found for global_session_id={global_session_id}")
             raise HTTPException(status_code=404, detail="Chat history not found. Please try again.")
 
         retriever = rag_vectorstore.as_retriever(search_kwargs={"k": MAX_DOCS_TO_RETRIEVE})
         if not retriever:
-            backend_logger.error(f"Error in creating session retriever for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
+            backend_logger.error(f"Error in creating session retriever for global_session_id={global_session_id}")
             raise HTTPException(status_code=500, detail="Failed to create session retriever. Please try again.")
         
         get_rag_chain_success, get_rag_chain_message, rag_chain = get_rag_chain(retriever=retriever)
         if not get_rag_chain_success:
-            backend_logger.error(f"Error in getting RAG chain for login_session_id={login_session_id}, chat_session_id={chat_session_id}: {get_rag_chain_message}")
+            backend_logger.error(f"Error in getting RAG chain for global_session_id={global_session_id}: {get_rag_chain_message}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain. Please try again.")
         
         answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "instructor_name": instructor_name, "student_name": student_name}).get("answer", None)
         if answer is None:
-            backend_logger.error(f"Error in getting RAG chain answer for login_session_id={login_session_id}, chat_session_id={chat_session_id} with question: {question}")
+            backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain answer. Please try again.")
         
         insert_chat_message_success, insert_chat_message_message = insert_chat_message(login_session_id=login_session_id, chat_session_id=chat_session_id, user_input=question, input_type=input_type, assistant_output=answer)
         if not insert_chat_message_success:
-            backend_logger.error(f"Failed to insert chat history for login_session_id={login_session_id}, chat_session_id={chat_session_id}: {insert_chat_message_message}")
+            backend_logger.error(f"Failed to insert chat history for global_session_id={global_session_id}: {insert_chat_message_message}")
             raise HTTPException(status_code=500, detail="Failed to insert chat history. Please try again.")
 
-        backend_logger.info(f"Chat history inserted for login_session_id={login_session_id}, chat_session_id={chat_session_id}")
-        return ChatMessageResponse(success=True, message=f"Chat history inserted successfully for login_session_id={login_session_id}, chat_session_id={chat_session_id}", result=True, data=answer, timestamp=datetime.now().isoformat())
+        backend_logger.info(f"Chat history inserted for global_session_id={global_session_id}")
+        return ChatMessageResponse(success=True, message=f"Chat history inserted successfully for global_session_id={global_session_id}", result=True, data=answer, timestamp=datetime.now().isoformat())
     except HTTPException as http_e:
         backend_logger.error(f"HTTP exception in chat endpoint: {http_e}")
         raise http_e
@@ -261,6 +265,8 @@ def end_chat_endpoint(api_request: StartEndChatRequest):
         login_session_id = api_request.login_session_id.strip()
         chat_session_id = api_request.chat_session_id.strip()
         
+        global_session_id = f"{login_session_id}#{chat_session_id}"
+        
         end_chat_success, end_chat_message = end_chat_session(
             login_session_id=login_session_id,
             chat_session_id=chat_session_id
@@ -273,10 +279,10 @@ def end_chat_endpoint(api_request: StartEndChatRequest):
         if login_session_id in vectorstore_map:
             if chat_session_id in vectorstore_map[login_session_id]:
                 del vectorstore_map[login_session_id][chat_session_id]
-                backend_logger.info(f"Removed vectorstore for login_session_id={login_session_id}, chat_session_id={chat_session_id} from in-memory map.")
+                backend_logger.info(f"Removed vectorstore for global_session_id={global_session_id} from in-memory map.")
             else:
                 count += 1
-                backend_logger.warning(f"Login session found but chat session not found for login_session_id={login_session_id}, chat_session_id={chat_session_id} in in-memory map. Continuing cleanup.")
+                backend_logger.warning(f"Login session found but chat session not found for global_session_id={global_session_id} in in-memory map. Continuing cleanup.")
         else:
             count += 1
             backend_logger.warning(f"Login session not found for login_session_id={login_session_id} in in-memory map. Continuing cleanup.")
@@ -285,17 +291,17 @@ def end_chat_endpoint(api_request: StartEndChatRequest):
         vectorstore_path = os.path.join(TEMPORARY_VECTORSTORES_DIRECTORY, session_pattern)
         if os.path.exists(vectorstore_path):
             shutil.rmtree(vectorstore_path)
-            backend_logger.info(f"Deleted chat session vectorstore from path {vectorstore_path} for login_session_id={login_session_id}, chat_session_id={chat_session_id}.")
+            backend_logger.info(f"Deleted chat session vectorstore from path {vectorstore_path} for global_session_id={global_session_id}.")
         else:
             count += 1
-            backend_logger.warning(f"Vectorstore directory {vectorstore_path} not found. It may have been already removed for login_session_id={login_session_id}, chat_session_id={chat_session_id}.")
+            backend_logger.warning(f"Vectorstore directory {vectorstore_path} not found. It may have been already removed for global_session_id={global_session_id}.")
         
         if count == 3:
             raise HTTPException(status_code=500, detail="Failed to end chat session. Please try again.")
         
         return EndChatResponse(
             success=True,
-            message=f"Chat session ended successfully for login_session_id={login_session_id}, chat_session_id={chat_session_id}",
+            message=f"Chat session ended successfully for global_session_id={global_session_id}",
             timestamp=datetime.now().isoformat()
         )
     except HTTPException as http_e:

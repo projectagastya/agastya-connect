@@ -3,7 +3,7 @@ import json
 import os
 import random
 import shutil
-import time 
+import time
 
 from backend_config import (
     AWS_ACCESS_KEY_ID,
@@ -514,13 +514,13 @@ def initialize_chat_session(email: str, login_session_id: str, chat_session_id: 
         dynamodb = get_dynamodb_resource()
         table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
         
-        session_id = f"{login_session_id}#{chat_session_id}"
+        global_session_id = f"{login_session_id}#{chat_session_id}"
         
         now = datetime.now().isoformat()
         
         table.put_item(
             Item={
-                'session_id': session_id,
+                'global_session_id': global_session_id,
                 'login_session_id': login_session_id,
                 'chat_session_id': chat_session_id,
                 'instructor_email': email,
@@ -557,7 +557,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
         sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
         
-        session_id = f"{login_session_id}#{chat_session_id}"
+        global_session_id = f"{login_session_id}#{chat_session_id}"
         
         now = datetime.now()
         
@@ -566,7 +566,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         
         messages_table.put_item(
             Item={
-                'session_id': session_id,
+                'global_session_id': global_session_id,
                 'message_timestamp': user_message_timestamp,
                 'role': 'user',
                 'message': user_input,
@@ -580,7 +580,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         
         messages_table.put_item(
             Item={
-                'session_id': session_id,
+                'global_session_id': global_session_id,
                 'message_timestamp': assistant_message_timestamp,
                 'role': 'assistant',
                 'message': assistant_output,
@@ -590,7 +590,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         )
         
         sessions_table.update_item(
-            Key={'session_id': session_id},
+            Key={'global_session_id': global_session_id},
             UpdateExpression="SET message_count = message_count + :inc, last_updated_at = :time",
             ExpressionAttributeValues={
                 ':inc': 2,
@@ -622,14 +622,14 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
         dynamodb = get_dynamodb_resource()
         table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
         
-        session_id = f"{login_session_id}#{chat_session_id}"
+        global_session_id = f"{login_session_id}#{chat_session_id}"
         
         max_retries = 3
         retry_delay = 0.5
         
         for attempt in range(max_retries):
             response = table.query(
-                KeyConditionExpression=Key('session_id').eq(session_id),
+                KeyConditionExpression=Key('global_session_id').eq(global_session_id),
                 ScanIndexForward=True
             )
             
@@ -644,11 +644,11 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
                     elif role == 'assistant':
                         messages.append(AIMessage(content=msg))
                 else:
-                    backend_logger.warning(f"get_chat_history | Skipping invalid message with empty content from role: {role} for session_id: {session_id}")
+                    backend_logger.warning(f"get_chat_history | Skipping invalid message with empty content from role: {role} for global_session_id: {global_session_id}")
             
             if len(messages) > 0:
                 success = True
-                message = "Chat history found for the given login session id and chat session id"
+                message = "Chat history found for the given global session id"
                 result = True
                 data = messages
                 backend_logger.info(f"get_chat_history | {message}")
@@ -658,7 +658,7 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
                 continue
             else:
                 success = True
-                message = "Chat history not found for the given login session id and chat session id"
+                message = "Chat history not found for the given global session id"
                 backend_logger.info(f"get_chat_history | {message}")
     except Exception as e:
         message = f"Error getting chat history: {str(e)}"
@@ -674,10 +674,10 @@ def end_chat_session(login_session_id: str, chat_session_id: str) -> Tuple[bool,
         dynamodb = get_dynamodb_resource()
         table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
         
-        session_id = f"{login_session_id}#{chat_session_id}"
+        global_session_id = f"{login_session_id}#{chat_session_id}"
         
         table.update_item(
-            Key={'session_id': session_id},
+            Key={'global_session_id': global_session_id},
             UpdateExpression="SET session_status = :status, last_updated_at = :time",
             ExpressionAttributeValues={
                 ':status': 'ended',
@@ -686,7 +686,7 @@ def end_chat_session(login_session_id: str, chat_session_id: str) -> Tuple[bool,
         )
         
         success = True
-        message = f"Chat session ended successfully for login_session_id={login_session_id}, chat_session_id={chat_session_id}"
+        message = f"Chat session ended successfully for global_session_id={global_session_id}"
         backend_logger.info(f"end_chat_session | {message}")
     except Exception as e:
         message = f"Error ending chat session: {e}"
