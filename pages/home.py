@@ -109,7 +109,7 @@ def render_home_page():
         st.markdown("<br>", unsafe_allow_html=True)
         subcols = st.columns([3,4,3])
         with subcols[1]:
-            if st.button(label="History", icon=":material/history:", type="secondary", use_container_width=True, disabled=True, help="Coming soon"):
+            if st.button(label="History", icon=":material/history:", type="secondary", use_container_width=True):
                 st.switch_page(page="pages/history.py")
 
 if __name__ == "__main__":
