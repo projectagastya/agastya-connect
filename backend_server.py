@@ -5,7 +5,7 @@ from backend_config import (
     BACKEND_API_KEY,
     BACKEND_ORIGINS,
     MAX_DOCS_TO_RETRIEVE,
-    TEMPORARY_VECTORSTORES_DIRECTORY,
+    LOCAL_VECTORSTORES_DIRECTORY,
 )
 from backend_pydantic_models import (
     ChatMessageRequest,
@@ -144,8 +144,8 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             raise HTTPException(status_code=404, detail="Vectorstore not found. Please try again.")
         
         if not fetch_vectorstore_from_s3_success or not fetch_vectorstore_from_s3_result:
-            if os.path.exists(os.path.join(TEMPORARY_VECTORSTORES_DIRECTORY, f"{email}_{student_name}_{login_session_id}_{chat_session_id}")):
-                shutil.rmtree(os.path.join(TEMPORARY_VECTORSTORES_DIRECTORY, f"{email}_{student_name}_{login_session_id}_{chat_session_id}"))
+            if os.path.exists(os.path.join(LOCAL_VECTORSTORES_DIRECTORY, f"{email}_{student_name}_{login_session_id}_{chat_session_id}")):
+                shutil.rmtree(os.path.join(LOCAL_VECTORSTORES_DIRECTORY, f"{email}_{student_name}_{login_session_id}_{chat_session_id}"))
                 backend_logger.info(f"Roll back folder creation for email={email}, student_name={student_name}, global_session_id={global_session_id}.")
 
         load_vectorstore_from_path_success, load_vectorstore_from_path_message, rag_vectorstore = load_vectorstore_from_path(local_dir=fetch_vectorstore_from_s3_data)
@@ -288,7 +288,7 @@ def end_chat_endpoint(api_request: StartEndChatRequest):
             backend_logger.warning(f"Login session not found for login_session_id={login_session_id} in in-memory map. Continuing cleanup.")
         
         session_pattern = f"{email}_{student_name}_{login_session_id}_{chat_session_id}"
-        vectorstore_path = os.path.join(TEMPORARY_VECTORSTORES_DIRECTORY, session_pattern)
+        vectorstore_path = os.path.join(LOCAL_VECTORSTORES_DIRECTORY, session_pattern)
         if os.path.exists(vectorstore_path):
             shutil.rmtree(vectorstore_path)
             backend_logger.info(f"Deleted chat session vectorstore from path {vectorstore_path} for global_session_id={global_session_id}.")

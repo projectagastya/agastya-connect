@@ -23,7 +23,7 @@ from backend_config import (
     STUDENT_METADATA_FILE_NAME,
     STUDENT_METADATA_FOLDER_PATH,
     STUDENT_VECTORSTORE_FOLDER_PATH,
-    TEMPORARY_VECTORSTORES_DIRECTORY,
+    LOCAL_VECTORSTORES_DIRECTORY,
 )
 from backend_prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from boto3.dynamodb.conditions import Key
@@ -57,7 +57,7 @@ def fetch_vectorstore_from_s3(email: str, login_session_id: str, chat_session_id
     data = None
 
     local_dir = os.path.join(
-        TEMPORARY_VECTORSTORES_DIRECTORY,
+        LOCAL_VECTORSTORES_DIRECTORY,
         f"{email}_{student_name}_{login_session_id}_{chat_session_id}"
     )
     created_dir = False

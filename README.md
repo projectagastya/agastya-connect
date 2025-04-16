@@ -122,7 +122,7 @@ The application leverages AWS services for robust, scalable data management:
 
 - **Local Storage**:
   - `logs/`: Directory for application logs
-  - `temporary-student-vectorstores/`: Working directory for active vectorstores
+  - `local-student-vectorstores/`: Working directory for active vectorstores
 
 ### AI Architecture (RAG System)
 The intelligence layer uses a sophisticated Retrieval Augmented Generation approach:
@@ -217,7 +217,7 @@ The system implements a sophisticated data flow architecture to handle conversat
 1. User clicks "End Chat Session" button
 2. Frontend confirms the action via dialog
 3. Backend marks the session as ended in DynamoDB
-4. In-memory vectorstore is removed and temporary files are cleaned up
+4. In-memory vectorstore is removed and local files are cleaned up
 5. Frontend returns user to the home page
 6. Session state is reset for potential new sessions
 
@@ -252,7 +252,7 @@ The system implements a sophisticated data flow architecture to handle conversat
 4. **Create Required Directories**
    ```bash
    mkdir -p logs/backend_logs logs/frontend_logs
-   mkdir -p temporary-student-vectorstores
+   mkdir -p local-student-vectorstores
    ```
 
 5. **Configure Environment Variables**
@@ -304,7 +304,7 @@ RESPONSE_GENERATION_MODEL_MAX_TOKENS=<your-choice-of-number-of-output-tokens>
 
 # Storage Paths
 LOGS_FOLDER_PATH=<your-choice-of-logs-folder-path-on-local>
-TEMPORARY_VECTORSTORES_DIRECTORY=<your-choice-of-temporary-student-vectorstores-folder-path-on-local>
+LOCAL_VECTORSTORES_DIRECTORY=<your-choice-of-local-student-vectorstores-folder-path-on-local>
 STUDENT_METADATA_FILE_NAME=<your-metadata-filename-on-s3>
 STUDENT_METADATA_FOLDER_PATH=<your-metadata-folder-path-on-s3>
 STUDENT_VECTORSTORE_FOLDER_PATH=<your-vectorstore-folder-path-on-s3>
