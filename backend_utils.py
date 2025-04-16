@@ -56,62 +56,87 @@ def fetch_vectorstore_from_s3(email: str, login_session_id: str, chat_session_id
     result = False
     data = None
 
-    local_dir = os.path.join(
-        LOCAL_VECTORSTORES_DIRECTORY,
-        f"{email}_{student_name}_{login_session_id}_{chat_session_id}"
-    )
-    created_dir = False
-    try:
-        if os.path.exists(local_dir):
-            backend_logger.info(f"fetch_vectorstore_from_s3 | Removing existing directory {local_dir}")
-            shutil.rmtree(local_dir)
-
-        os.makedirs(local_dir, exist_ok=True)
-        created_dir = True
-        backend_logger.info(f"fetch_vectorstore_from_s3 | Created directory {local_dir}")
-        s3_client = boto3.client(
-            "s3",
-            region_name = AWS_REGION,
-            aws_access_key_id = AWS_ACCESS_KEY_ID,
-            aws_secret_access_key = AWS_SECRET_ACCESS_KEY
-        )
-        bucket_name = MAIN_S3_BUCKET_NAME
-        s3_prefix = f"{STUDENT_VECTORSTORE_FOLDER_PATH}/{student_name}/"
-        response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=s3_prefix)
-
-        if 'Contents' not in response:
-            backend_logger.error(f"fetch_vectorstore_from_s3 | No objects found in S3 under prefix: {s3_prefix}")
-            success = True
-            message = "No objects found in S3 under prefix"
-            backend_logger.info(f"fetch_vectorstore_from_s3 | {message}")
-            return success, message, result, data
+    local_dir = os.path.join(LOCAL_VECTORSTORES_DIRECTORY, student_name)
     
-        for obj in response['Contents']:
-            key = obj['Key']
-            relative_path = key[len(s3_prefix):]
-            if '..' in relative_path:
-                backend_logger.warning(f"fetch_vectorstore_from_s3 | Suspicious path detected: {relative_path}")
-                continue
-            local_file_path = os.path.join(local_dir, relative_path)
-            os.makedirs(os.path.dirname(local_file_path), exist_ok=True)        
-            s3_client.download_file(bucket_name, key, local_file_path)
-            backend_logger.info(f"fetch_vectorstore_from_s3 | Downloaded file {key} to {local_file_path}")
+    if os.path.exists(local_dir) and os.listdir(local_dir):
+        backend_logger.info(f"fetch_vectorstore_from_s3 | Using cached vectorstore from {local_dir}")
         success = True
         result = True
-        message = "Vectorstore fetched from S3 successfully"
+        message = "Using cached vectorstore"
         data = local_dir
-        backend_logger.info(f"fetch_vectorstore_from_s3 | {message}")
         return success, message, result, data
-    except Exception as e:
-        backend_logger.error(f"fetch_vectorstore_from_s3 | Error fetching vectorstore from S3: {e}")
-        if created_dir and os.path.exists(local_dir):
-            try:
-                shutil.rmtree(local_dir)
-                backend_logger.info(f"fetch_vectorstore_from_s3 | Cleaned up directory {local_dir} after error")
-            except Exception as ce:
-                backend_logger.error(f"fetch_vectorstore_from_s3 | Failed to clean up directory {local_dir}: {ce}")
-        message = f"Error fetching vectorstore from S3: {e}"
-        return success, message, result, data
+    
+    created_dir = False
+    max_retries = 3
+    retry_count = 0
+    
+    while retry_count < max_retries:
+        try:
+            os.makedirs(local_dir, exist_ok=True)
+            created_dir = True
+            backend_logger.info(f"fetch_vectorstore_from_s3 | Created shared directory {local_dir}")
+            
+            s3_client = boto3.client(
+                "s3",
+                region_name=AWS_REGION,
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+            )
+            bucket_name = MAIN_S3_BUCKET_NAME
+            s3_prefix = f"{STUDENT_VECTORSTORE_FOLDER_PATH}/{student_name}/"
+            response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=s3_prefix)
+
+            if 'Contents' not in response:
+                backend_logger.error(f"fetch_vectorstore_from_s3 | No objects found in S3 under prefix: {s3_prefix}")
+                if created_dir and os.path.exists(local_dir):
+                    shutil.rmtree(local_dir)
+                success = True
+                message = "No objects found in S3 under prefix"
+                backend_logger.info(f"fetch_vectorstore_from_s3 | {message}")
+                return success, message, result, data
+        
+            for obj in response['Contents']:
+                key = obj['Key']
+                relative_path = key[len(s3_prefix):]
+                if '..' in relative_path:
+                    backend_logger.warning(f"fetch_vectorstore_from_s3 | Suspicious path detected: {relative_path}")
+                    continue
+                local_file_path = os.path.join(local_dir, relative_path)
+                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)        
+                s3_client.download_file(bucket_name, key, local_file_path)
+                backend_logger.info(f"fetch_vectorstore_from_s3 | Downloaded file {key} to {local_file_path}")
+            
+            success = True
+            result = True
+            message = "Vectorstore fetched from S3 successfully"
+            data = local_dir
+            backend_logger.info(f"fetch_vectorstore_from_s3 | {message}")
+            return success, message, result, data
+            
+        except Exception as e:
+            retry_count += 1
+            backend_logger.error(f"fetch_vectorstore_from_s3 | Error fetching vectorstore from S3 (Attempt {retry_count}/{max_retries}): {e}")
+            
+            if retry_count < max_retries:
+                backend_logger.info(f"fetch_vectorstore_from_s3 | Retrying download...")
+                time.sleep(2 ** retry_count)
+                
+                if created_dir and os.path.exists(local_dir):
+                    try:
+                        shutil.rmtree(local_dir)
+                    except Exception:
+                        pass
+            else:
+                if created_dir and os.path.exists(local_dir):
+                    try:
+                        shutil.rmtree(local_dir)
+                        backend_logger.info(f"fetch_vectorstore_from_s3 | Cleaned up directory {local_dir} after error")
+                    except Exception as ce:
+                        backend_logger.error(f"fetch_vectorstore_from_s3 | Failed to clean up directory {local_dir}: {ce}")
+                
+                message = f"Error fetching vectorstore from S3 after {max_retries} attempts: {e}"
+    
+    return success, message, result, data
 
 def load_vectorstore_from_path(local_dir: str) -> Tuple[bool, str, Optional[Chroma]]:
     success = False
