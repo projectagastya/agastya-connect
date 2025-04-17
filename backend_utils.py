@@ -552,7 +552,7 @@ def initialize_chat_session(user_email: str, login_session_id: str, chat_session
                 'user_full_name': f"{user_first_name} {user_last_name}",
                 'student_name': student_name,
                 'session_status': 'active',
-                'created_at': now,
+                'started_at': now,
                 'last_updated_at': now,
                 'message_count': 0
             }

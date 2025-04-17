@@ -91,7 +91,7 @@ DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
         {'AttributeName': 'user_email', 'AttributeType': 'S'},
         {'AttributeName': 'student_name', 'AttributeType': 'S'},
         {'AttributeName': 'last_updated_at', 'AttributeType': 'S'},
-        {'AttributeName': 'created_at', 'AttributeType': 'S'},
+        {'AttributeName': 'started_at', 'AttributeType': 'S'},
         {'AttributeName': 'login_session_id', 'AttributeType': 'S'}
     ],
     'GlobalSecondaryIndexes': [
@@ -115,7 +115,7 @@ DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
             'IndexName': 'LoginSessionIndex',
             'KeySchema': [
                 {'AttributeName': 'login_session_id', 'KeyType': 'HASH'},
-                {'AttributeName': 'created_at', 'KeyType': 'RANGE'}
+                {'AttributeName': 'started_at', 'KeyType': 'RANGE'}
             ],
             'Projection': {'ProjectionType': 'ALL'}
         }
