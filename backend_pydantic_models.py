@@ -2,52 +2,6 @@ from configure_logger import backend_logger
 from pydantic import BaseModel, Field, field_validator
 from typing import Literal, Optional
 
-class InsertUserProfileRequest(BaseModel):
-    first_name: str = Field(..., description="First name of the user.")
-    last_name: str = Field(..., description="Last name of the user.")
-    email: str = Field(..., description="Email of the user.")
-
-    @field_validator("email")
-    def validate_email(cls, v):
-        if not v.strip():
-            raise ValueError("Email cannot be a blank string")
-        return v
-    
-    @field_validator("first_name")
-    def validate_first_name(cls, v):
-        if not v.strip():
-            raise ValueError("First name cannot be a blank string")
-        return v
-    
-    @field_validator("last_name")
-    def validate_last_name(cls, v):
-        if not v.strip():
-            raise ValueError("Last name cannot be a blank string")
-        return v
-    
-class InsertUserProfileResponse(BaseModel):
-    success: bool = Field(..., description="Whether the function call was successful.")
-    message: str | None = Field(None, description="Message if the user profile was inserted successfully.")
-    result: bool | None = Field(None, description="Whether the user profile was inserted successfully.")
-    timestamp: str | None = Field(None, description="Timestamp of the user profile insertion.")
-
-class GetUserProfileRequest(BaseModel):
-    email: str = Field(..., description="Email of the user.")
-
-    @field_validator("email")
-    def validate_email(cls, v):
-        if not v.strip():
-            backend_logger.error(f"Invalid email: {v} for getting user profile")
-            raise ValueError("Email cannot be a blank string")
-        return v
-
-class GetUserProfileResponse(BaseModel):
-    success: bool = Field(..., description="Whether the function call was successful.")
-    message: str | None = Field(None, description="Message if the user profile was retrieved successfully.")
-    result: bool | None = Field(None, description="Whether the user profile was retrieved successfully.")
-    data: dict | None = Field(None, description="User profile data if the retrieval was successful.")
-    timestamp: str | None = Field(None, description="Timestamp of the user profile retrieval.")
-
 class StudentProfileSchema(BaseModel):
     student_name: str = Field(..., description="Name of the student.")
     student_sex: Literal["male", "female"] = Field(..., description="Sex of the student.")
