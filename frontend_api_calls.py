@@ -45,7 +45,7 @@ def get_student_profiles(count: int) -> tuple[bool, str, list]:
         frontend_logger.error(f"get_student_profiles | {message}")
     return success, message, data
 
-def start_chat(user_first_name: str, user_last_name: str, email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str, str]:
+def start_chat(user_first_name: str, user_last_name: str, user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str, str]:
     success = False
     message = ""
     data = ""
@@ -53,7 +53,7 @@ def start_chat(user_first_name: str, user_last_name: str, email: str, login_sess
         payload = {
             "user_first_name": user_first_name,
             "user_last_name": user_last_name,
-            "email": email,
+            "user_email": user_email,
             "login_session_id": login_session_id,
             "chat_session_id": chat_session_id,
             "student_name": student_name
@@ -64,13 +64,13 @@ def start_chat(user_first_name: str, user_last_name: str, email: str, login_sess
             message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
             frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
         elif response.status_code == 422:
-            message = f"Invalid format for email: {email} or student name: {student_name} or login session id: {login_session_id} or chat session id: {chat_session_id} sent in the API request"
+            message = f"Invalid format for email: {user_email} or student name: {student_name} or login session id: {login_session_id} or chat session id: {chat_session_id} sent in the API request"
             frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
         elif response.status_code == 400:
             message = f"Login session id: {login_session_id} or chat session id: {chat_session_id} already exists"
             frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
         elif response.status_code == 404:
-            message = f"Invalid email: {email} or student name: {student_name} sent in the API request"
+            message = f"Invalid email: {user_email} or student name: {student_name} sent in the API request"
             frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
         else:
             success = True
@@ -83,7 +83,7 @@ def start_chat(user_first_name: str, user_last_name: str, email: str, login_sess
         frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
     return success, message, data
 
-def chat(login_session_id: str, chat_session_id: str, question: str, input_type: str, instructor_name: str, student_name: str) -> tuple[bool, str, str]:
+def chat(login_session_id: str, chat_session_id: str, question: str, input_type: str, user_full_name: str, student_name: str) -> tuple[bool, str, str]:
     success = False
     message = ""
     data = ""
@@ -94,7 +94,7 @@ def chat(login_session_id: str, chat_session_id: str, question: str, input_type:
             "chat_session_id": chat_session_id,
             "question": question,
             "input_type": input_type,
-            "instructor_name": instructor_name,
+            "user_full_name": user_full_name,
             "student_name": student_name
         }
         response = requests.post(f"{backend_api_url}/chat", json=payload, headers=headers)
@@ -118,14 +118,14 @@ def chat(login_session_id: str, chat_session_id: str, question: str, input_type:
         frontend_logger.error(f"chat | {message}")
     return success, message, data
 
-def end_chat(user_first_name: str, user_last_name: str, email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str]:
+def end_chat(user_first_name: str, user_last_name: str, user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str]:
     success = False
     message = ""
     try:
         payload = {
             "user_first_name": user_first_name,
             "user_last_name": user_last_name,
-            "email": email,
+            "user_email": user_email,
             "login_session_id": login_session_id,
             "chat_session_id": chat_session_id,
             "student_name": student_name
@@ -137,7 +137,7 @@ def end_chat(user_first_name: str, user_last_name: str, email: str, login_sessio
             frontend_logger.error(f"end_chat | {message} | Response Status Code: {response.status_code}")
         else:
             success = True
-            message = f"Successfully ended chat for email: {email}, login session id: {login_session_id}, chat session id: {chat_session_id}, student name: {student_name}"
+            message = f"Successfully ended chat for email: {user_email}, login session id: {login_session_id}, chat session id: {chat_session_id}, student name: {student_name}"
             frontend_logger.info(f"end_chat | {message} | Response Status Code: {response.status_code}")
     except Exception as e:
         message = str(e)

@@ -117,7 +117,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
     try:
         user_first_name = api_request.user_first_name.strip()
         user_last_name = api_request.user_last_name.strip()
-        email = api_request.email.strip()
+        user_email = api_request.user_email.strip()
         login_session_id = api_request.login_session_id.strip()
         chat_session_id = api_request.chat_session_id.strip()
         student_name = api_request.student_name.strip()
@@ -131,7 +131,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
                 raise HTTPException(status_code=400, detail=f"Chat session {chat_session_id} already exists for login_session_id={login_session_id}")
 
         fetch_vectorstore_from_s3_success, fetch_vectorstore_from_s3_message, fetch_vectorstore_from_s3_result, fetch_vectorstore_from_s3_data = fetch_vectorstore_from_s3(
-            email=email,
+            user_email=user_email,
             login_session_id=login_session_id,
             chat_session_id=chat_session_id,
             student_name=student_name
@@ -140,7 +140,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             backend_logger.error(f"Error in fetching vectorstore from S3: {fetch_vectorstore_from_s3_message}")
             raise HTTPException(status_code=500, detail="Failed to fetch vectorstore from S3. Please try again.")
         if not fetch_vectorstore_from_s3_result:
-            backend_logger.error(f"Vectorstore not found for email={email}, student_name={student_name}, global_session_id={global_session_id}")
+            backend_logger.error(f"Vectorstore not found for email={user_email}, student_name={student_name}, global_session_id={global_session_id}")
             raise HTTPException(status_code=404, detail="Vectorstore not found. Please try again.")
         
         load_vectorstore_from_path_success, load_vectorstore_from_path_message, rag_vectorstore = load_vectorstore_from_path(local_dir=fetch_vectorstore_from_s3_data)
@@ -152,7 +152,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         backend_logger.info(f"Initialized chat session vectorstore for global_session_id={global_session_id}")
 
         init_chat_success, init_chat_message = initialize_chat_session(
-            email=email,
+            user_email=user_email,
             login_session_id=login_session_id,
             chat_session_id=chat_session_id,
             user_first_name=user_first_name,
@@ -181,7 +181,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
 
         return StartChatResponse(
             success=True,
-            message=f"Chat session initialized successfully for email={email}",
+            message=f"Chat session initialized successfully for email={user_email}",
             result=True,
             data=first_assistant_message,
             timestamp=datetime.now().isoformat()
@@ -201,7 +201,7 @@ def chat_endpoint(api_request: ChatMessageRequest):
         question = api_request.question.strip()
         input_type = api_request.input_type.strip()
         student_name = formatted_name(api_request.student_name.strip())
-        instructor_name = api_request.instructor_name.strip()
+        user_full_name = api_request.user_full_name.strip()
 
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
@@ -232,7 +232,7 @@ def chat_endpoint(api_request: ChatMessageRequest):
             backend_logger.error(f"Error in getting RAG chain for global_session_id={global_session_id}: {get_rag_chain_message}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain. Please try again.")
         
-        answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "instructor_name": instructor_name, "student_name": student_name}).get("answer", None)
+        answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "user_full_name": user_full_name, "student_name": student_name}).get("answer", None)
         if answer is None:
             backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain answer. Please try again.")
@@ -255,7 +255,7 @@ def chat_endpoint(api_request: ChatMessageRequest):
 def end_chat_endpoint(api_request: StartEndChatRequest):
     count = 0
     try:
-        email = api_request.email.strip()
+        user_email = api_request.user_email.strip()
         student_name = api_request.student_name.strip()
         login_session_id = api_request.login_session_id.strip()
         chat_session_id = api_request.chat_session_id.strip()

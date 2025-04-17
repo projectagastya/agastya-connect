@@ -50,7 +50,7 @@ from typing import Dict, List, Optional, Tuple
 def formatted_name(student_name: str):
     return student_name.replace('-', ' ').title()
 
-def fetch_vectorstore_from_s3(email: str, login_session_id: str, chat_session_id: str, student_name: str) -> Tuple[bool, str, bool, Optional[str]]:
+def fetch_vectorstore_from_s3(user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> Tuple[bool, str, bool, Optional[str]]:
     success = False
     message = ""
     result = False
@@ -531,7 +531,7 @@ def create_chat_session_table() -> Tuple[bool, str]:
     
     return success, message
 
-def initialize_chat_session(email: str, login_session_id: str, chat_session_id: str, user_first_name: str, user_last_name: str, student_name: str) -> Tuple[bool, str]:
+def initialize_chat_session(user_email: str, login_session_id: str, chat_session_id: str, user_first_name: str, user_last_name: str, student_name: str) -> Tuple[bool, str]:
     success = False
     message = ""
     
@@ -548,8 +548,8 @@ def initialize_chat_session(email: str, login_session_id: str, chat_session_id: 
                 'global_session_id': global_session_id,
                 'login_session_id': login_session_id,
                 'chat_session_id': chat_session_id,
-                'instructor_email': email,
-                'instructor_name': f"{user_first_name} {user_last_name}",
+                'user_email': user_email,
+                'user_full_name': f"{user_first_name} {user_last_name}",
                 'student_name': student_name,
                 'session_status': 'active',
                 'created_at': now,
@@ -559,7 +559,7 @@ def initialize_chat_session(email: str, login_session_id: str, chat_session_id: 
         )
         
         success = True
-        message = f"Chat session initialized successfully for email={email}"
+        message = f"Chat session initialized successfully for email={user_email}"
         backend_logger.info(f"initialize_chat_session | {message}")
     except Exception as e:
         message = f"Error initializing chat session: {e}"

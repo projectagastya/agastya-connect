@@ -62,7 +62,7 @@ async def initialize_chat_session(student_choice: dict):
         }
 
     if hasattr(st.experimental_user, "email"):
-        email = getattr(st.experimental_user, "email")
+        user_email = getattr(st.experimental_user, "email")
     else:
         frontend_logger.error("initialize_chat_session | User email not found in st.experimental_user")
         st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
@@ -89,7 +89,7 @@ async def initialize_chat_session(student_choice: dict):
     start_chat_success, start_chat_message, first_message = start_chat(
         user_first_name=getattr(st.experimental_user, "given_name"),
         user_last_name=getattr(st.experimental_user, "family_name"),
-        email=email,
+        user_email=user_email,
         student_name=student_name,
         login_session_id=login_session_id,
         chat_session_id=chat_session_id
@@ -106,7 +106,7 @@ async def initialize_chat_session(student_choice: dict):
         student_name=student_name
     )
 
-def cleanup_chat_session(email, chat_session_id, student_name):
+def cleanup_chat_session(user_email, chat_session_id, student_name):
     if hasattr(st.experimental_user, "nonce"):
         user_login_session_id = getattr(st.experimental_user, "nonce")
     else:
@@ -117,7 +117,7 @@ def cleanup_chat_session(email, chat_session_id, student_name):
     success, message = end_chat(
         user_first_name=getattr(st.experimental_user, "given_name"),
         user_last_name=getattr(st.experimental_user, "family_name"),
-        email=email,
+        user_email=user_email,
         login_session_id=user_login_session_id,
         chat_session_id=chat_session_id,
         student_name=student_name
@@ -152,7 +152,7 @@ def end_chat_dialog(current_chat_session: dict, student_name: str):
     with button_cols[0]:
         if st.button(label="Confirm", type="primary", icon=":material/check:", use_container_width=True):
             cleanup_chat_session(
-                email=user_email,
+                user_email=user_email,
                 chat_session_id=current_chat_session["id"],
                 student_name=student_name
             )
@@ -202,7 +202,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     formatted_history = "\n".join(formatted_history)
 
     generate_next_questions_prompt = SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS.format(
-        instructor=user_full_name,
+        user_full_name=user_full_name,
         student=formatted_name(student_name),
         formatted_history=formatted_history
     )
@@ -264,7 +264,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             chat_session_id=current_chat_session["id"],
             question=user_input,
             input_type=input_type,
-            instructor_name=user_full_name,
+            user_full_name=user_full_name,
             student_name=student_name
         )
 
@@ -286,9 +286,9 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
 
 def authorize_user():
     if hasattr(st.experimental_user, "email"):
-        email = getattr(st.experimental_user, "email")
-        if email not in st.secrets.SECURITY.ALLOWED_EMAILS:
-            frontend_logger.critical(f"authorize_user | Unauthorized user logged in: {email}")
+        user_email = getattr(st.experimental_user, "email")
+        if user_email not in st.secrets.SECURITY.ALLOWED_EMAILS:
+            frontend_logger.critical(f"authorize_user | Unauthorized user logged in: {user_email}")
             st.logout()
     else:
         st.switch_page(page="pages/login.py")
