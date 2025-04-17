@@ -80,7 +80,7 @@ class ChatMessageRequest(BaseModel):
     login_session_id: str = Field(..., min_length=1, description="Login session ID for which the chat session needs to be initialized.")
     chat_session_id: str = Field(..., min_length=1, description="Unique identifier for the chat session.")
     question: str = Field(..., min_length=1, description="The question being asked to the LLM.")
-    input_type: Literal["audio", "button", "default", "manual"] = Field(..., description="The type of input being provided to the LLM.")
+    input_type: Literal["audio", "button", "default", "manual", "system"] = Field(..., description="The type of input being provided to the LLM.")
     student_name: str = Field(..., min_length=1, description="The student involved in this conversation")
     user_full_name: str = Field(..., min_length=1, description="The user asking the question")
     user_email: Optional[str] = Field(None, description="Email of the user (added for DynamoDB)")
@@ -105,7 +105,7 @@ class ChatMessageRequest(BaseModel):
     
     @field_validator("input_type")
     def validate_input_type(cls, v):
-        if v not in ["audio", "button", "default", "manual"]:
+        if v not in ["audio", "button", "default", "manual", "system"]:
             raise ValueError("Invalid input type")
         return v
 

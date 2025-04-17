@@ -171,7 +171,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             login_session_id=login_session_id,
             chat_session_id=chat_session_id,
             user_input=first_user_message,
-            input_type="default",
+            input_type="system",
             assistant_output=first_assistant_message
         )
         if not insert_chat_message_success:
