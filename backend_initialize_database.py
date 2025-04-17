@@ -25,7 +25,7 @@ def initialize_all_databases() -> tuple[bool, str]:
     
     create_chat_session_table_success, create_chat_session_table_message = create_chat_session_table()
     if not create_chat_session_table_success:
-        message = f"Failed to create chat message table: {create_chat_session_table_message}"
+        message = f"Failed to create chat session table: {create_chat_session_table_message}"
         backend_logger.error(f"initialize_all_databases | {message}")
         return success, message
     
