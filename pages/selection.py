@@ -1,7 +1,7 @@
 import streamlit as st
 
 from configure_logger import frontend_logger
-from frontend_api_calls import get_student_profiles
+from frontend_api_calls import get_student_profiles, get_active_sessions
 from frontend_utils import (
     add_aligned_text,
     formatted_name,
@@ -9,6 +9,7 @@ from frontend_utils import (
     security_check,
     setup_page,
 )
+from datetime import datetime
 
 setup_page(initial_sidebar_state="collapsed")
 
@@ -18,14 +19,38 @@ def render_selection_page():
     if len(st.session_state) == 0:
         reset_session_state()
 
+    if hasattr(st.experimental_user, "email"):
+        user_email = getattr(st.experimental_user, "email")
+    else:
+        frontend_logger.error("render_selection_page | User email not found in user object")
+        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
+        st.stop()
+        
+    if hasattr(st.experimental_user, "nonce"):
+        login_session_id = getattr(st.experimental_user, "nonce")
+    else:
+        frontend_logger.error("render_selection_page | User nonce not found in user object")
+        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
+        st.stop()
+    
+    active_sessions_success, active_sessions_message, active_sessions = get_active_sessions(
+        user_email=user_email,
+        login_session_id=login_session_id
+    )
+    
+    active_session_map = {}
+    if active_sessions_success and active_sessions:
+        for session in active_sessions:
+            active_session_map[session["student_name"]] = session["chat_session_id"]
+
     cols = st.columns([0.9,10,1.1], gap="small")
     with cols[0]:
         if st.button(label="Back", icon=":material/arrow_back:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
             st.switch_page(page="pages/home.py")
 
     with cols[2]:
-        if st.button(label="Refresh", icon=":material/refresh:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
-            st.cache_resource.clear()
+        if st.button(label="Refresh", icon=":material/refresh:", type="secondary", disabled=st.session_state["loading_page"], use_container_width=True):
+            get_student_profiles.clear()
             st.rerun()
     
     success, message, students = get_student_profiles(count=8)
@@ -43,26 +68,44 @@ def render_selection_page():
         cols = st.columns(4, gap="small")
         for col_idx, student in enumerate(row):
             with cols[col_idx]:
+                student_name = student["student_name"]
                 student_age = student["student_age"]
                 student_state = student["student_state"]
                 student_sex = student["student_sex"]
                 
                 with st.container(border=True):
-                    add_aligned_text(content=formatted_name(student["student_name"]), alignment="center", size=20, bold=True)
+                    add_aligned_text(content=formatted_name(student_name), alignment="center", size=20, bold=True)
                     subcols = st.columns([2,2])
                     
                     with subcols[0]:
-                        
                         st.markdown("<br>", unsafe_allow_html=True)
                         st.image(image=student["student_image"], use_container_width=True)
+                        
+                        has_active_session = student_name in active_session_map
+                        button_label = "Resume Chat" if has_active_session else "Start Chat"
+                        
                         if st.button(
-                            label=f"Start Chat",
-                            key=f"chat_with_{student['student_name']}",
-                            type="primary",
-                            icon=":material/arrow_outward:",
+                            label=button_label,
+                            key=f"{'resume' if has_active_session else 'start'}_chat_{student['student_name']}",
+                            type="primary" if has_active_session else "secondary",
                             use_container_width=True
                         ):
+                            get_active_sessions.clear()
                             st.session_state["student_choice"] = student
+                            if has_active_session:
+                                st.session_state["active_chat_session"] = {
+                                    "id": active_session_map[student_name],
+                                    "chat_history": [],
+                                    "next_questions": [],
+                                    "recent_questions": [],
+                                    "chat_start_timestamp": datetime.now(),
+                                    "chat_end_timestamp": None,
+                                    "student_profile": student
+                                }
+                            else:
+                                if "active_chat_session" in st.session_state:
+                                    st.session_state["active_chat_session"]["id"] = None
+                            
                             st.session_state["loading_page"] = True
                             st.switch_page(page="pages/loading.py")
                     

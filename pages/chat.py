@@ -34,18 +34,11 @@ async def render_chat_page():
 
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button(label="End Chat Session", icon=":material/close:", type="primary", use_container_width=True):
-            st.session_state["end_chat_dialog"] = True
-            st.rerun()
+        if st.button(label="Chat with another student", icon=":material/arrow_back:", type="primary", use_container_width=True):
+            st.switch_page(page="pages/selection.py")
         st.markdown("---")
     
     render_chat_history(chat_history=current_chat_session["chat_history"])
-
-    if st.session_state["end_chat_dialog"]:
-        end_chat_dialog(
-            current_chat_session=current_chat_session,
-            student_name=student_name
-        )
 
     user_input = st.chat_input(placeholder=f"Ask {formatted_name(student_name).split(' ')[0]} a question")
     await render_next_questions(next_questions=current_chat_session["next_questions"])

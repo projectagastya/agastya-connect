@@ -6,6 +6,8 @@ langchain-core
 langchain-chroma
 langchain-community
 langchain-google-genai
+openpyxl
+pandas
 python-docx
 python-dotenv
 streamlit

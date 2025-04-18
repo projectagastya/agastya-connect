@@ -143,3 +143,135 @@ def end_chat(user_first_name: str, user_last_name: str, user_email: str, login_s
         message = str(e)
         frontend_logger.error(f"end_chat | {message} | Response Status Code: {response.status_code}")
     return success, message
+
+@st.cache_resource(ttl=300, show_spinner=False)
+def get_active_sessions(user_email: str, login_session_id: str) -> tuple[bool, str, list]:
+    success = False
+    message = ""
+    data = []
+    try:
+        payload = {
+            "user_email": user_email,
+            "login_session_id": login_session_id
+        }
+        response = requests.post(f"{backend_api_url}/get-active-sessions", json=payload, headers=headers)
+
+        if response.status_code == 200:
+            success = True
+            message = response.json()["message"]
+            data = response.json()["data"]
+            frontend_logger.info(f"get_active_sessions | {message}")
+        else:
+            message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
+            frontend_logger.error(f"get_active_sessions | {message} | Response Status Code: {response.status_code}")
+
+    except Exception as e:
+        message = str(e)
+        frontend_logger.error(f"get_active_sessions | {message}")
+    return success, message, data
+
+def get_chat_history_messages(login_session_id: str, chat_session_id: str) -> tuple[bool, str, list]:
+    success = False
+    message = ""
+    data = []
+    try:
+        payload = {
+            "login_session_id": login_session_id,
+            "chat_session_id": chat_session_id
+        }
+        response = requests.post(f"{backend_api_url}/get-chat-history", json=payload, headers=headers)
+
+        if response.status_code == 200:
+            success = True
+            message = response.json()["message"]
+            data = response.json()["data"]
+            frontend_logger.info(f"get_chat_history_messages | {message}")
+        else:
+            message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
+            frontend_logger.error(f"get_chat_history_messages | {message} | Response Status Code: {response.status_code}")
+
+    except Exception as e:
+        message = str(e)
+        frontend_logger.error(f"get_chat_history_messages | {message}")
+    return success, message, data
+
+def end_all_chats(user_email: str, login_session_id: str) -> tuple[bool, str]:
+    success = False
+    message = ""
+    try:
+        payload = {
+            "user_email": user_email,
+            "login_session_id": login_session_id
+        }
+        response = requests.post(f"{backend_api_url}/end-all-chats", json=payload, headers=headers)
+
+        if response.status_code == 200:
+            success = True
+            message = "Successfully ended all active chat sessions"
+            frontend_logger.info(f"end_all_chats | {message}")
+        else:
+            message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
+            frontend_logger.error(f"end_all_chats | {message} | Response Status Code: {response.status_code}")
+    except Exception as e:
+        message = str(e)
+        frontend_logger.error(f"end_all_chats | {message}")
+    return success, message
+
+def resume_chat(user_first_name: str, user_last_name: str, user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str, str]:
+    success = False
+    message = ""
+    data = ""
+    try:
+        payload = {
+            "user_first_name": user_first_name,
+            "user_last_name": user_last_name,
+            "user_email": user_email,
+            "login_session_id": login_session_id,
+            "chat_session_id": chat_session_id,
+            "student_name": student_name
+        }
+        response = requests.post(f"{backend_api_url}/resume-chat", json=payload, headers=headers)
+
+        if response.status_code == 500:
+            message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
+            frontend_logger.error(f"resume_chat | {message} | Response Status Code: {response.status_code}")
+        elif response.status_code == 422:
+            message = f"Invalid format for email: {user_email} or student name: {student_name} or login session id: {login_session_id} or chat session id: {chat_session_id} sent in the API request"
+            frontend_logger.error(f"resume_chat | {message} | Response Status Code: {response.status_code}")
+        elif response.status_code == 404:
+            message = f"Invalid email: {user_email} or student name: {student_name} sent in the API request"
+            frontend_logger.error(f"resume_chat | {message} | Response Status Code: {response.status_code}")
+        else:
+            success = True
+            message = response.json()["message"]
+            data = response.json().get("data", "")
+            frontend_logger.info(f"resume_chat | {message} | Response Status Code: {response.status_code}")
+    except Exception as e:
+        success = False
+        message = str(e)
+        frontend_logger.error(f"resume_chat | {message}")
+    return success, message, data
+
+def export_chats(user_email: str, login_session_id: str, user_first_name: str, user_last_name: str) -> tuple[bool, str]:
+    success = False
+    message = ""
+    try:
+        payload = {
+            "user_email": user_email,
+            "login_session_id": login_session_id,
+            "user_first_name": user_first_name,
+            "user_last_name": user_last_name
+        }
+        response = requests.post(f"{backend_api_url}/export-chats", json=payload, headers=headers)
+
+        if response.status_code == 200:
+            success = True
+            message = "Successfully initiated chat transcript export"
+            frontend_logger.info(f"export_chats | {message}")
+        else:
+            message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
+            frontend_logger.error(f"export_chats | {message} | Response Status Code: {response.status_code}")
+    except Exception as e:
+        message = str(e)
+        frontend_logger.error(f"export_chats | {message}")
+    return success, message

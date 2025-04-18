@@ -7,6 +7,10 @@ from frontend_utils import (
     security_check,
     setup_page
 )
+from frontend_api_calls import (
+    end_all_chats,
+    export_chats
+)
 
 setup_page(initial_sidebar_state="expanded")
 
@@ -36,7 +40,7 @@ def render_home_page():
         frontend_logger.error("render_home_page | User image not found in user object")
         st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
         st.stop()
-    
+    login_session_id = getattr(st.experimental_user, "nonce")
     user_full_name = user_first_name + " " + user_last_name
     
     if len(st.session_state) == 0:
@@ -53,6 +57,21 @@ def render_home_page():
             add_aligned_text(content=user_email, alignment="left", bold=False, size=16, color="blue", underline=True)
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button(label="Logout", icon=":material/logout:", type="primary", use_container_width=True):
+            export_chats(
+                user_email=user_email,
+                login_session_id=login_session_id,
+                user_first_name=user_first_name,
+                user_last_name=user_last_name
+            )
+            
+            end_all_success, end_all_message = end_all_chats(
+                user_email=user_email,
+                login_session_id=login_session_id
+            )
+            
+            if not end_all_success:
+                frontend_logger.warning(f"render_home_page | Failed to end all chats on logout: {end_all_message}")
+                
             st.cache_resource.clear()
             st.logout()
 
@@ -96,21 +115,14 @@ def render_home_page():
     )
     st.markdown("---", unsafe_allow_html=True)
     
-    cols = st.columns([4, 4], gap="medium")
-    with cols[0]:
-        add_aligned_text(content="Chat with a Student", alignment="center", bold=True, size=32)
+    cols = st.columns([4, 4, 4], gap="medium")
+    with cols[1]:
+        add_aligned_text(content="Chat with a student", alignment="center", bold=True, size=32)
         st.markdown("<br>", unsafe_allow_html=True)
-        subcols = st.columns([3,4,3])
+        subcols = st.columns([1,4,1])
         with subcols[1]:
             if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
                 st.switch_page(page="pages/selection.py")
-    with cols[1]:
-        add_aligned_text(content="Previous Conversations", alignment="center", bold=True, size=32)
-        st.markdown("<br>", unsafe_allow_html=True)
-        subcols = st.columns([3,4,3])
-        with subcols[1]:
-            if st.button(label="History", icon=":material/history:", type="secondary", use_container_width=True):
-                st.switch_page(page="pages/history.py")
 
 if __name__ == "__main__":
     render_home_page()

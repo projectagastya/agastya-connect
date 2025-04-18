@@ -11,27 +11,40 @@ from backend_pydantic_models import (
     ChatMessageRequest,
     ChatMessageResponse,
     EndChatResponse,
+    ExportChatsRequest,
+
     GetStudentProfilesRequest,
     GetStudentProfilesResponse,
     StartChatResponse,
+    GetActiveSessionsRequest,
+    GetActiveSessionsResponse,
+    GetChatHistoryRequest,
+    GetChatHistoryResponse,
+    EndChatResponse,
+    ChatSessionInfo,
+    ChatMessageInfo,
     StartEndChatRequest,
     StudentProfileSchema
 )
 from backend_utils import (
     end_chat_session,
+    end_all_chat_sessions,
     fetch_vectorstore_from_s3,
     formatted_name,
     get_chat_history,
     get_rag_chain,
     get_student_profiles,
+    get_chat_history_for_ui,
+    get_active_chat_sessions,
     initialize_chat_session,
     insert_chat_message,
-    load_vectorstore_from_path
+    load_vectorstore_from_path,
+    export_chat_sessions_to_excel
 )
 from collections import defaultdict
 from configure_logger import backend_logger
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, Security, status
+from fastapi import FastAPI, HTTPException, Depends, Security, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 
@@ -296,3 +309,198 @@ def end_chat_endpoint(api_request: StartEndChatRequest):
     except Exception as e:
         backend_logger.error(f"End chat session endpoint error: {e}")
         raise HTTPException(status_code=500, detail="Failed to end chat session. Please try again.")
+
+@app.post("/get-active-sessions", summary="Get active chat sessions", response_model=GetActiveSessionsResponse, dependencies=[Depends(get_api_key)])
+def get_active_sessions_endpoint(api_request: GetActiveSessionsRequest):
+    try:
+        user_email = api_request.user_email.strip()
+        login_session_id = api_request.login_session_id.strip()
+        
+        get_active_sessions_success, get_active_sessions_message, get_active_sessions_result, sessions = get_active_chat_sessions(
+            user_email=user_email,
+            login_session_id=login_session_id
+        )
+        
+        if not get_active_sessions_success:
+            backend_logger.error(f"Database error in getting active sessions for user {user_email}: {get_active_sessions_message}")
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve active sessions for user {user_email} from the database.")
+        
+        session_infos = [
+            ChatSessionInfo(
+                student_name=session["student_name"],
+                chat_session_id=session["chat_session_id"],
+                global_session_id=session["global_session_id"],
+                started_at=session["started_at"],
+                last_updated_at=session["last_updated_at"]
+            ) for session in sessions
+        ]
+        
+        backend_logger.info(f"Retrieved {len(session_infos)} active chat sessions for user {user_email}")
+        return GetActiveSessionsResponse(
+            success=get_active_sessions_success,
+            message=get_active_sessions_message,
+            result=get_active_sessions_result,
+            data=session_infos,
+            timestamp=datetime.now().isoformat()
+        )
+    
+    except HTTPException as http_e:
+        backend_logger.error(f"HTTP exception in getting active sessions for user {api_request.user_email}: {http_e}")
+        raise http_e
+    except Exception as e:
+        backend_logger.error(f"Get active sessions endpoint error for user {api_request.user_email}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve active sessions. Please try again.")
+
+@app.post("/get-chat-history", summary="Get chat history for a session", response_model=GetChatHistoryResponse, dependencies=[Depends(get_api_key)])
+def get_chat_history_endpoint(api_request: GetChatHistoryRequest):
+    try:
+        login_session_id = api_request.login_session_id.strip()
+        chat_session_id = api_request.chat_session_id.strip()
+        
+        global_session_id = f"{login_session_id}#{chat_session_id}"
+        
+        get_chat_history_success, get_chat_history_message, get_chat_history_result, messages = get_chat_history_for_ui(
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id
+        )
+        
+        if not get_chat_history_success:
+            backend_logger.error(f"Database error in getting chat history for session {global_session_id}: {get_chat_history_message}")
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve chat history from the database.")
+        
+        if not get_chat_history_result:
+            backend_logger.info(f"No chat history found for session {global_session_id}")
+            return GetChatHistoryResponse(
+                success=True,
+                message="No chat history found",
+                result=False,
+                data=[],
+                timestamp=datetime.now().isoformat()
+            )
+        
+        message_infos = [
+            ChatMessageInfo(
+                role=message["role"],
+                content=message["content"],
+                created_at=message["created_at"]
+            ) for message in messages
+        ]
+        
+        backend_logger.info(f"Retrieved {len(message_infos)} messages for session {global_session_id}")
+        return GetChatHistoryResponse(
+            success=True,
+            message=f"Retrieved {len(message_infos)} messages",
+            result=True,
+            data=message_infos,
+            timestamp=datetime.now().isoformat()
+        )
+    
+    except HTTPException as http_e:
+        backend_logger.error(f"HTTP exception in getting chat history: {http_e}")
+        raise http_e
+    except Exception as e:
+        backend_logger.error(f"Get chat history endpoint error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve chat history. Please try again.")
+
+@app.post("/end-all-chats", summary="End all active chat sessions", response_model=EndChatResponse, dependencies=[Depends(get_api_key)])
+def end_all_chats_endpoint(api_request: GetActiveSessionsRequest):
+    try:
+        user_email = api_request.user_email.strip()
+        login_session_id = api_request.login_session_id.strip()
+        
+        end_all_chat_success, end_all_chat_message = end_all_chat_sessions(
+            user_email=user_email,
+            login_session_id=login_session_id
+        )
+        
+        if not end_all_chat_success:
+            backend_logger.error(f"Error ending all chat sessions for user {user_email}: {end_all_chat_message}")
+            raise HTTPException(status_code=500, detail="Failed to end all chat sessions. Please try again.")
+        
+        return EndChatResponse(
+            success=True,
+            message=f"Chat sessions ended successfully for user {user_email}",
+            timestamp=datetime.now().isoformat()
+        )
+    except HTTPException as http_e:
+        backend_logger.error(f"HTTP exception in ending all chat sessions for user {user_email}: {http_e}")
+        raise http_e
+    except Exception as e:
+        backend_logger.error(f"End all chat sessions endpoint error for user {user_email}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to end all chat sessions. Please try again.")
+
+@app.post("/resume-chat", summary="Resume existing chat session with vectorstore", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
+def resume_chat_endpoint(api_request: StartEndChatRequest):
+    try:
+        user_email = api_request.user_email.strip()
+        login_session_id = api_request.login_session_id.strip()
+        chat_session_id = api_request.chat_session_id.strip()
+        student_name = api_request.student_name.strip()
+        
+        global_session_id = f"{login_session_id}#{chat_session_id}"
+        
+        fetch_vectorstore_from_s3_success, fetch_vectorstore_from_s3_message, fetch_vectorstore_from_s3_result, fetch_vectorstore_from_s3_data = fetch_vectorstore_from_s3(
+            user_email=user_email,
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id,
+            student_name=student_name
+        )
+        
+        if not fetch_vectorstore_from_s3_success:
+            backend_logger.error(f"Error in fetching vectorstore from S3: {fetch_vectorstore_from_s3_message}")
+            raise HTTPException(status_code=500, detail="Failed to fetch vectorstore from S3. Please try again.")
+        if not fetch_vectorstore_from_s3_result:
+            backend_logger.error(f"Vectorstore not found for email={user_email}, student_name={student_name}, global_session_id={global_session_id}")
+            raise HTTPException(status_code=404, detail="Vectorstore not found. Please try again.")
+        
+        load_vectorstore_from_path_success, load_vectorstore_from_path_message, rag_vectorstore = load_vectorstore_from_path(local_dir=fetch_vectorstore_from_s3_data)
+        if not load_vectorstore_from_path_success:
+            backend_logger.error(f"Error in loading vectorstore from path: {load_vectorstore_from_path_message}")
+            raise HTTPException(status_code=500, detail="Failed to load vectorstore from path. Please try again.")
+
+        vectorstore_map[login_session_id][chat_session_id] = rag_vectorstore
+        backend_logger.info(f"Resumed chat session vectorstore for global_session_id={global_session_id}")
+
+        return StartChatResponse(
+            success=True,
+            message=f"Chat session resumed successfully for email={user_email}",
+            result=True,
+            data="",
+            timestamp=datetime.now().isoformat()
+        )
+    except HTTPException as http_e:
+        backend_logger.error(f"HTTP exception in resuming chat session: {http_e}")
+        raise http_e
+    except Exception as e:
+        backend_logger.error(f"Resume chat session endpoint error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to resume chat session. Please try again.")
+
+@app.post("/export-chats", summary="Export chat sessions to Excel asynchronously", response_model=EndChatResponse, dependencies=[Depends(get_api_key)])
+async def export_chats_endpoint(api_request: ExportChatsRequest, background_tasks: BackgroundTasks):
+    try:
+        user_email = api_request.user_email.strip()
+        login_session_id = api_request.login_session_id.strip()
+        user_first_name = api_request.user_first_name.strip()
+        user_last_name = api_request.user_last_name.strip()
+        
+        background_tasks.add_task(
+            export_chat_sessions_to_excel,
+            user_email=user_email,
+            login_session_id=login_session_id,
+            user_first_name=user_first_name,
+            user_last_name=user_last_name
+        )
+        
+        return EndChatResponse(
+            success=True,
+            message=f"Chat transcripts export scheduled for user {user_email}",
+            timestamp=datetime.now().isoformat()
+        )
+    except Exception as e:
+        backend_logger.error(f"Export chat sessions endpoint error for user {api_request.user_email}: {e}")
+
+        return EndChatResponse(
+            success=True,
+            message=f"Chat export scheduled for user {api_request.user_email}",
+            timestamp=datetime.now().isoformat()
+        )

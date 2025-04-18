@@ -120,3 +120,67 @@ class EndChatResponse(BaseModel):
     success: bool = Field(..., description="Whether the function call was successful.")
     message: str | None = Field(None, description="Message if the chat session was ended successfully.")
     timestamp: str | None = Field(None, description="Timestamp of the chat session end.")
+
+class GetActiveSessionsRequest(BaseModel):
+    user_email: str = Field(..., min_length=1, description="Email of the user to retrieve active chat sessions for.")
+    login_session_id: str = Field(..., min_length=1, description="Login session ID to retrieve active chat sessions for.")
+
+class ChatSessionInfo(BaseModel):
+    student_name: str = Field(..., description="Name of the student.")
+    chat_session_id: str = Field(..., description="ID of the chat session.")
+    global_session_id: str = Field(..., description="Global session ID.")
+    started_at: str = Field(..., description="When the chat started.")
+    last_updated_at: str = Field(..., description="When the chat was last updated.")
+
+class GetActiveSessionsResponse(BaseModel):
+    success: bool = Field(..., description="Whether the function call was successful.")
+    message: str | None = Field(None, description="Message about the result.")
+    result: bool = Field(..., description="Whether active sessions were found.")
+    data: list[ChatSessionInfo] | None = Field(None, description="Active chat sessions if any.")
+    timestamp: str | None = Field(None, description="Timestamp of the retrieval.")
+
+class GetChatHistoryRequest(BaseModel):
+    login_session_id: str = Field(..., min_length=1, description="Login session ID")
+    chat_session_id: str = Field(..., min_length=1, description="Chat session ID")
+
+class ChatMessageInfo(BaseModel):
+    role: str = Field(..., description="Role (user or assistant)")
+    content: str = Field(..., description="Message content")
+    created_at: str = Field(..., description="Message timestamp")
+
+class GetChatHistoryResponse(BaseModel):
+    success: bool = Field(..., description="Whether the function call was successful.")
+    message: str | None = Field(None, description="Message about the result.")
+    result: bool = Field(..., description="Whether chat history was found.")
+    data: list[ChatMessageInfo] | None = Field(None, description="Chat messages if any.")
+    timestamp: str | None = Field(None, description="Timestamp of the retrieval.")
+
+class ExportChatsRequest(BaseModel):
+    user_email: str = Field(..., min_length=1, description="Email of the user.")
+    login_session_id: str = Field(..., min_length=1, description="Login session ID to export chats from.")
+    user_first_name: str = Field(..., min_length=1, description="First name of the user.")
+    user_last_name: str = Field(..., min_length=1, description="Last name of the user.")
+
+    @field_validator("user_email")
+    def validate_email(cls, v):
+        if not v.strip():
+            raise ValueError("Email cannot be a blank string")
+        return v
+    
+    @field_validator("login_session_id")
+    def validate_login_session_id(cls, v):
+        if not v.strip():
+            raise ValueError("Login session ID cannot be a blank string")
+        return v
+    
+    @field_validator("user_first_name")
+    def validate_user_first_name(cls, v):
+        if not v.strip():
+            raise ValueError("First name cannot be a blank string")
+        return v
+    
+    @field_validator("user_last_name")
+    def validate_user_last_name(cls, v):
+        if not v.strip():
+            raise ValueError("Last name cannot be a blank string")
+        return v

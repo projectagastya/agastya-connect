@@ -8,7 +8,12 @@ from frontend_api_calls import (
     chat,
     end_chat,
     healthy,
-    start_chat
+    start_chat,
+    resume_chat,
+    export_chats,
+    get_active_sessions,
+    get_chat_history_messages,
+    end_all_chats
 )
 from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -50,7 +55,7 @@ def add_aligned_text(content, alignment="left", size=12, bold=False, italics=Fal
     st.markdown(body=f"<div style='{style}'>{content}</div>", unsafe_allow_html=True)
 
 async def initialize_chat_session(student_choice: dict):
-    if "active_chat_session" in st.session_state:
+    if "active_chat_session" not in st.session_state:
         st.session_state["active_chat_session"] = {
             "id": None,
             "chat_history": [],
@@ -75,36 +80,112 @@ async def initialize_chat_session(student_choice: dict):
         st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
         st.stop()
     
-    chat_session_id = generate_uuid()
+    if hasattr(st.experimental_user, "picture"):
+        user_avatar = getattr(st.experimental_user, "picture", "static/silhouette.png")
+    else:
+        user_avatar = "static/silhouette.png"
+    
     student_name = student_choice['student_name']
+    student_avatar = student_choice['student_image']
+    is_resuming = st.session_state["active_chat_session"]["id"] is not None
+    
+    chat_session_id = st.session_state["active_chat_session"]["id"] if is_resuming else generate_uuid()
     
     st.session_state["active_chat_session"]["id"] = chat_session_id
-    st.session_state["active_chat_session"]["chat_history"] = []
-    st.session_state["active_chat_session"]["next_questions"] = []
-    st.session_state["active_chat_session"]["recent_questions"] = []
-    st.session_state["active_chat_session"]["chat_start_timestamp"] = datetime.now()
-    st.session_state["active_chat_session"]["chat_end_timestamp"] = None
     st.session_state["active_chat_session"]["student_profile"] = student_choice
+    st.session_state["active_chat_session"]["chat_start_timestamp"] = datetime.now() if not is_resuming else st.session_state["active_chat_session"]["chat_start_timestamp"]
+    
+    if is_resuming:
+        frontend_logger.info(f"initialize_chat_session | Resuming chat with {student_name}, session id: {chat_session_id}")
+        
+        resume_chat_success, resume_chat_message, _ = resume_chat(
+            user_first_name=getattr(st.experimental_user, "given_name"),
+            user_last_name=getattr(st.experimental_user, "family_name"),
+            user_email=user_email,
+            student_name=student_name,
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id
+        )
+        
+        if not resume_chat_success:
+            frontend_logger.error(f"initialize_chat_session | Failed to resume chat: {resume_chat_message}")
+            st.error("Sorry, we're facing an unexpected issue resuming your chat. Please try again.")
+            st.stop()
+            
+        history_success, history_message, formatted_history = get_chat_history_formatted(
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id,
+            user_avatar=user_avatar,
+            student_avatar=student_avatar
+        )
+        
+        if not history_success:
+            frontend_logger.error(f"initialize_chat_session | Failed to get chat history: {history_message}")
+            st.error("Sorry, we're facing an unexpected issue retrieving chat history. Please try again.")
+            st.stop()
+            
+        st.session_state["active_chat_session"]["chat_history"] = formatted_history
+    else:
+        st.session_state["active_chat_session"]["chat_history"] = []
+        
+        start_chat_success, start_chat_message, first_message = start_chat(
+            user_first_name=getattr(st.experimental_user, "given_name"),
+            user_last_name=getattr(st.experimental_user, "family_name"),
+            user_email=user_email,
+            student_name=student_name,
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id
+        )
 
-    start_chat_success, start_chat_message, first_message = start_chat(
-        user_first_name=getattr(st.experimental_user, "given_name"),
-        user_last_name=getattr(st.experimental_user, "family_name"),
-        user_email=user_email,
-        student_name=student_name,
-        login_session_id=login_session_id,
-        chat_session_id=chat_session_id
-    )
+        if not start_chat_success:
+            frontend_logger.error(f"initialize_chat_session | start_chat failed: {start_chat_message}")
+            st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again.")
+            st.stop()
 
-    if not start_chat_success:
-        frontend_logger.error(f"initialize_chat_session | start_chat failed with message: {start_chat_message}")
-        st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
-        st.stop()
+        st.session_state["active_chat_session"]["chat_history"].append({
+            "role": "assistant", 
+            "content": first_message, 
+            "avatar": student_choice["student_image"]
+        })
 
-    st.session_state["active_chat_session"]["chat_history"].append({"role": "assistant", "content": first_message, "avatar": student_choice["student_image"]})
     st.session_state["active_chat_session"]["next_questions"] = await generate_next_questions(
         chat_history=st.session_state["active_chat_session"]["chat_history"],
         student_name=student_name
     )
+
+def get_chat_history_formatted(login_session_id: str, chat_session_id: str, user_avatar: str, student_avatar: str) -> tuple[bool, str, list]:
+    success = False
+    message = ""
+    data = []
+    try:
+        history_success, history_message, messages = get_chat_history_messages(
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id
+        )
+        
+        if not history_success:
+            message = f"Failed to retrieve chat history: {history_message}"
+            frontend_logger.error(f"get_chat_history_formatted | {message}")
+            return False, message, []
+            
+        for msg in messages:
+            role = msg.get("role")
+            content = msg.get("content")
+            avatar = user_avatar if role == "user" else student_avatar
+            
+            data.append({
+                "role": role,
+                "content": content,
+                "avatar": avatar
+            })
+            
+        success = True
+        message = f"Retrieved and formatted {len(data)} messages"
+        frontend_logger.info(f"get_chat_history_formatted | {message}")
+    except Exception as e:
+        message = str(e)
+        frontend_logger.error(f"get_chat_history_formatted | {message}")
+    return success, message, data
 
 def cleanup_chat_session(user_email, chat_session_id, student_name):
     if hasattr(st.experimental_user, "nonce"):
@@ -202,7 +283,6 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     formatted_history = "\n".join(formatted_history)
 
     generate_next_questions_prompt = SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS.format(
-        user_full_name=user_full_name,
         student=formatted_name(student_name),
         formatted_history=formatted_history
     )
