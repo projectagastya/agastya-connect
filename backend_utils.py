@@ -11,6 +11,7 @@ from backend_config import (
     AWS_ACCESS_KEY_ID,
     AWS_REGION,
     AWS_SECRET_ACCESS_KEY,
+    CHAT_TRANSCRIPTS_FOLDER_PATH,
     DOCUMENT_EMBEDDING_MODEL_ID,
     DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
     DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
@@ -25,7 +26,7 @@ from backend_config import (
     STUDENT_METADATA_FILE_NAME,
     STUDENT_METADATA_FOLDER_PATH,
     STUDENT_VECTORSTORE_FOLDER_PATH,
-    LOCAL_VECTORSTORES_DIRECTORY,
+    LOCAL_VECTORSTORES_DIRECTORY
 )
 from backend_prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from boto3.dynamodb.conditions import Attr, Key
@@ -990,7 +991,7 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY
         )
         
-        s3_key = f"chat-transcripts/{user_email}/{login_session_id}.xlsx"
+        s3_key = f"{CHAT_TRANSCRIPTS_FOLDER_PATH}/{user_email}/{login_session_id}.xlsx"
         
         s3_client.put_object(
             Bucket=MAIN_S3_BUCKET_NAME,
