@@ -962,6 +962,8 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
             
             row = 2
             for message in messages_response['Items']:
+                if message.get('input_type') == 'system':
+                    continue
                 chat_sheet[f'A{row}'] = message.get('created_at', '')
                 chat_sheet[f'B{row}'] = message.get('role', '')
                 chat_sheet[f'C{row}'] = message.get('message', '')
