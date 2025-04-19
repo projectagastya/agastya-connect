@@ -37,7 +37,9 @@ The platform uses advanced artificial intelligence techniques, specifically Retr
 - **AI-Simulated Students**: Diverse student profiles with unique personalities, backgrounds, and learning styles
 - **Context-Aware Responses**: AI responses that maintain conversation continuity and reflect the student's character
 - **Suggested Questions**: AI-generated follow-up questions to facilitate meaningful conversations
-- **Session Management**: Start, pause, and end chat sessions with automatic history tracking
+- **Multilingual Support**: Built-in Kannada language detection and translation capabilities
+- **Advanced Session Management**: Start, pause, resume, and end chat sessions with automatic history tracking
+- **Chat History Export**: Export chat transcripts to Excel for review and analysis
 
 ### Technical Capabilities
 - **Retrieval Augmented Generation (RAG)**: Knowledge-enhanced AI responses grounded in factual student information
@@ -45,11 +47,14 @@ The platform uses advanced artificial intelligence techniques, specifically Retr
 - **Cloud-Based Architecture**: Scalable AWS infrastructure with DynamoDB and S3 storage
 - **Real-time Processing**: Fast response generation with optimized retrieval algorithms
 - **Comprehensive Logging**: Detailed activity tracking for monitoring and debugging
+- **Multi-Session Support**: Manage multiple concurrent chat sessions with different student profiles
 
 ### Administrative Features
 - **User Management**: Control access through email allowlists
 - **Conversation Persistence**: All chats are securely stored for future reference
 - **Stateful Session Handling**: Robust session management across page refreshes or disconnections
+- **Bulk Session Management**: View and end all active sessions at once
+- **Data Export**: Export chat transcripts to Excel for offline analysis and record-keeping
 
 ## 🏗️ Technical Architecture
 
@@ -96,11 +101,21 @@ The backend server is developed with FastAPI, a high-performance Python web fram
   - `/start-chat`: Initialize chat sessions and prepare vectorstores
   - `/chat`: Process user inputs and generate contextual responses
   - `/end-chat`: Terminate sessions and clean up resources
+  - `/get-active-sessions`: Retrieve all active chat sessions for a user
+  - `/get-chat-history`: Fetch message history for a specific chat session
+  - `/resume-chat`: Reload and continue a previously started session
+  - `/end-all-chats`: Terminate all active sessions for a user
+  - `/export-chats`: Export chat histories to Excel format
 
 - **Security Layer**:
   - API key authentication via `X-API-Key` header
   - Input validation with Pydantic models
   - Origin restrictions and CORS configuration
+
+- **Language Processing**:
+  - Kannada text detection and handling
+  - Input type classification (manual-english, manual-kannada, button, etc.)
+  - Translation services for multilingual support
 
 - **Core Processing Components**:
   - RAG chain assembly and execution
@@ -204,14 +219,16 @@ The system implements a sophisticated data flow architecture to handle conversat
 
 ### Message Processing Flow
 1. User inputs a question or selects a suggested question
-2. Frontend sends the message to the backend along with session context
-3. Backend retrieves chat history from DynamoDB
-4. RAG system processes the query:
+2. The system detects if the input is in Kannada and marks it accordingly
+3. Frontend sends the message to the backend along with session context and language information
+4. Backend retrieves chat history from DynamoDB
+5. RAG system processes the query:
    - Contextualizes the question based on chat history
    - Retrieves relevant documents from vectorstore
    - Generates a response using the LLM with context
-5. Response is stored in DynamoDB and returned to frontend
-6. Frontend updates the chat interface and generates new suggested questions
+6. Response is stored in DynamoDB and returned to frontend
+7. Frontend updates the chat interface and generates new suggested questions
+8. Chat history is accessible for export or future reference
 
 ### Session Termination Flow
 1. User clicks "End Chat Session" button
@@ -308,6 +325,7 @@ LOCAL_VECTORSTORES_DIRECTORY=<your-choice-of-local-student-vectorstores-folder-p
 STUDENT_METADATA_FILE_NAME=<your-metadata-filename-on-s3>
 STUDENT_METADATA_FOLDER_PATH=<your-metadata-folder-path-on-s3>
 STUDENT_VECTORSTORE_FOLDER_PATH=<your-vectorstore-folder-path-on-s3>
+CHAT_TRANSCRIPTS_FOLDER_PATH=<your-chat-transcripts-folder-path-on-s3>
 ```
 
 ### Streamlit Secrets (`.streamlit/secrets.toml`)
@@ -413,13 +431,15 @@ The application is currently deployed with the frontend on Streamlit Community C
 - **Your Messages**: Appear on the main section with your profile picture
 - **Student Responses**: Appear on the main section with the student's profile picture
 - **Suggested Questions**: Available in the sidebar for quick selection
-- **End Chat**: Click "End Chat Session" in the sidebar when finished
+- **Session Controls**: Options to pause, resume, end, or export chat sessions
+- **Active Sessions**: View and manage your ongoing conversations
 
 #### Best Practices
 - Ask open-ended questions to encourage detailed responses
 - Follow up on interesting points to explore student perspectives
 - Use suggested questions when unsure what to ask next
 - Try different approaches with multiple students
+- Feel free to communicate in Kannada when appropriate, as the system supports it
 - Keep conversations focused on educational topics and student experiences
 
 ### For Technical Users
@@ -441,6 +461,9 @@ A: Agastya AI is a training platform that allows instructors to practice their t
 
 **Q: How realistic are the AI students?**  
 A: The AI students are designed to respond contextually based on detailed background information, creating an authentic conversational experience. The RAG architecture ensures responses are grounded in each student's unique profile.
+
+**Q: What languages are supported in the platform?**  
+A: The platform supports both English and Kannada languages. It includes automatic language detection and can process user inputs in Kannada, making it accessible for instructors who are more comfortable communicating in this language.
 
 **Q: Who can access the platform?**  
 A: Access is controlled through an email allowlist configured by administrators. Currently, the platform is intended for instructors at Agastya International Foundation.

@@ -178,7 +178,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             raise HTTPException(status_code=500, detail="Failed to initialize chat session in database. Please try again.")
 
         first_user_message = f"Hi {formatted_name(student_name=student_name).split()[0]}, I'm {user_full_name}, your instructor. I would like to chat with you."
-        first_assistant_message = f"Hi {user_full_name}, I'm {formatted_name(student_name=student_name).split()[0]} from Agastya International Foundation. What would you like to know about me?"
+        first_assistant_message = f"Hi, I'm {formatted_name(student_name=student_name).split()[0]} from Agastya International Foundation. What would you like to know about me?"
     
         insert_chat_message_success, insert_chat_message_message = insert_chat_message(
             login_session_id=login_session_id,

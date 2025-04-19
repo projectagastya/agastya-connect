@@ -6,6 +6,7 @@ from frontend_utils import (
     end_chat_dialog,
     formatted_name,
     handle_user_input,
+    is_kannada,
     render_chat_history,
     render_chat_subheader,
     render_next_questions,
@@ -43,13 +44,20 @@ async def render_chat_page():
     user_input = st.chat_input(placeholder=f"Ask {formatted_name(student_name).split(' ')[0]} a question")
     await render_next_questions(next_questions=current_chat_session["next_questions"])
 
+    if is_kannada(user_input):
+        input_type = "manual-kannada"
+        frontend_logger.info(f"render_chat_page | Translating Kannada question: {user_input}")
+    else:
+        input_type = "manual-english"
+        frontend_logger.info(f"render_chat_page | Input is English: {user_input}")
+
     if user_input:
         await handle_user_input(
             user_input=user_input,
             current_chat_session=current_chat_session,
             student_name=student_name,
             student_avatar=student_avatar,
-            input_type="manual"
+            input_type=input_type
         )
         st.rerun()
 

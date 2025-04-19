@@ -17,7 +17,10 @@ from frontend_api_calls import (
 )
 from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
+from openai import OpenAI
 from uuid import uuid4
+
+client = OpenAI(api_key=st.secrets.LLM.OPENAI_API_KEY)
 
 def setup_page(
         page_title="Agastya AI",
@@ -144,7 +147,8 @@ async def initialize_chat_session(student_choice: dict):
 
         st.session_state["active_chat_session"]["chat_history"].append({
             "role": "assistant", 
-            "content": first_message, 
+            "content": first_message,
+            "content-en": first_message,
             "avatar": student_choice["student_image"]
         })
 
@@ -176,6 +180,7 @@ def get_chat_history_formatted(login_session_id: str, chat_session_id: str, user
             data.append({
                 "role": role,
                 "content": content,
+                "content-en": content,
                 "avatar": avatar
             })
             
@@ -186,6 +191,11 @@ def get_chat_history_formatted(login_session_id: str, chat_session_id: str, user
         message = str(e)
         frontend_logger.error(f"get_chat_history_formatted | {message}")
     return success, message, data
+
+def is_kannada(text: str) -> bool:
+    if text is None:
+        return False
+    return any('\u0c80' <= ch <= '\u0cff' for ch in text)
 
 def cleanup_chat_session(user_email, chat_session_id, student_name):
     if hasattr(st.experimental_user, "nonce"):
@@ -250,8 +260,15 @@ def render_chat_subheader(student_name):
 
 def render_chat_history(chat_history):
     for message in chat_history:
+        display_message = message["content"]
+        
         with st.chat_message(name=message["role"], avatar=message["avatar"]):
-            st.markdown(body=message["content"])
+            if display_message.strip() == "":
+                display_message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
+                st.markdown(body=display_message)
+                st.stop()
+            else:
+                st.markdown(body=display_message)
 
 async def generate_next_questions(chat_history, student_name, num_questions=4):
     if hasattr(st.experimental_user, "given_name") and hasattr(st.experimental_user, "family_name"):
@@ -276,9 +293,9 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     formatted_history = []
     for message in chat_history:
         if message.get('role') == 'user':
-            formatted_message = f"{user_full_name}: {message.get('content', '')}"
+            formatted_message = f"{user_full_name}: {message.get('content-en', '')}"
         elif message.get('role') == 'assistant':
-            formatted_message = f"{formatted_name(student_name)}: {message.get('content', '')}"
+            formatted_message = f"{formatted_name(student_name)}: {message.get('content-en', '')}"
         formatted_history.append(formatted_message)
     formatted_history = "\n".join(formatted_history)
 
@@ -293,6 +310,28 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     questions = ast.literal_eval(match.group(0)) if match else []
 
     return questions[:num_questions]
+
+def translate(text: str, target_lang: str) -> str:
+    direction = "English" if target_lang == "en" else "Kannada"
+    prompt = f"Translate the following text to {direction}:\n\n{text}"
+    resp = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""You are a translation engine.
+                                TASK: Translate the user message **exactly** into {target_lang}.
+                                Return only the translated sentence—no explanation, no quotes, no additional words.
+                            """
+            },
+            {
+                "role": "user",
+                "content": prompt
+            },
+        ],
+        temperature=0,
+    )
+    return resp.choices[0].message.content.strip()
 
 async def render_next_questions(next_questions):
     current_chat_session = st.session_state["active_chat_session"]
@@ -334,15 +373,22 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         st.error("Sorry, we're facing an unexpected internal error. Please contact support")
         st.stop()
 
-    with st.chat_message(name="user", avatar=user_image):
-        st.markdown(body=user_input)
+    original_question = user_input
+    if input_type == "manual-kannada":
+        question_for_api = translate(original_question, "en")
+        with st.chat_message(name="user", avatar=user_image):
+            st.markdown(body=original_question + " (Translated: " + question_for_api + ")")
+    else:
+        question_for_api = original_question
+        with st.chat_message(name="user", avatar=user_image):
+            st.markdown(body=original_question)
 
     spinner_message = f"{formatted_name(student_name=student_name).split(' ')[0]} is typing..."
     with st.spinner(spinner_message):
         success, message, answer = chat(
             login_session_id=user_login_session_id,
             chat_session_id=current_chat_session["id"],
-            question=user_input,
+            question=question_for_api,
             input_type=input_type,
             user_full_name=user_full_name,
             student_name=student_name
@@ -353,8 +399,17 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             st.error("Sorry, we're facing an unexpected issue on our end while processing your request. Please try again later.")
             st.stop()
         
-        current_chat_session["chat_history"].append({"role": "user", "content": user_input, "avatar": user_image})
-        current_chat_session["chat_history"].append({"role": "assistant", "content": answer, "avatar": student_avatar})
+        if input_type == "manual-kannada":
+            answer_to_show = translate(answer, "kn")
+        else:
+            answer_to_show = answer
+        
+        if input_type == "manual-kannada":
+            current_chat_session["chat_history"].append({"role": "user", "content": original_question + " (Translated: " + question_for_api + ")", "content-en": question_for_api, "avatar": user_image})
+            current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show + " (Translated: " + answer + ")", "content-en": answer, "avatar": student_avatar})
+        else:
+            current_chat_session["chat_history"].append({"role": "user", "content": original_question, "content-en": question_for_api, "avatar": user_image})
+            current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show, "content-en": answer, "avatar": student_avatar})
         chat_history = current_chat_session["chat_history"]
         generated_questions = await generate_next_questions(
             chat_history=chat_history,

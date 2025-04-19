@@ -6,6 +6,7 @@ langchain-core
 langchain-chroma
 langchain-community
 langchain-google-genai
+openai
 openpyxl
 pandas
 python-docx

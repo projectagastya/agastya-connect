@@ -576,7 +576,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
     success = False
     message = ""
 
-    valid_input_types = ['audio', 'button', 'default', 'manual', 'system']
+    valid_input_types = ['manual-english', 'manual-kannada', 'button', 'default', 'system']
     if input_type not in valid_input_types:
         message = f"Invalid input_type: '{input_type}'. Must be one of: {', '.join(valid_input_types)}"
         backend_logger.error(f"insert_chat_message | {message}")
