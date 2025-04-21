@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from logging import getLogger, Formatter, INFO
 from logging.handlers import TimedRotatingFileHandler
 
-load_dotenv(dotenv_path="secrets.env")
+load_dotenv(dotenv_path=".env")
 
 def configure_logger(name: str):
     log_dir = os.path.join(os.getenv("LOGS_FOLDER_PATH", "logs"), f"{name}_logs")

@@ -273,7 +273,7 @@ The system implements a sophisticated data flow architecture to handle conversat
    ```
 
 5. **Configure Environment Variables**
-   Create a `secrets.env` file as specified in the Configuration section.
+   Create a `.env` file as specified in the Configuration section.
 
 6. **Configure Streamlit Secrets**
    Create a `.streamlit/secrets.toml` file as specified in the Configuration section.
@@ -295,7 +295,7 @@ The system implements a sophisticated data flow architecture to handle conversat
 
 ## ⚙️ Configuration
 
-### Environment Variables (`secrets.env`)
+### Environment Variables (`.env`)
 ```
 # AWS Configuration
 AWS_ACCESS_KEY_ID=<your-aws-access-key-id>
@@ -332,7 +332,7 @@ CHAT_TRANSCRIPTS_FOLDER_PATH=<your-chat-transcripts-folder-path-on-s3>
 ```toml
 [BACKEND]
 API_URL = "http://localhost:8000"  # Local development
-API_KEY = "your-backend-api-key"   # Must match BACKEND_API_KEY in secrets.env
+API_KEY = "your-backend-api-key"   # Must match BACKEND_API_KEY in .env
 
 [SECURITY]
 ALLOWED_EMAILS = ["user1@example.com", "user2@example.com"]
