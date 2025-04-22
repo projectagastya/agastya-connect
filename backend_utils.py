@@ -106,6 +106,13 @@ def fetch_vectorstore_from_s3(user_email: str, login_session_id: str, chat_sessi
                 if '..' in relative_path:
                     backend_logger.warning(f"fetch_vectorstore_from_s3 | Suspicious path detected: {relative_path}")
                     continue
+
+                if key.endswith('/') or relative_path.endswith('/'):
+                    dir_path = os.path.join(local_dir, relative_path)
+                    os.makedirs(dir_path, exist_ok=True)
+                    backend_logger.info(f"fetch_vectorstore_from_s3 | Created directory marker {dir_path}")
+                    continue
+
                 local_file_path = os.path.join(local_dir, relative_path)
                 os.makedirs(os.path.dirname(local_file_path), exist_ok=True)        
                 s3_client.download_file(bucket_name, key, local_file_path)
