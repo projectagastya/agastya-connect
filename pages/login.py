@@ -81,7 +81,6 @@ def render_login_page():
                     content="""
                     <ul>
                         <li><strong>Interactive Learning</strong>: Practice conversations with AI-simulated students</li>
-                        <li><strong>Personalized Feedback</strong>: Receive guidance on your teaching approach</li>
                         <li><strong>Real Scenarios</strong>: Encounter diverse student backgrounds and learning styles</li>
                     </ul>
                     """,
