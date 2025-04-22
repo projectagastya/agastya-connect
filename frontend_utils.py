@@ -15,7 +15,7 @@ from frontend_api_calls import (
     get_chat_history_messages,
     end_all_chats
 )
-from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
+from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS, SYSTEM_PROMPT_LANGUAGE_TRANSLATION
 from langchain_google_genai import ChatGoogleGenerativeAI
 from openai import OpenAI
 from uuid import uuid4
@@ -319,10 +319,7 @@ def translate(text: str, target_lang: str) -> str:
         messages=[
             {
                 "role": "system",
-                "content": f"""You are a translation engine.
-                                TASK: Translate the user message **exactly** into {target_lang}.
-                                Return only the translated sentence—no explanation, no quotes, no additional words.
-                            """
+                "content": SYSTEM_PROMPT_LANGUAGE_TRANSLATION.format(target_lang=target_lang)
             },
             {
                 "role": "user",

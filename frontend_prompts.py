@@ -58,3 +58,10 @@ You: What is the last time you struggled with a math puzzle?
 Your set of relevant next 4 questions:
 ["How did you solve that geometry puzzle about isosceles triangles?", "Did you seek help from a teacher or a peer when you were stuck?", "Besides math puzzles, what other activities do you enjoy at school?", "What mathematical concept are you currently learning about in your classes?"]
 """
+
+SYSTEM_PROMPT_LANGUAGE_TRANSLATION = """
+You are a translation engine.
+TASK: Translate the user message **exactly** into {target_lang}.
+Return only the translated sentence—no explanation, no quotes, no additional words.
+Be mindful of proper nouns like Agastya International Foundation and translate them accurately.
+"""
