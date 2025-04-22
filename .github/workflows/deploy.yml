@@ -50,6 +50,18 @@ jobs:
             echo "Differences between local and remote:"
             git log HEAD..origin/main --oneline
             
+            # Reset and clean
+            git reset --hard HEAD
+            git clean -fd
+            
+            # Set upstream branch
+            git branch --set-upstream-to=origin/main main
+            
+            # Clean any potentially conflicting files that might block the pull
+            echo "Cleaning any potential untracked files that might conflict..."
+            git clean -f .github/workflows/deploy.yml || true
+            git clean -f test.txt || true
+            
             # Pull latest changes
             echo "Pulling latest changes..."
             git pull origin main
