@@ -264,8 +264,10 @@ def render_chat_history(chat_history):
         
         with st.chat_message(name=message["role"], avatar=message["avatar"]):
             if display_message.strip() == "":
-                display_message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
+                display_message = "Sorry, I'm unable to provide a response at this time. Please check in again with me later. Thanks for understanding!"
+                frontend_logger.warning(f"render_chat_history | Empty response received from chat message: Login Session ID: {st.experimental_user.nonce}, Chat Session ID: {st.session_state['active_chat_session']['id']}")
                 st.markdown(body=display_message)
+                st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
                 st.stop()
             else:
                 st.markdown(body=display_message)
