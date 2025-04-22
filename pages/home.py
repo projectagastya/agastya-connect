@@ -35,7 +35,7 @@ def render_home_page():
         st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
         st.stop()
     if hasattr(st.experimental_user, "picture"):
-        user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
+        user_image = getattr(st.experimental_user, "picture")
     else:
         user_image = "static/silhouette.png"
     
