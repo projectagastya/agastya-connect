@@ -4,7 +4,6 @@ from frontend_api_calls import healthy
 from frontend_utils import (
     add_aligned_text,
     authenticated,
-    authorize_user,
     reset_session_state,
     setup_page
 )
@@ -17,7 +16,6 @@ def render_login_page():
         st.stop()
     
     if authenticated():
-        authorize_user()
         st.warning("You will be logged out. Do you want to continue?")
         if st.button("Logout", type="primary", icon=":material/logout:", use_container_width=True):
             st.logout()

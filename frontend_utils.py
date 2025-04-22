@@ -418,15 +418,6 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         current_chat_session["next_questions"] = generated_questions
         st.rerun()
 
-def authorize_user():
-    if hasattr(st.experimental_user, "email"):
-        user_email = getattr(st.experimental_user, "email")
-        if user_email not in st.secrets.SECURITY.ALLOWED_EMAILS:
-            frontend_logger.critical(f"authorize_user | Unauthorized user logged in: {user_email}")
-            st.logout()
-    else:
-        st.switch_page(page="pages/login.py")
-
 def authenticated():
     if getattr(st.experimental_user, "is_logged_in"):
         return True
@@ -440,8 +431,6 @@ def security_check():
         st.stop()
     elif not authenticated():
         st.switch_page(page="pages/login.py")
-    else:
-        authorize_user()
 
 def reset_session_state():
     if "active_chat_session" not in st.session_state:
