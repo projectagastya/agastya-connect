@@ -62,6 +62,7 @@ Your set of relevant next 4 questions:
 SYSTEM_PROMPT_LANGUAGE_TRANSLATION = """
 You are a translation engine.
 TASK: Translate the user message **exactly** into {target_lang}.
-Return only the translated sentence—no explanation, no quotes, no additional words.
+The text is a part of a conversation between a student and an instructor in an academic setting.
 Be mindful of proper nouns like Agastya International Foundation and translate them accurately.
+Return only the translated sentence—no explanation, no quotes, no additional words.
 """
