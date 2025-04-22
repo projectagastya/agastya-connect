@@ -15,29 +15,79 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Enable verbose execution tracing
+            set -x
+            
+            echo "====== DEPLOYMENT STARTED: $(date) ======"
+            echo "Current directory: $(pwd)"
+            
             # Navigate to repository directory
             cd /home/ubuntu/app
+            echo "Changed to directory: $(pwd)"
+            
+            # Check for local changes that might prevent pull
+            echo "Checking for uncommitted changes..."
+            git status
+            
+            # Check current branch
+            echo "Current branch:"
+            git branch
             
             # Store current git hash to compare later
             OLD_COMMIT=$(git rev-parse HEAD)
+            echo "Current commit hash: $OLD_COMMIT"
+            
+            # Check remote tracking
+            echo "Remote tracking information:"
+            git remote -v
+            git branch -vv
+            
+            # Fetch latest changes before pull
+            echo "Fetching latest changes..."
+            git fetch origin
+            
+            # Show differences between local and remote
+            echo "Differences between local and remote:"
+            git log HEAD..origin/main --oneline
             
             # Pull latest changes
+            echo "Pulling latest changes..."
             git pull origin main
             
+            # Check new commit hash
+            NEW_COMMIT=$(git rev-parse HEAD)
+            echo "New commit hash: $NEW_COMMIT"
+            
+            # Force comparison output to be visible
+            echo "Comparing OLD_COMMIT: $OLD_COMMIT with NEW_COMMIT: $NEW_COMMIT"
+            
             # If code has changed, update dependencies and restart services
-            if [ "$OLD_COMMIT" != "$(git rev-parse HEAD)" ]; then
+            if [ "$OLD_COMMIT" != "$NEW_COMMIT" ]; then
+              echo "Changes detected, proceeding with deployment..."
+              
               # Activate virtual environment
+              echo "Activating virtual environment..."
               source venv/bin/activate
               
               # Update dependencies only if requirements.txt has changed
-              if git diff --name-only $OLD_COMMIT HEAD | grep -q "requirements.txt"; then
+              if git diff --name-only $OLD_COMMIT $NEW_COMMIT | grep -q "requirements.txt"; then
+                echo "requirements.txt changed, updating dependencies..."
                 pip install -r requirements.txt
+              else
+                echo "requirements.txt unchanged, skipping dependency updates."
               fi
               
               # Restart services
+              echo "Restarting services..."
+              sudo systemctl status fastapi streamlit || true
               sudo systemctl restart fastapi streamlit
+              sudo systemctl status fastapi streamlit || true
               
-              echo "Deployment completed successfully on $(date)"
+              echo "====== DEPLOYMENT COMPLETED SUCCESSFULLY: $(date) ======"
             else
-              echo "No changes detected. Skipping deployment."
+              echo "No changes detected. Commit hashes are identical."
+              echo "OLD_COMMIT: $OLD_COMMIT"
+              echo "NEW_COMMIT: $NEW_COMMIT"
+              echo "Skipping deployment."
+              echo "====== DEPLOYMENT SKIPPED: $(date) ======"
             fi
