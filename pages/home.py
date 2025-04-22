@@ -36,10 +36,7 @@ def render_home_page():
         st.stop()
     if hasattr(st.experimental_user, "picture"):
         user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
-    else:
-        frontend_logger.error("render_home_page | User image not found in user object")
-        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
-        st.stop()
+
     login_session_id = getattr(st.experimental_user, "nonce")
     user_full_name = user_first_name + " " + user_last_name
     
