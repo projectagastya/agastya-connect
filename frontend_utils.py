@@ -1,8 +1,10 @@
 import ast
+import os
 import re
 import streamlit as st
 
 from datetime import datetime
+from dotenv import load_dotenv
 from frontend_api_calls import (
     chat,
     end_chat,
@@ -15,12 +17,13 @@ from frontend_api_calls import (
     end_all_chats
 )
 from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS, SYSTEM_PROMPT_LANGUAGE_TRANSLATION
+from google.cloud import translate_v2 as translate
+from google.oauth2 import service_account
 from langchain_google_genai import ChatGoogleGenerativeAI
-from openai import OpenAI
 from shared.logger import frontend_logger
 from uuid import uuid4
 
-client = OpenAI(api_key=st.secrets.LLM.OPENAI_API_KEY)
+load_dotenv()
 
 def setup_page(
         page_title="Agastya Connect",
@@ -35,14 +38,6 @@ def setup_page(
     st.set_page_config(page_title=page_title, page_icon=page_icon, layout=layout, initial_sidebar_state=initial_sidebar_state)
     st.logo(image=logo_image, size=logo_size, link=logo_link, icon_image=logo_icon_image)
 
-def formatted_name(student_name: str):
-    return student_name.replace('-', ' ').title()
-    
-def generate_uuid():
-    new_uuid = str(uuid4())
-    frontend_logger.info(f"Generated UUID: {new_uuid}")
-    return new_uuid
-
 def add_aligned_text(content, alignment="left", size=12, bold=False, italics=False, underline=False, color=None):
     rem_size = size / 16
     styles = []
@@ -56,6 +51,14 @@ def add_aligned_text(content, alignment="left", size=12, bold=False, italics=Fal
     if color:
         style += f"color: {color};"
     st.markdown(body=f"<div style='{style}'>{content}</div>", unsafe_allow_html=True)
+
+def formatted_name(student_name: str):
+    return student_name.replace('-', ' ').title()
+    
+def generate_uuid():
+    new_uuid = str(uuid4())
+    frontend_logger.info(f"Generated UUID: {new_uuid}")
+    return new_uuid
 
 async def initialize_chat_session(student_choice: dict):
     if "active_chat_session" not in st.session_state:
@@ -313,24 +316,34 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
 
     return questions[:num_questions]
 
-def translate(text: str, target_lang: str) -> str:
-    direction = "English" if target_lang == "en" else "Kannada"
-    prompt = f"Translate the following text to {direction}:\n\n{text}"
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT_LANGUAGE_TRANSLATION.format(target_lang=target_lang)
-            },
-            {
-                "role": "user",
-                "content": prompt
-            },
-        ],
-        temperature=0,
-    )
-    return resp.choices[0].message.content.strip()
+def get_gcp_credentials():
+    GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
+    GCP_PRIVATE_KEY = os.getenv("GCP_PRIVATE_KEY")
+    GCP_CLIENT_EMAIL = os.getenv("GCP_CLIENT_EMAIL")
+
+    if all(var in os.environ for var in ["GCP_PROJECT_ID", "GCP_PRIVATE_KEY", "GCP_CLIENT_EMAIL"]):
+        credentials_dict = {
+            "type": "service_account",
+            "project_id": GCP_PROJECT_ID,
+            "private_key": GCP_PRIVATE_KEY,
+            "client_email": GCP_CLIENT_EMAIL,
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs"
+        }
+        credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+        return translate.Client(credentials=credentials)
+
+def translate_kannada_to_english(text):
+    translate_client = get_gcp_credentials()
+    result = translate_client.translate(text, source_language="kn", target_language="en")
+    translated_text = result["translatedText"]
+    return translated_text
+
+def translate_english_to_kannada(text):
+    translate_client = get_gcp_credentials()
+    result = translate_client.translate(text, source_language="en", target_language="kn")
+    translated_text = result["translatedText"]
+    return translated_text
 
 async def render_next_questions(next_questions):
     current_chat_session = st.session_state["active_chat_session"]
@@ -372,9 +385,9 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
 
     original_question = user_input
     if input_type == "manual-kannada":
-        question_for_api = translate(original_question, "en")
+        question_for_api = translate_kannada_to_english(original_question)
         with st.chat_message(name="user", avatar=user_image):
-            st.markdown(body=original_question + " (Translated: " + question_for_api + ")")
+            st.markdown(body=original_question)
     else:
         question_for_api = original_question
         with st.chat_message(name="user", avatar=user_image):
@@ -397,13 +410,13 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             st.stop()
         
         if input_type == "manual-kannada":
-            answer_to_show = translate(answer, "kn")
+            answer_to_show = translate_english_to_kannada(answer)
         else:
             answer_to_show = answer
         
         if input_type == "manual-kannada":
-            current_chat_session["chat_history"].append({"role": "user", "content": original_question + " (Translated: " + question_for_api + ")", "content-en": question_for_api, "avatar": user_image})
-            current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show + " (Translated: " + answer + ")", "content-en": answer, "avatar": student_avatar})
+            current_chat_session["chat_history"].append({"role": "user", "content": original_question, "content-en": question_for_api, "avatar": user_image})
+            current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show, "content-en": answer, "avatar": student_avatar})
         else:
             current_chat_session["chat_history"].append({"role": "user", "content": original_question, "content-en": question_for_api, "avatar": user_image})
             current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show, "content-en": answer, "avatar": student_avatar})
