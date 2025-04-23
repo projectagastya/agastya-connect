@@ -1,4 +1,3 @@
-from configure_logger import backend_logger
 from pydantic import BaseModel, Field, field_validator
 from typing import Literal, Optional
 
