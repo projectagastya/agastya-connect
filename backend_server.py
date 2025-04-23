@@ -42,11 +42,11 @@ from backend_utils import (
     export_chat_sessions_to_excel
 )
 from collections import defaultdict
-from configure_logger import backend_logger
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Security, status, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
+from shared.logger import backend_logger
 
 if BACKEND_API_KEY is None:
     backend_logger.error("BACKEND_API_KEY is not set")

@@ -2,7 +2,6 @@ import ast
 import re
 import streamlit as st
 
-from configure_logger import frontend_logger
 from datetime import datetime
 from frontend_api_calls import (
     chat,
@@ -18,6 +17,7 @@ from frontend_api_calls import (
 from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS, SYSTEM_PROMPT_LANGUAGE_TRANSLATION
 from langchain_google_genai import ChatGoogleGenerativeAI
 from openai import OpenAI
+from shared.logger import frontend_logger
 from uuid import uuid4
 
 client = OpenAI(api_key=st.secrets.LLM.OPENAI_API_KEY)

@@ -1,9 +1,9 @@
 import os
 
-from configure_logger import backend_logger
 from dotenv import load_dotenv
+from shared.logger import backend_logger
 
-load_dotenv(dotenv_path=".env")
+load_dotenv()
 
 def validate_env_var(var_name: str, required: bool = True, default: str = None, allowed_values: list = None) -> str:
     value = os.getenv(var_name)

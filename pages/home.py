@@ -1,6 +1,5 @@
 import streamlit as st
 
-from configure_logger import frontend_logger
 from frontend_utils import (
     add_aligned_text,
     reset_session_state,
@@ -11,6 +10,7 @@ from frontend_api_calls import (
     end_all_chats,
     export_chats
 )
+from shared.logger import frontend_logger
 
 setup_page(initial_sidebar_state="expanded")
 

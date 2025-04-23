@@ -1,6 +1,5 @@
 import streamlit as st
 
-from configure_logger import frontend_logger
 from frontend_api_calls import get_student_profiles, get_active_sessions
 from frontend_utils import (
     add_aligned_text,
@@ -10,6 +9,7 @@ from frontend_utils import (
     setup_page,
 )
 from datetime import datetime
+from shared.logger import frontend_logger
 
 setup_page(initial_sidebar_state="collapsed")
 

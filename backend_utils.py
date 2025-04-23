@@ -31,7 +31,6 @@ from backend_config import (
 from backend_prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-from configure_logger import backend_logger
 from datetime import datetime, timedelta
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.base import Chain
@@ -50,6 +49,7 @@ from langchain_google_genai.embeddings import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, Side
+from shared.logger import backend_logger
 from typing import Dict, List, Optional, Tuple
 
 def formatted_name(student_name: str):

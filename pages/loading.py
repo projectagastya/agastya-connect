@@ -1,7 +1,6 @@
 import asyncio
 import streamlit as st
 
-from configure_logger import frontend_logger
 from frontend_utils import (
     add_aligned_text,
     formatted_name,
@@ -9,6 +8,7 @@ from frontend_utils import (
     security_check,
     setup_page
 )
+from shared.logger import frontend_logger
 
 setup_page(initial_sidebar_state="collapsed")
 
