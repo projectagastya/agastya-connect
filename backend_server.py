@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from backend_config import (
+from backend.core.config import (
     BACKEND_API_KEY,
     BACKEND_ORIGINS,
     MAX_DOCS_TO_RETRIEVE,
