@@ -23,7 +23,7 @@ from uuid import uuid4
 client = OpenAI(api_key=st.secrets.LLM.OPENAI_API_KEY)
 
 def setup_page(
-        page_title="Agastya AI",
+        page_title="Agastya Connect",
         page_icon=":school:",
         layout="wide",
         initial_sidebar_state="auto",
