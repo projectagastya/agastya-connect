@@ -591,8 +591,8 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
 
     try:
         dynamodb = get_dynamodb_resource()
-        messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
-        sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        chat_messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
+        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
@@ -601,7 +601,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         user_timestamp = now.isoformat()
         user_message_timestamp = f"{user_timestamp}#user"
         
-        messages_table.put_item(
+        chat_messages_table.put_item(
             Item={
                 'global_session_id': global_session_id,
                 'message_timestamp': user_message_timestamp,
@@ -615,7 +615,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         assistant_timestamp = (now + timedelta(milliseconds=100)).isoformat()
         assistant_message_timestamp = f"{assistant_timestamp}#assistant"
         
-        messages_table.put_item(
+        chat_messages_table.put_item(
             Item={
                 'global_session_id': global_session_id,
                 'message_timestamp': assistant_message_timestamp,
@@ -626,7 +626,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
             }
         )
         
-        sessions_table.update_item(
+        chat_sessions_table.update_item(
             Key={'global_session_id': global_session_id},
             UpdateExpression="SET message_count = message_count + :inc, last_updated_at = :time",
             ExpressionAttributeValues={
@@ -657,7 +657,7 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
     
     try:
         dynamodb = get_dynamodb_resource()
-        table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
+        chat_messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
@@ -665,7 +665,7 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
         retry_delay = 0.5
         
         for attempt in range(max_retries):
-            response = table.query(
+            response = chat_messages_table.query(
                 KeyConditionExpression=Key('global_session_id').eq(global_session_id),
                 ScanIndexForward=True
             )
@@ -709,11 +709,11 @@ def end_chat_session(login_session_id: str, chat_session_id: str) -> Tuple[bool,
     
     try:
         dynamodb = get_dynamodb_resource()
-        table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        table.update_item(
+        chat_sessions_table.update_item(
             Key={'global_session_id': global_session_id},
             UpdateExpression="SET session_status = :status, last_updated_at = :time",
             ExpressionAttributeValues={
@@ -739,9 +739,9 @@ def get_active_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bo
     
     try:
         dynamodb = get_dynamodb_resource()
-        table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
         
-        response = table.query(
+        response = chat_sessions_table.query(
             IndexName='UserSessionsIndex',
             KeyConditionExpression=Key('user_email').eq(user_email),
             FilterExpression=Attr('login_session_id').eq(login_session_id) & Attr('session_status').eq('active')
@@ -787,11 +787,11 @@ def get_chat_history_for_ui(login_session_id: str, chat_session_id: str) -> Tupl
     
     try:
         dynamodb = get_dynamodb_resource()
-        table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
+        chat_messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        response = table.query(
+        response = chat_messages_table.query(
             KeyConditionExpression=Key('global_session_id').eq(global_session_id),
             ScanIndexForward=True
         )
@@ -833,9 +833,9 @@ def end_all_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool,
     
     try:
         dynamodb = get_dynamodb_resource()
-        table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
         
-        response = table.query(
+        response = chat_sessions_table.query(
             IndexName='UserSessionsIndex',
             KeyConditionExpression=Key('user_email').eq(user_email),
             FilterExpression=Attr('login_session_id').eq(login_session_id) & Attr('session_status').eq('active')
@@ -851,7 +851,7 @@ def end_all_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool,
         
         for session in response['Items']:
             global_session_id = session['global_session_id']
-            table.update_item(
+            chat_sessions_table.update_item(
                 Key={'global_session_id': global_session_id},
                 UpdateExpression="SET session_status = :status, last_updated_at = :time",
                 ExpressionAttributeValues={
@@ -876,10 +876,10 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
     
     try:
         dynamodb = get_dynamodb_resource()
-        sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
-        messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
+        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
+        chat_messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
         
-        sessions_response = sessions_table.query(
+        sessions_response = chat_sessions_table.query(
             IndexName='UserSessionsIndex',
             KeyConditionExpression=Key('user_email').eq(user_email),
             FilterExpression=Attr('login_session_id').eq(login_session_id)
@@ -948,7 +948,7 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
         for student_name, session_info in student_sessions.items():
             global_session_id = session_info['global_session_id']
             
-            messages_response = messages_table.query(
+            messages_response = chat_messages_table.query(
                 KeyConditionExpression=Key('global_session_id').eq(global_session_id),
                 ScanIndexForward=True
             )
