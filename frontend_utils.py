@@ -350,15 +350,13 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         st.error("Sorry, we're facing an unexpected internal error. Please contact support")
         st.stop()
 
-    original_question = user_input
     if input_type == "manual-kannada":
-        question_for_api = translate_kannada_to_english(original_question)
-        with st.chat_message(name="user", avatar=user_image):
-            st.markdown(body=original_question)
+        question_for_api = translate_kannada_to_english(user_input)
     else:
-        question_for_api = original_question
-        with st.chat_message(name="user", avatar=user_image):
-            st.markdown(body=original_question)
+        question_for_api = user_input
+
+    with st.chat_message(name="user", avatar=user_image):
+        st.markdown(body=question_for_api)
 
     spinner_message = f"{formatted_name(student_name=student_name).split(' ')[0]} is typing..."
     with st.spinner(spinner_message):
@@ -366,7 +364,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             login_session_id=user_login_session_id,
             chat_session_id=current_chat_session["id"],
             question=question_for_api,
-            question_kannada=original_question if input_type == "manual-kannada" else None,
+            question_kannada=user_input if input_type == "manual-kannada" else None,
             input_type=input_type,
             user_full_name=user_full_name,
             student_name=student_name
@@ -377,17 +375,8 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             st.error("Sorry, we're facing an unexpected issue on our end while processing your request. Please try again later.")
             st.stop()
         
-        if input_type == "manual-kannada":
-            answer_to_show = translate_english_to_kannada(answer)
-        else:
-            answer_to_show = answer
-        
-        if input_type == "manual-kannada":
-            current_chat_session["chat_history"].append({"role": "user", "content": original_question, "content-en": question_for_api, "avatar": user_image})
-            current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show, "content-en": answer, "avatar": student_avatar})
-        else:
-            current_chat_session["chat_history"].append({"role": "user", "content": original_question, "content-en": question_for_api, "avatar": user_image})
-            current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show, "content-en": answer, "avatar": student_avatar})
+        current_chat_session["chat_history"].append({"role": "user", "content": question_for_api, "content-en": question_for_api, "avatar": user_image})
+        current_chat_session["chat_history"].append({"role": "assistant", "content": answer, "content-en": answer, "avatar": student_avatar})
         
         chat_history = current_chat_session["chat_history"]
 
