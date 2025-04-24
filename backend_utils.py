@@ -50,6 +50,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, Side
 from shared.logger import backend_logger
+from translate_utils import translate_english_to_kannada
 from typing import Dict, List, Optional, Tuple
 
 def formatted_name(student_name: str):
@@ -579,7 +580,7 @@ def initialize_chat_session(user_email: str, login_session_id: str, chat_session
     
     return success, message
 
-def insert_chat_message(login_session_id: str, chat_session_id: str, user_input: str, input_type: str, assistant_output: str) -> Tuple[bool, str]:
+def insert_chat_message(login_session_id: str, chat_session_id: str, user_input: str, user_input_kannada: str | None, input_type: str, assistant_output: str) -> Tuple[bool, str]:
     success = False
     message = ""
 
@@ -607,6 +608,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
                 'message_timestamp': user_message_timestamp,
                 'role': 'user',
                 'message': user_input,
+                'message_kannada': user_input_kannada,
                 'input_type': input_type,
                 'created_at': user_timestamp
             }
@@ -621,6 +623,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
                 'message_timestamp': assistant_message_timestamp,
                 'role': 'assistant',
                 'message': assistant_output,
+                'message_kannada': None,
                 'input_type': 'default',
                 'created_at': assistant_timestamp
             }
@@ -963,7 +966,8 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
             chat_sheet['A1'] = "Timestamp"
             chat_sheet['B1'] = "Role"
             chat_sheet['C1'] = "Message"
-            chat_sheet['D1'] = "Input Type"
+            chat_sheet['D1'] = "Message_Kannada"
+            chat_sheet['E1'] = "Input Type"
             
             for cell in chat_sheet[1]:
                 cell.font = Font(bold=True)
@@ -975,13 +979,15 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
                 chat_sheet[f'A{row}'] = message.get('created_at', '')
                 chat_sheet[f'B{row}'] = message.get('role', '')
                 chat_sheet[f'C{row}'] = message.get('message', '')
-                chat_sheet[f'D{row}'] = message.get('input_type', '')
+                chat_sheet[f'D{row}'] = message.get('message_kannada', '') if message.get('input_type') == 'manual-kannada' else translate_english_to_kannada(message.get('message', ''))
+                chat_sheet[f'E{row}'] = message.get('input_type', '')
                 row += 1
             
             chat_sheet.column_dimensions['A'].width = 25
             chat_sheet.column_dimensions['B'].width = 10
             chat_sheet.column_dimensions['C'].width = 80
-            chat_sheet.column_dimensions['D'].width = 10
+            chat_sheet.column_dimensions['D'].width = 80
+            chat_sheet.column_dimensions['E'].width = 25
             
             for row_idx in range(2, row):
                 cell = chat_sheet[f'C{row_idx}']

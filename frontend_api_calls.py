@@ -83,7 +83,7 @@ def start_chat(user_first_name: str, user_last_name: str, user_email: str, login
         frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
     return success, message, data
 
-def chat(login_session_id: str, chat_session_id: str, question: str, input_type: str, user_full_name: str, student_name: str) -> tuple[bool, str, str]:
+def chat(login_session_id: str, chat_session_id: str, question: str, question_kannada: str | None, input_type: str, user_full_name: str, student_name: str) -> tuple[bool, str, str]:
     success = False
     message = ""
     data = ""
@@ -93,6 +93,7 @@ def chat(login_session_id: str, chat_session_id: str, question: str, input_type:
             "login_session_id": login_session_id,
             "chat_session_id": chat_session_id,
             "question": question,
+            "question_kannada": question_kannada,
             "input_type": input_type,
             "user_full_name": user_full_name,
             "student_name": student_name
@@ -103,7 +104,7 @@ def chat(login_session_id: str, chat_session_id: str, question: str, input_type:
             message = "Sorry, we're facing an unexpected issue on our end. Please try again later."
             frontend_logger.error(f"chat | {message} | Response Status Code: {response.status_code}")
         elif response.status_code == 422:
-            message = f"Invalid format for login session id: {login_session_id} or chat session id: {chat_session_id} or question: {question} or input type: {input_type} sent in the API request"
+            message = f"Invalid format for login session id: {login_session_id} or chat session id: {chat_session_id} or question: {question} or question in Kannada: {question_kannada} or input type: {input_type} sent in the API request"
             frontend_logger.error(f"chat | {message} | Response Status Code: {response.status_code}")
         elif response.status_code == 404:
             message = f"Invalid login session id: {login_session_id} or chat session id: {chat_session_id} sent in the API request or chat history not found"

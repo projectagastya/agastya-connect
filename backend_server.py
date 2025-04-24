@@ -184,6 +184,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             login_session_id=login_session_id,
             chat_session_id=chat_session_id,
             user_input=first_user_message,
+            user_input_kannada=None,
             input_type="system",
             assistant_output=first_assistant_message
         )
@@ -203,7 +204,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         backend_logger.error(f"HTTP exception in initializing chat session: {http_e}")
         raise http_e
     except Exception as e:
-        backend_logger.error(f"Init chat session endpoint error: {e}")
+        backend_logger.error(f"Start chat session endpoint error: {e}")
         raise HTTPException(status_code=500, detail="Failed to initialize chat session. Please try again.")
 
 @app.post(path="/chat", summary="Chat with student", response_model=ChatMessageResponse, dependencies=[Depends(get_api_key)])
@@ -212,6 +213,10 @@ def chat_endpoint(api_request: ChatMessageRequest):
         login_session_id = api_request.login_session_id.strip()
         chat_session_id = api_request.chat_session_id.strip()
         question = api_request.question.strip()
+        if api_request.question_kannada:
+            question_kannada = api_request.question_kannada.strip()
+        else:
+            question_kannada = None
         input_type = api_request.input_type.strip()
         student_name = formatted_name(api_request.student_name.strip())
         user_full_name = api_request.user_full_name.strip()
@@ -247,10 +252,10 @@ def chat_endpoint(api_request: ChatMessageRequest):
         
         answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "user_full_name": user_full_name, "student_name": student_name}).get("answer", None)
         if answer is None:
-            backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}")
+            backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}, question_kannada: {question_kannada}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain answer. Please try again.")
         
-        insert_chat_message_success, insert_chat_message_message = insert_chat_message(login_session_id=login_session_id, chat_session_id=chat_session_id, user_input=question, input_type=input_type, assistant_output=answer)
+        insert_chat_message_success, insert_chat_message_message = insert_chat_message(login_session_id=login_session_id, chat_session_id=chat_session_id, user_input=question, user_input_kannada=question_kannada, input_type=input_type, assistant_output=answer)
         if not insert_chat_message_success:
             backend_logger.error(f"Failed to insert chat history for global_session_id={global_session_id}: {insert_chat_message_message}")
             raise HTTPException(status_code=500, detail="Failed to insert chat history. Please try again.")

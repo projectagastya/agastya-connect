@@ -4,7 +4,6 @@ import re
 import streamlit as st
 
 from datetime import datetime
-from dotenv import load_dotenv
 from frontend_api_calls import (
     chat,
     end_chat,
@@ -16,14 +15,11 @@ from frontend_api_calls import (
     get_chat_history_messages,
     end_all_chats
 )
-from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS, SYSTEM_PROMPT_LANGUAGE_TRANSLATION
-from google.cloud import translate_v2 as translate
-from google.oauth2 import service_account
+from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
+from translate_utils import translate_kannada_to_english, translate_english_to_kannada
 from langchain_google_genai import ChatGoogleGenerativeAI
 from shared.logger import frontend_logger
 from uuid import uuid4
-
-load_dotenv()
 
 def setup_page(
         page_title="Agastya Connect",
@@ -316,35 +312,6 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
 
     return questions[:num_questions]
 
-def get_gcp_credentials():
-    GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
-    GCP_PRIVATE_KEY = os.getenv("GCP_PRIVATE_KEY")
-    GCP_CLIENT_EMAIL = os.getenv("GCP_CLIENT_EMAIL")
-
-    if all(var in os.environ for var in ["GCP_PROJECT_ID", "GCP_PRIVATE_KEY", "GCP_CLIENT_EMAIL"]):
-        credentials_dict = {
-            "type": "service_account",
-            "project_id": GCP_PROJECT_ID,
-            "private_key": GCP_PRIVATE_KEY,
-            "client_email": GCP_CLIENT_EMAIL,
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs"
-        }
-        credentials = service_account.Credentials.from_service_account_info(credentials_dict)
-        return translate.Client(credentials=credentials)
-
-def translate_kannada_to_english(text):
-    translate_client = get_gcp_credentials()
-    result = translate_client.translate(text, source_language="kn", target_language="en")
-    translated_text = result["translatedText"]
-    return translated_text
-
-def translate_english_to_kannada(text):
-    translate_client = get_gcp_credentials()
-    result = translate_client.translate(text, source_language="en", target_language="kn")
-    translated_text = result["translatedText"]
-    return translated_text
-
 async def render_next_questions(next_questions):
     current_chat_session = st.session_state["active_chat_session"]
     student_profile = current_chat_session["student_profile"]
@@ -399,6 +366,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             login_session_id=user_login_session_id,
             chat_session_id=current_chat_session["id"],
             question=question_for_api,
+            question_kannada=original_question if input_type == "manual-kannada" else None,
             input_type=input_type,
             user_full_name=user_full_name,
             student_name=student_name
@@ -420,12 +388,15 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         else:
             current_chat_session["chat_history"].append({"role": "user", "content": original_question, "content-en": question_for_api, "avatar": user_image})
             current_chat_session["chat_history"].append({"role": "assistant", "content": answer_to_show, "content-en": answer, "avatar": student_avatar})
+        
         chat_history = current_chat_session["chat_history"]
+
         generated_questions = await generate_next_questions(
             chat_history=chat_history,
             student_name=student_name,
             num_questions=4
         )
+
         current_chat_session["next_questions"] = generated_questions
         st.rerun()
 

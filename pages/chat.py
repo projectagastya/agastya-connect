@@ -41,7 +41,7 @@ async def render_chat_page():
     
     render_chat_history(chat_history=current_chat_session["chat_history"])
 
-    user_input = st.chat_input(placeholder=f"Ask {formatted_name(student_name).split(' ')[0]} a question")
+    user_input = st.chat_input(placeholder=f"Please type your question here")
     await render_next_questions(next_questions=current_chat_session["next_questions"])
 
     if is_kannada(user_input):

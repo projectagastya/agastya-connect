@@ -78,7 +78,8 @@ class StartChatResponse(BaseModel):
 class ChatMessageRequest(BaseModel):
     login_session_id: str = Field(..., min_length=1, description="Login session ID for which the chat session needs to be initialized.")
     chat_session_id: str = Field(..., min_length=1, description="Unique identifier for the chat session.")
-    question: str = Field(..., min_length=1, description="The question being asked to the LLM.")
+    question: str = Field(..., min_length=1, description="The question being asked to the LLM in English.")
+    question_kannada: str | None = Field(None, description="The question being asked to the LLM in Kannada.") # Can be none
     input_type: Literal["manual-english", "manual-kannada", "button", "default", "system"] = Field(..., description="The type of input being provided to the LLM.")
     student_name: str = Field(..., min_length=1, description="The student involved in this conversation")
     user_full_name: str = Field(..., min_length=1, description="The user asking the question")
