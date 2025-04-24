@@ -910,6 +910,7 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
         
         for cell in metadata_sheet[1]:
             cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal='center', vertical='top')
         
         row = 2
         student_sessions = {}
@@ -924,6 +925,9 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
             metadata_sheet[f'G{row}'] = session.get('last_updated_at', '')
             metadata_sheet[f'H{row}'] = session.get('session_status', '')
             metadata_sheet[f'I{row}'] = session.get('message_count', 0)
+            
+            for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
+                metadata_sheet[f'{col}{row}'].alignment = Alignment(horizontal='left', vertical='top')
             row += 1
             
             student_name = session.get('student_name', '')
@@ -971,6 +975,7 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
             
             for cell in chat_sheet[1]:
                 cell.font = Font(bold=True)
+                cell.alignment = Alignment(horizontal='center', vertical='top')
             
             row = 2
             for message in messages_response['Items']:
@@ -981,17 +986,28 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
                 chat_sheet[f'C{row}'] = message.get('message', '')
                 chat_sheet[f'D{row}'] = message.get('message_kannada', '') if message.get('input_type') == 'manual-kannada' else translate_english_to_kannada(message.get('message', ''))
                 chat_sheet[f'E{row}'] = message.get('input_type', '')
+                
+                for col in ['A', 'B', 'C', 'D', 'E']:
+                    chat_sheet[f'{col}{row}'].alignment = Alignment(horizontal='left', vertical='top')
                 row += 1
             
-            chat_sheet.column_dimensions['A'].width = 25
-            chat_sheet.column_dimensions['B'].width = 10
-            chat_sheet.column_dimensions['C'].width = 80
-            chat_sheet.column_dimensions['D'].width = 80
-            chat_sheet.column_dimensions['E'].width = 25
+            for column in chat_sheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 100)
+                chat_sheet.column_dimensions[column_letter].width = adjusted_width
             
             for row_idx in range(2, row):
-                cell = chat_sheet[f'C{row_idx}']
-                cell.alignment = Alignment(wrapText=True)
+                for col in ['C', 'D']:
+                    cell = chat_sheet[f'{col}{row_idx}']
+                    alignment = cell.alignment
+                    cell.alignment = Alignment(horizontal='left', vertical='top', wrapText=True)
         
         buffer = io.BytesIO()
         workbook.save(buffer)
