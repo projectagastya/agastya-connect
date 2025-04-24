@@ -48,6 +48,7 @@ The platform uses advanced artificial intelligence techniques, specifically Retr
 - **Real-time Processing**: Fast response generation with optimized retrieval algorithms
 - **Comprehensive Logging**: Detailed activity tracking for monitoring and debugging
 - **Multi-Session Support**: Manage multiple concurrent chat sessions with different student profiles
+- **Bilingual Support**: Full support for both English and Kannada languages
 
 ### Administrative Features
 - **User Management**: Control access through email allowlists
@@ -115,7 +116,7 @@ The backend server is developed with FastAPI, a high-performance Python web fram
 - **Language Processing**:
   - Kannada text detection and handling
   - Input type classification (manual-english, manual-kannada, button, etc.)
-  - Translation services for multilingual support
+  - Translation services for multilingual support via Google Cloud Translate API
 
 - **Core Processing Components**:
   - RAG chain assembly and execution
@@ -127,13 +128,14 @@ The backend server is developed with FastAPI, a high-performance Python web fram
 The application leverages AWS services for robust, scalable data management:
 
 - **DynamoDB Tables**:
-  - `student`: Stores student profile information
+  - `students`: Stores student profile information
   - `chat-sessions`: Tracks active and historical chat session metadata
   - `chat-messages`: Stores individual messages from conversations
 
 - **S3 Storage**:
   - `vectorstores/`: Contains pre-computed document embeddings for RAG
   - `metadata/`: Stores configuration files and source documents
+  - `chat-transcripts/`: Stores exported chat transcripts as Excel files
 
 - **Local Storage**:
   - `logs/`: Directory for application logs
@@ -179,6 +181,7 @@ The intelligence layer uses a sophisticated Retrieval Augmented Generation appro
 - **Google Generative AI**: LLM provider
   - Embedding model: `models/text-embedding-004`
   - Response model: `gemini-2.0-flash`
+- **Google Cloud Translate**: Translation service for Kannada language support
 - **ChromaDB**: Vector database for embeddings
 
 ### AWS Services
@@ -191,12 +194,14 @@ The intelligence layer uses a sophisticated Retrieval Augmented Generation appro
 - **Elastic Load Balancing**: Load balancer for routing traffic
   - HTTP ingress from the internet
   - TCP routing to EC2 instances
+- **EC2**: Compute service for hosting the backend
 
 ### Development & Operations
 - **Python-dotenv**: Environment variable management
 - **Logging**: Comprehensive logging with rotation
 - **Boto3**: AWS SDK for Python
 - **UUID**: Unique identifier generation
+- **OpenPyXL**: Excel file generation for exports
 
 ## 🔄 Data Flow
 
@@ -230,6 +235,16 @@ The system implements a sophisticated data flow architecture to handle conversat
 7. Frontend updates the chat interface and generates new suggested questions
 8. Chat history is accessible for export or future reference
 
+### Language Processing Flow
+1. User inputs text in the chat interface
+2. System detects if the text is in Kannada using character pattern recognition
+3. If Kannada is detected:
+   - Original Kannada text is preserved in the database
+   - Text is translated to English using Google Cloud Translate API
+   - Translated text is used for RAG processing
+   - Original Kannada text is displayed in the chat interface
+4. Export functionality includes both original Kannada text and English translations
+
 ### Session Termination Flow
 1. User clicks "End Chat Session" button
 2. Frontend confirms the action via dialog
@@ -244,6 +259,7 @@ The system implements a sophisticated data flow architecture to handle conversat
 - Python 3.9 or higher
 - AWS account with configured credentials
 - Google AI Platform access with API key
+- Google Cloud Platform account for translation services
 - S3 bucket for storing vectorstores
 - DynamoDB provisioned tables or on-demand capacity
 
@@ -252,7 +268,7 @@ The system implements a sophisticated data flow architecture to handle conversat
 1. **Clone the Repository**
    ```bash
    git clone <repository_url>
-   cd agastya-ai
+   cd agastyaconnect
    ```
 
 2. **Create and Activate Virtual Environment**
@@ -301,6 +317,7 @@ The system implements a sophisticated data flow architecture to handle conversat
 AWS_ACCESS_KEY_ID=<your-aws-access-key-id>
 AWS_SECRET_ACCESS_KEY=<your-aws-secret-access-key>
 AWS_DEFAULT_REGION=<your-aws-region>
+AWS_REGION=<your-aws-region>
 MAIN_S3_BUCKET_NAME=<your-s3-bucket-name>
 
 # Backend API
@@ -309,39 +326,70 @@ BACKEND_ORIGINS=<comma-separated-allowed-origins>
 
 # DynamoDB Configuration
 DYNAMODB_STUDENT_TABLE_BILLING_MODE=PAY_PER_REQUEST
-DYNAMODB_STUDENT_TABLE_NAME=<your-choice-of-student-table-name-on-dynamodb>
-DYNAMODB_CHAT_SESSIONS_TABLE_NAME=<your-choice-of-chat-sessions-table-name-on-dynamodb>
-DYNAMODB_CHAT_MESSAGES_TABLE_NAME=<your-choice-of-chat-messages-table-name-on-dynamodb>
+DYNAMODB_STUDENT_TABLE_NAME=<your-choice-of-student-table-name>
+DYNAMODB_CHAT_SESSIONS_TABLE_NAME=<your-choice-of-chat-sessions-table-name>
+DYNAMODB_CHAT_MESSAGES_TABLE_NAME=<your-choice-of-chat-messages-table-name>
 
 # Google AI Configuration
-DOCUMENT_EMBEDDING_MODEL_ID=<your-choice-of-gemini-embedding-model>
-RESPONSE_GENERATION_MODEL_ID=<your-choice-of-gemini-generation-model>
+GOOGLE_API_KEY=<your-google-api-key>
+DOCUMENT_EMBEDDING_MODEL_ID=<your-choice-of-embedding-model>
+RESPONSE_GENERATION_MODEL_ID=<your-choice-of-generation-model>
 RESPONSE_GENERATION_MODEL_TEMPERATURE=<your-choice-of-model-temperature>
-RESPONSE_GENERATION_MODEL_MAX_TOKENS=<your-choice-of-number-of-output-tokens>
+RESPONSE_GENERATION_MODEL_MAX_TOKENS=<your-choice-of-max-tokens>
+RAG_MAX_DOC_RETRIEVE=<number-of-docs-to-retrieve>
+
+# Google Cloud Translation
+GCP_TYPE=service_account
+GCP_PROJECT_ID=<your-gcp-project-id>
+GCP_PRIVATE_KEY_ID=<your-gcp-private-key-id>
+GCP_PRIVATE_KEY=<your-gcp-private-key>
+GCP_CLIENT_EMAIL=<your-gcp-client-email>
+GCP_CLIENT_ID=<your-gcp-client-id>
+GCP_AUTH_URI=<your-gcp-auth-uri>
+GCP_TOKEN_URI=<your-gcp-token-uri>
+GCP_AUTH_PROVIDER_X509_CERT_URL=<your-gcp-auth-provider-url>
+GCP_CLIENT_X509_CERT_URL=<your-gcp-client-cert-url>
+GCP_UNIVERSE_DOMAIN=<your-gcp-universe-domain>
 
 # Storage Paths
-LOGS_FOLDER_PATH=<your-choice-of-logs-folder-path-on-local>
-LOCAL_VECTORSTORES_DIRECTORY=<your-choice-of-local-student-vectorstores-folder-path-on-local>
-STUDENT_METADATA_FILE_NAME=<your-metadata-filename-on-s3>
-STUDENT_METADATA_FOLDER_PATH=<your-metadata-folder-path-on-s3>
-STUDENT_VECTORSTORE_FOLDER_PATH=<your-vectorstore-folder-path-on-s3>
-CHAT_TRANSCRIPTS_FOLDER_PATH=<your-chat-transcripts-folder-path-on-s3>
+LOGS_FOLDER_PATH=logs
+LOCAL_VECTORSTORES_DIRECTORY=local-student-vectorstores
+STUDENT_METADATA_FILE_NAME=students.json
+STUDENT_METADATA_FOLDER_PATH=metadata/students
+STUDENT_VECTORSTORE_FOLDER_PATH=vectorstores
+CHAT_TRANSCRIPTS_FOLDER_PATH=chat-transcripts
+
+# Timezone
+TIMEZONE=US/Central
 ```
 
 ### Streamlit Secrets (`.streamlit/secrets.toml`)
 ```toml
+[auth]
+redirect_uri = "<your-redirect-uri>"
+cookie_secret = "<your-cookie-secret>"
+client_id = "<your-google-oauth-client-id>"
+client_secret = "<your-google-oauth-client-secret>"
+server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
+
 [BACKEND]
 API_URL = "http://localhost:8000"  # Local development
-API_KEY = "your-backend-api-key"   # Must match BACKEND_API_KEY in .env
+API_KEY = "<your-backend-api-key>"  # Must match BACKEND_API_KEY in .env
 
 [SECURITY]
 ALLOWED_EMAILS = ["user1@example.com", "user2@example.com"]
 
 [LLM]
-API_KEY = "your-google-ai-api-key"
-QUESTIONS_GENERATION_MODEL_ID = <your-choice-of-gemini-generation-model>
-QUESTIONS_GENERATION_MODEL_TEMPERATURE = <your-choice-of-model-temperature>
-QUESTIONS_GENERATION_MODEL_MAX_TOKENS = <your-choice-of-number-of-output-tokens>
+API_KEY = "<your-google-ai-api-key>"
+QUESTIONS_GENERATION_MODEL_ID = "<your-choice-of-model>"
+QUESTIONS_GENERATION_MODEL_TEMPERATURE = <your-choice-of-temperature>
+QUESTIONS_GENERATION_MODEL_MAX_TOKENS = <your-choice-of-max-tokens>
+
+[LOGS]
+FOLDER_PATH = "./logs/frontend_logs"
+
+[OTHER]
+TIMEZONE = "US/Central"
 ```
 
 ### Student Profile Format
@@ -349,71 +397,91 @@ Student profiles in the metadata file should follow this structure:
 ```json
 [
   {
-    "name": "student-name",
-    "sex": "male",
-    "age": 14,
-    "state": "karnataka",
-    "image": "https://path-to-image.jpg"
+    "student_name": "student-name",
+    "student_sex": "male",
+    "student_age": 14,
+    "student_state": "karnataka",
+    "student_image": "https://path-to-image.jpg"
   }
 ]
 ```
 
 ## 🚀 Deployment
 
-### AWS Deployment
-The application is currently deployed with the frontend on Streamlit Community Cloud and the backend on AWS:
+The application uses a split deployment model with the frontend hosted on Streamlit Community Cloud and the backend on AWS EC2 with an Elastic Load Balancer.
 
-#### Backend Deployment on AWS
+### Frontend Deployment on Streamlit Community Cloud
+1. Create a GitHub repository with your Streamlit application
+2. Log in to [Streamlit Community Cloud](https://streamlit.io/cloud)
+3. Deploy your application by connecting to the GitHub repository
+4. Configure your secrets in the Streamlit dashboard:
+   - Go to "Advanced Settings" > "Secrets"
+   - Paste the contents of your `.streamlit/secrets.toml` file
+5. Set the main file to `frontend_server.py`
+
+### Backend Deployment on AWS
 1. **EC2 Instance Setup**:
    - Ubuntu Server 20.04 LTS (or newer)
-   - t2.medium or larger recommended
-   - Security group configured to allow TCP port 8000 only from the load balancer
+   - t2.medium or larger instance size
+   - Configure security groups to allow traffic only from the load balancer on port 8000
 
-2. **Load Balancer Setup**:
-   - AWS Elastic Load Balancer configured to:
-     - Accept HTTP traffic from the internet (including from the Streamlit frontend)
-     - Route TCP traffic on port 8000 to the EC2 instance
-
-3. **Environment Configuration**:
+2. **Install Dependencies**:
    ```bash
    sudo apt update && sudo apt upgrade -y
    sudo apt install python3-pip python3-venv -y
    ```
 
-4. **Application Setup**:
+3. **Clone Repository**:
    ```bash
-   git clone https://<your_personal_access_token>@github.com/<username>/<repository_name>.git # Create a personal access token on GitHub
-   cd <repository_directory_name>
+   git clone https://<your_token>@github.com/<username>/<repository_name>.git
+   cd <repository_name>
+   ```
+
+4. **Setup Python Environment**:
+   ```bash
    python3 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
-   # Ensure uvicorn is in requirements.txt as it's used in the systemd service
    ```
 
-5. **Systemd Service**:
+5. **Create Environment Configuration**:
+   - Create a `.env` file with production configurations
+   - Set appropriate AWS credentials and endpoints
+
+6. **Configure Systemd Service**:
+   Create a file at `/etc/systemd/system/fastapi.service`:
    ```
    [Unit]
-    Description=FastAPI Service using Uvicorn with Reload
-    After=network.target
+   Description=Agastya Backend FastAPI Service
+   After=network.target
 
-    [Service]
-    User=ubuntu
-    Group=ubuntu
-    WorkingDirectory=/home/ubuntu/app
-    Environment="PATH=/home/ubuntu/app/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-    ExecStart=/home/ubuntu/app/venv/bin/uvicorn backend_server:app --host 0.0.0.0 --port 8000
-    Restart=always
+   [Service]
+   User=ubuntu
+   Group=ubuntu
+   WorkingDirectory=/home/ubuntu/app
+   Environment="PATH=/home/ubuntu/app/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+   ExecStart=/home/ubuntu/app/venv/bin/uvicorn backend_server:app --host 0.0.0.0 --port 8000
+   Restart=always
 
-    [Install]
-    WantedBy=multi-user.target
+   [Install]
+   WantedBy=multi-user.target
    ```
 
-#### Frontend Deployment on Streamlit Community Cloud
-1. Create a GitHub repository with your Streamlit application
-2. Log in to [Streamlit Community Cloud](https://streamlit.io/cloud)
-3. Deploy your application by connecting to the GitHub repository
-4. Configure your secrets in the Streamlit dashboard
-5. Set the main file to `frontend_server.py`
+7. **Start and Enable Service**:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl start fastapi
+   sudo systemctl enable fastapi
+   ```
+
+8. **Configure Load Balancer**:
+   - Create an AWS Application Load Balancer
+   - Configure to accept traffic on HTTP port 80
+   - Set target group to route to EC2 instance port 8000
+   - Set health check path to `/health`
+
+9. **Update Frontend Configuration**:
+   Update the `API_URL` in Streamlit secrets to point to your load balancer URL
 
 ## 📖 Usage Guide
 
@@ -434,12 +502,18 @@ The application is currently deployed with the frontend on Streamlit Community C
 - **Session Controls**: Options to pause, resume, end, or export chat sessions
 - **Active Sessions**: View and manage your ongoing conversations
 
+#### Multilingual Support
+- Type directly in Kannada if you prefer
+- The system will automatically detect Kannada text
+- Responses will be generated based on the translated content
+- Chat exports will include both original Kannada text and translations
+
 #### Best Practices
 - Ask open-ended questions to encourage detailed responses
 - Follow up on interesting points to explore student perspectives
 - Use suggested questions when unsure what to ask next
 - Try different approaches with multiple students
-- Feel free to communicate in Kannada when appropriate, as the system supports it
+- Feel free to communicate in Kannada when appropriate
 - Keep conversations focused on educational topics and student experiences
 
 ### For Technical Users
@@ -484,6 +558,13 @@ A: The application uses AWS DynamoDB for structured data (student profiles, chat
 **Q: Is the conversation data stored securely?**  
 A: Yes, all conversation data is stored in AWS DynamoDB with appropriate security measures. API access is protected by API key authentication, and the frontend implements secure Google OAuth.
 
+**Q: How does the multilingual support work?**  
+A: The application uses Google Cloud Translation API to handle Kannada text:
+1. It detects Kannada text using character pattern recognition
+2. Translates Kannada to English for processing by the RAG system
+3. Stores both the original Kannada text and the English translation
+4. Displays the appropriate language in the interface depending on context
+
 **Q: Can I run the application locally?**  
 A: Yes, the README provides detailed instructions for setting up the application on your local machine for development or testing.
 
@@ -493,7 +574,7 @@ We welcome contributions to the Agastya AI platform! Here's how you can contribu
 
 ### Setup for Development
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/agastya-ai.git`
+2. Clone your fork: `git clone https://github.com/your-username/agastyaconnect.git`
 3. Create a feature branch: `git checkout -b feature/amazing-feature`
 4. Set up your development environment following the installation instructions
 
