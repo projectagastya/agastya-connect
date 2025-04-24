@@ -356,7 +356,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         question_for_api = user_input
 
     with st.chat_message(name="user", avatar=user_image):
-        st.markdown(body=question_for_api)
+        st.markdown(body=user_input)
 
     spinner_message = f"{formatted_name(student_name=student_name).split(' ')[0]} is typing..."
     with st.spinner(spinner_message):
@@ -375,7 +375,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
             st.error("Sorry, we're facing an unexpected issue on our end while processing your request. Please try again later.")
             st.stop()
         
-        current_chat_session["chat_history"].append({"role": "user", "content": question_for_api, "content-en": question_for_api, "avatar": user_image})
+        current_chat_session["chat_history"].append({"role": "user", "content": user_input if input_type == "manual-kannada" else question_for_api, "content-en": question_for_api, "avatar": user_image})
         current_chat_session["chat_history"].append({"role": "assistant", "content": answer, "content-en": answer, "avatar": student_avatar})
         
         chat_history = current_chat_session["chat_history"]
