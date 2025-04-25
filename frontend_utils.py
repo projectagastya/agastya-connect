@@ -16,9 +16,9 @@ from frontend_api_calls import (
     end_all_chats
 )
 from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
-from translate_utils import translate_kannada_to_english, translate_english_to_kannada
 from langchain_google_genai import ChatGoogleGenerativeAI
 from shared.logger import frontend_logger
+from shared.translate import translate_english_to_kannada, translate_kannada_to_english
 from uuid import uuid4
 
 def setup_page(

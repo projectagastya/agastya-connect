@@ -50,7 +50,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, Side
 from shared.logger import backend_logger
-from translate_utils import translate_english_to_kannada
+from shared.translate import translate_english_to_kannada
 from typing import Dict, List, Optional, Tuple
 
 def formatted_name(student_name: str):
