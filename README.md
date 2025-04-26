@@ -101,7 +101,6 @@ The backend server is developed with FastAPI, a high-performance Python web fram
   - `/get-student-profiles`: Fetch available student profiles
   - `/start-chat`: Initialize chat sessions and prepare vectorstores
   - `/chat`: Process user inputs and generate contextual responses
-  - `/end-chat`: Terminate sessions and clean up resources
   - `/get-active-sessions`: Retrieve all active chat sessions for a user
   - `/get-chat-history`: Fetch message history for a specific chat session
   - `/resume-chat`: Reload and continue a previously started session

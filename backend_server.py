@@ -11,8 +11,6 @@ from backend_pydantic_models import (
     ChatMessageRequest,
     ChatMessageResponse,
     EndChatResponse,
-    ExportChatsRequest,
-
     GetStudentProfilesRequest,
     GetStudentProfilesResponse,
     StartChatResponse,
@@ -20,14 +18,12 @@ from backend_pydantic_models import (
     GetActiveSessionsResponse,
     GetChatHistoryRequest,
     GetChatHistoryResponse,
-    EndChatResponse,
     ChatSessionInfo,
     ChatMessageInfo,
     StartEndChatRequest,
     StudentProfileSchema
 )
 from backend_utils import (
-    end_chat_session,
     end_all_chat_sessions,
     fetch_vectorstore_from_s3,
     formatted_name,
@@ -38,12 +34,11 @@ from backend_utils import (
     get_active_chat_sessions,
     initialize_chat_session,
     insert_chat_message,
-    load_vectorstore_from_path,
-    export_chat_sessions_to_excel
+    load_vectorstore_from_path
 )
 from collections import defaultdict
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, Security, status, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from shared.logger import backend_logger
@@ -255,7 +250,14 @@ def chat_endpoint(api_request: ChatMessageRequest):
             backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}, question_kannada: {question_kannada}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain answer. Please try again.")
         
-        insert_chat_message_success, insert_chat_message_message = insert_chat_message(login_session_id=login_session_id, chat_session_id=chat_session_id, user_input=question, user_input_kannada=question_kannada, input_type=input_type, assistant_output=answer)
+        insert_chat_message_success, insert_chat_message_message = insert_chat_message(
+            login_session_id=login_session_id,
+            chat_session_id=chat_session_id,
+            user_input=question,
+            user_input_kannada=question_kannada,
+            input_type=input_type,
+            assistant_output=answer
+        )
         if not insert_chat_message_success:
             backend_logger.error(f"Failed to insert chat history for global_session_id={global_session_id}: {insert_chat_message_message}")
             raise HTTPException(status_code=500, detail="Failed to insert chat history. Please try again.")
@@ -268,52 +270,6 @@ def chat_endpoint(api_request: ChatMessageRequest):
     except Exception as e:
         backend_logger.error(f"Chat endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve chat response. Please try again.")
-
-@app.post(path="/end-chat", summary="End chat session", response_model=EndChatResponse, dependencies=[Depends(get_api_key)])
-def end_chat_endpoint(api_request: StartEndChatRequest):
-    count = 0
-    try:
-        user_email = api_request.user_email.strip()
-        student_name = api_request.student_name.strip()
-        login_session_id = api_request.login_session_id.strip()
-        chat_session_id = api_request.chat_session_id.strip()
-        
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        end_chat_success, end_chat_message = end_chat_session(
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id
-        )
-        
-        if not end_chat_success:
-            backend_logger.error(f"Error ending chat session in DynamoDB: {end_chat_message}")
-            count += 1
-        
-        if login_session_id in vectorstore_map:
-            if chat_session_id in vectorstore_map[login_session_id]:
-                del vectorstore_map[login_session_id][chat_session_id]
-                backend_logger.info(f"Removed vectorstore for global_session_id={global_session_id} from in-memory map.")
-            else:
-                count += 1
-                backend_logger.warning(f"Login session found but chat session not found for global_session_id={global_session_id} in in-memory map. Continuing cleanup.")
-        else:
-            count += 1
-            backend_logger.warning(f"Login session not found for login_session_id={login_session_id} in in-memory map. Continuing cleanup.")
-                
-        if count == 3:
-            raise HTTPException(status_code=500, detail="Failed to end chat session. Please try again.")
-        
-        return EndChatResponse(
-            success=True,
-            message=f"Chat session ended successfully for global_session_id={global_session_id}",
-            timestamp=datetime.now().isoformat()
-        )
-    except HTTPException as http_e:
-        backend_logger.error(f"HTTP exception in ending chat session: {http_e}")
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"End chat session endpoint error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to end chat session. Please try again.")
 
 @app.post("/get-active-sessions", summary="Get active chat sessions", response_model=GetActiveSessionsResponse, dependencies=[Depends(get_api_key)])
 def get_active_sessions_endpoint(api_request: GetActiveSessionsRequest):
@@ -479,33 +435,3 @@ def resume_chat_endpoint(api_request: StartEndChatRequest):
     except Exception as e:
         backend_logger.error(f"Resume chat session endpoint error: {e}")
         raise HTTPException(status_code=500, detail="Failed to resume chat session. Please try again.")
-
-@app.post("/export-chats", summary="Export chat sessions to Excel asynchronously", response_model=EndChatResponse, dependencies=[Depends(get_api_key)])
-async def export_chats_endpoint(api_request: ExportChatsRequest, background_tasks: BackgroundTasks):
-    try:
-        user_email = api_request.user_email.strip()
-        login_session_id = api_request.login_session_id.strip()
-        user_first_name = api_request.user_first_name.strip()
-        user_last_name = api_request.user_last_name.strip()
-        
-        background_tasks.add_task(
-            export_chat_sessions_to_excel,
-            user_email=user_email,
-            login_session_id=login_session_id,
-            user_first_name=user_first_name,
-            user_last_name=user_last_name
-        )
-        
-        return EndChatResponse(
-            success=True,
-            message=f"Chat transcripts export scheduled for user {user_email}",
-            timestamp=datetime.now().isoformat()
-        )
-    except Exception as e:
-        backend_logger.error(f"Export chat sessions endpoint error for user {api_request.user_email}: {e}")
-
-        return EndChatResponse(
-            success=True,
-            message=f"Chat export scheduled for user {api_request.user_email}",
-            timestamp=datetime.now().isoformat()
-        )

@@ -608,7 +608,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
                 'message_timestamp': user_message_timestamp,
                 'role': 'user',
                 'message': user_input,
-                'message_kannada': user_input_kannada,
+                'message_kannada': user_input_kannada if user_input_kannada else translate_english_to_kannada(user_input),
                 'input_type': input_type,
                 'created_at': user_timestamp
             }
@@ -623,7 +623,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
                 'message_timestamp': assistant_message_timestamp,
                 'role': 'assistant',
                 'message': assistant_output,
-                'message_kannada': None,
+                'message_kannada': translate_english_to_kannada(assistant_output),
                 'input_type': 'default',
                 'created_at': assistant_timestamp
             }
@@ -705,34 +705,6 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
         backend_logger.error(f"get_chat_history | {message}")
     
     return success, message, result, data
-
-def end_chat_session(login_session_id: str, chat_session_id: str) -> Tuple[bool, str]:
-    success = False
-    message = ""
-    
-    try:
-        dynamodb = get_dynamodb_resource()
-        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
-        
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        chat_sessions_table.update_item(
-            Key={'global_session_id': global_session_id},
-            UpdateExpression="SET session_status = :status, last_updated_at = :time",
-            ExpressionAttributeValues={
-                ':status': 'ended',
-                ':time': datetime.now().isoformat()
-            }
-        )
-        
-        success = True
-        message = f"Chat session ended successfully for global_session_id={global_session_id}"
-        backend_logger.info(f"end_chat_session | {message}")
-    except Exception as e:
-        message = f"Error ending chat session: {e}"
-        backend_logger.error(f"end_chat_session | {message}")
-    
-    return success, message
 
 def get_active_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool, str, bool, List[Dict]]:
     success = False
@@ -870,171 +842,6 @@ def end_all_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool,
     except Exception as e:
         message = f"Error ending all chat sessions for user: {user_email}: {e}"
         backend_logger.error(f"end_all_chat_sessions | {message}")
-    
-    return success, message
-
-def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_first_name: str, user_last_name: str) -> Tuple[bool, str]:
-    success = False
-    message = ""
-    
-    try:
-        dynamodb = get_dynamodb_resource()
-        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
-        chat_messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
-        
-        sessions_response = chat_sessions_table.query(
-            IndexName='UserSessionsIndex',
-            KeyConditionExpression=Key('user_email').eq(user_email),
-            FilterExpression=Attr('login_session_id').eq(login_session_id)
-        )
-        
-        if 'Items' not in sessions_response or len(sessions_response['Items']) == 0:
-            success = True
-            message = f"No chat sessions found for user: {user_email} with login session ID: {login_session_id}"
-            backend_logger.info(f"export_chat_sessions_to_excel | {message}")
-            return success, message
-        
-        workbook = Workbook()
-        metadata_sheet = workbook.active
-        metadata_sheet.title = "Metadata"
-        
-        metadata_sheet['A1'] = "Login Session ID"
-        metadata_sheet['B1'] = "User Email"
-        metadata_sheet['C1'] = "User Name"
-        metadata_sheet['D1'] = "Student Name"
-        metadata_sheet['E1'] = "Chat Session ID"
-        metadata_sheet['F1'] = "Started At"
-        metadata_sheet['G1'] = "Last Updated At"
-        metadata_sheet['H1'] = "Status"
-        metadata_sheet['I1'] = "Message Count"
-        
-        for cell in metadata_sheet[1]:
-            cell.font = Font(bold=True)
-            cell.alignment = Alignment(horizontal='center', vertical='top')
-        
-        row = 2
-        student_sessions = {}
-        
-        for session in sessions_response['Items']:
-            metadata_sheet[f'A{row}'] = session.get('login_session_id', '')
-            metadata_sheet[f'B{row}'] = session.get('user_email', '')
-            metadata_sheet[f'C{row}'] = session.get('user_full_name', '')
-            metadata_sheet[f'D{row}'] = formatted_name(session.get('student_name', ''))
-            metadata_sheet[f'E{row}'] = session.get('chat_session_id', '')
-            metadata_sheet[f'F{row}'] = session.get('started_at', '')
-            metadata_sheet[f'G{row}'] = session.get('last_updated_at', '')
-            metadata_sheet[f'H{row}'] = session.get('session_status', '')
-            metadata_sheet[f'I{row}'] = session.get('message_count', 0)
-            
-            for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']:
-                metadata_sheet[f'{col}{row}'].alignment = Alignment(horizontal='left', vertical='top')
-            row += 1
-            
-            student_name = session.get('student_name', '')
-            chat_session_id = session.get('chat_session_id', '')
-            global_session_id = session.get('global_session_id', '')
-            
-            if student_name and chat_session_id and global_session_id:
-                student_sessions[student_name] = {
-                    'chat_session_id': chat_session_id,
-                    'global_session_id': global_session_id
-                }
-        
-        for column in metadata_sheet.columns:
-            max_length = 0
-            column_letter = column[0].column_letter
-            for cell in column:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-            adjusted_width = (max_length + 2)
-            metadata_sheet.column_dimensions[column_letter].width = adjusted_width
-        
-        for student_name, session_info in student_sessions.items():
-            global_session_id = session_info['global_session_id']
-            
-            messages_response = chat_messages_table.query(
-                KeyConditionExpression=Key('global_session_id').eq(global_session_id),
-                ScanIndexForward=True
-            )
-            
-            if 'Items' not in messages_response or len(messages_response['Items']) == 0:
-                continue
-            
-            sheet_name = formatted_name(student_name)
-            sheet_name = sheet_name[:31].replace(':', '').replace('\\', '').replace('/', '').replace('?', '').replace('*', '').replace('[', '').replace(']', '')
-            chat_sheet = workbook.create_sheet(title=sheet_name)
-            
-            chat_sheet['A1'] = "Timestamp"
-            chat_sheet['B1'] = "Role"
-            chat_sheet['C1'] = "Message"
-            chat_sheet['D1'] = "Message_Kannada"
-            chat_sheet['E1'] = "Input Type"
-            
-            for cell in chat_sheet[1]:
-                cell.font = Font(bold=True)
-                cell.alignment = Alignment(horizontal='center', vertical='top')
-            
-            row = 2
-            for message in messages_response['Items']:
-                if message.get('input_type') == 'system':
-                    continue
-                chat_sheet[f'A{row}'] = message.get('created_at', '')
-                chat_sheet[f'B{row}'] = message.get('role', '')
-                chat_sheet[f'C{row}'] = message.get('message', '')
-                chat_sheet[f'D{row}'] = message.get('message_kannada', '') if message.get('input_type') == 'manual-kannada' else translate_english_to_kannada(message.get('message', ''))
-                chat_sheet[f'E{row}'] = message.get('input_type', '')
-                
-                for col in ['A', 'B', 'C', 'D', 'E']:
-                    chat_sheet[f'{col}{row}'].alignment = Alignment(horizontal='left', vertical='top')
-                row += 1
-            
-            for column in chat_sheet.columns:
-                max_length = 0
-                column_letter = column[0].column_letter
-                for cell in column:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 100)
-                chat_sheet.column_dimensions[column_letter].width = adjusted_width
-            
-            for row_idx in range(2, row):
-                for col in ['C', 'D']:
-                    cell = chat_sheet[f'{col}{row_idx}']
-                    alignment = cell.alignment
-                    cell.alignment = Alignment(horizontal='left', vertical='top', wrapText=True)
-        
-        buffer = io.BytesIO()
-        workbook.save(buffer)
-        buffer.seek(0)
-        
-        s3_client = boto3.client(
-            "s3",
-            region_name=AWS_REGION,
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-        )
-        
-        s3_key = f"{CHAT_TRANSCRIPTS_FOLDER_PATH}/{user_email}/{login_session_id}.xlsx"
-        
-        s3_client.put_object(
-            Bucket=MAIN_S3_BUCKET_NAME,
-            Key=s3_key,
-            Body=buffer,
-            ContentType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        
-        success = True
-        message = f"Successfully exported chat transcripts to {s3_key}"
-        backend_logger.info(f"export_chat_sessions_to_excel | {message}")
-    except Exception as e:
-        message = f"Error exporting chat sessions to Excel: {str(e)}"
-        backend_logger.error(f"export_chat_sessions_to_excel | {message}")
     
     return success, message
 

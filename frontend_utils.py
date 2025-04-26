@@ -6,11 +6,9 @@ import streamlit as st
 from datetime import datetime
 from frontend_api_calls import (
     chat,
-    end_chat,
     healthy,
     start_chat,
     resume_chat,
-    export_chats,
     get_active_sessions,
     get_chat_history_messages,
     end_all_chats

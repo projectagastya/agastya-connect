@@ -7,8 +7,7 @@ from frontend_utils import (
     setup_page
 )
 from frontend_api_calls import (
-    end_all_chats,
-    export_chats
+    end_all_chats
 )
 from shared.logger import frontend_logger
 
@@ -58,12 +57,6 @@ def render_home_page():
         if st.button(label="Logout", icon=":material/logout:", type="primary", use_container_width=True):
             st.cache_resource.clear()
             st.logout()
-            export_chats(
-                user_email=user_email,
-                login_session_id=login_session_id,
-                user_first_name=user_first_name,
-                user_last_name=user_last_name
-            )
             
             end_all_success, end_all_message = end_all_chats(
                 user_email=user_email,
