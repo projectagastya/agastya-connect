@@ -28,7 +28,7 @@ from backend.core.config import (
     STUDENT_VECTORSTORE_FOLDER_PATH,
     LOCAL_VECTORSTORES_DIRECTORY
 )
-from backend_prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
+from backend.prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
 from datetime import datetime, timedelta
