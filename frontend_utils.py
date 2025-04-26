@@ -13,7 +13,7 @@ from frontend_api_calls import (
     get_chat_history_messages,
     end_all_chats
 )
-from frontend_prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
+from frontend.prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from shared.logger import frontend_logger
 from shared.translate import translate_english_to_kannada, translate_kannada_to_english
