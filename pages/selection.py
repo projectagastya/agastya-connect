@@ -1,7 +1,7 @@
 import streamlit as st
 
-from frontend_api_calls import get_student_profiles, get_active_sessions
-from frontend_utils import (
+from frontend.api_calls import get_student_profiles, get_active_sessions
+from frontend.utils import (
     add_aligned_text,
     formatted_name,
     reset_session_state,

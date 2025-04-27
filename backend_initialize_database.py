@@ -1,4 +1,4 @@
-from backend_utils import create_chat_message_table, create_chat_session_table, create_student_table, populate_student_table
+from backend.utils import create_chat_message_table, create_chat_session_table, create_student_table, populate_student_table
 from shared.logger import backend_logger
 
 def initialize_all_databases() -> tuple[bool, str]:

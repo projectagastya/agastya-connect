@@ -4,7 +4,7 @@ import re
 import streamlit as st
 
 from datetime import datetime
-from frontend_api_calls import (
+from frontend.api_calls import (
     chat,
     healthy,
     start_chat,

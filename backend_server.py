@@ -7,7 +7,7 @@ from backend.core.config import (
     MAX_DOCS_TO_RETRIEVE,
     LOCAL_VECTORSTORES_DIRECTORY,
 )
-from backend_pydantic_models import (
+from backend.api.models import (
     ChatMessageRequest,
     ChatMessageResponse,
     EndChatResponse,
@@ -23,7 +23,7 @@ from backend_pydantic_models import (
     StartEndChatRequest,
     StudentProfileSchema
 )
-from backend_utils import (
+from backend.utils import (
     end_all_chat_sessions,
     fetch_vectorstore_from_s3,
     formatted_name,

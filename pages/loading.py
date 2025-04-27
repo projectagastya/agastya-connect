@@ -1,7 +1,7 @@
 import asyncio
 import streamlit as st
 
-from frontend_utils import (
+from frontend.utils import (
     add_aligned_text,
     formatted_name,
     initialize_chat_session,

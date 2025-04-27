@@ -1,7 +1,7 @@
 import asyncio
 import streamlit as st
 
-from frontend_utils import (
+from frontend.utils import (
     end_chat_dialog,
     formatted_name,
     handle_user_input,

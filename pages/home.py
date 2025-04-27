@@ -1,12 +1,12 @@
 import streamlit as st
 
-from frontend_utils import (
+from frontend.utils import (
     add_aligned_text,
     reset_session_state,
     security_check,
     setup_page
 )
-from frontend_api_calls import (
+from frontend.api_calls import (
     end_all_chats
 )
 from shared.logger import frontend_logger

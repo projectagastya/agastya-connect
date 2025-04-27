@@ -237,8 +237,9 @@ def get_dynamodb_resource():
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
 
-def create_student_table() -> tuple[bool, str]:
+def create_student_table() -> tuple[bool, bool, str]:
     success = False
+    result = False
     message = ""
     try:
         dynamodb = get_dynamodb_resource()
@@ -246,25 +247,26 @@ def create_student_table() -> tuple[bool, str]:
         table.meta.client.get_waiter('table_exists').wait(TableName=DYNAMODB_STUDENT_TABLE_NAME)
 
         success = True
+        result = True
         message = f"Table: '{DYNAMODB_STUDENT_TABLE_NAME}' created successfully"
         backend_logger.info(f"create_students_table | {message}")
-        return success, message
+        return success, result, message
 
     except ClientError as e:
         if e.response['Error']['Code'] == 'ResourceInUseException':
             success = True
             message = f"Table '{DYNAMODB_STUDENT_TABLE_NAME}' already exists"
             backend_logger.info(f"create_students_table | {message}")
-            return success, message
+            return success, result, message
 
         message = f"Error creating table: {str(e)}"
         backend_logger.error(f"create_students_table | {message}")
-        return success, message
+        return success, result, message
 
     except Exception as e:
         message = f"Unexpected error creating table: {str(e)}"
         backend_logger.error(f"create_students_table | {message}")
-        return success, message
+        return success, result, message
 
 def get_student_table():
     dynamodb = get_dynamodb_resource()
