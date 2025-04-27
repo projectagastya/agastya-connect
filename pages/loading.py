@@ -2,8 +2,8 @@ import asyncio
 import streamlit as st
 
 from frontend.utils import (
-    add_aligned_text,
-    formatted_name,
+    add_text,
+    formatted,
     initialize_chat_session,
     security_check,
     setup_page
@@ -28,15 +28,15 @@ async def render_loading_page():
 
     with st.container(border=True):
         st.markdown("<br>", unsafe_allow_html=True)
-        add_aligned_text(content=f"Setting up chat session with {formatted_name(student_choice['student_name'])}", alignment="center", size=36, bold=True)
+        add_text(content=f"Setting up chat session with {formatted(student_choice['student_name'])}", alignment="center", size=36, bold=True)
         st.markdown("<br>", unsafe_allow_html=True)
         cols = st.columns([1, 1, 1, 1, 1])
         with cols[2]:
             st.image(image=student_choice["student_image"], use_container_width=True)
-            st.markdown(f"**Name:** {formatted_name(student_choice['student_name'])}")
+            st.markdown(f"**Name:** {formatted(student_choice['student_name'])}")
             st.markdown(f"**Age:** {student_choice['student_age']}")
-            st.markdown(f"**State:** {formatted_name(student_choice['student_state'])}")
-            st.markdown(f"**Gender:** {formatted_name(student_choice['student_sex'])}")
+            st.markdown(f"**State:** {formatted(student_choice['student_state'])}")
+            st.markdown(f"**Gender:** {formatted(student_choice['student_sex'])}")
 
             with st.spinner(text="Loading..."):
                 await initialize_chat_session(student_choice=student_choice)

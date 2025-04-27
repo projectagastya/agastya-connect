@@ -2,8 +2,8 @@ import streamlit as st
 
 from frontend.api_calls import get_student_profiles, get_active_sessions
 from frontend.utils import (
-    add_aligned_text,
-    formatted_name,
+    add_text,
+    formatted,
     reset_session_state,
     security_check,
     setup_page,
@@ -19,20 +19,9 @@ def render_selection_page():
     if len(st.session_state) == 0:
         reset_session_state()
 
-    if hasattr(st.experimental_user, "email"):
-        user_email = getattr(st.experimental_user, "email")
-    else:
-        frontend_logger.error("render_selection_page | User email not found in user object")
-        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
-        st.stop()
-        
-    if hasattr(st.experimental_user, "nonce"):
-        login_session_id = getattr(st.experimental_user, "nonce")
-    else:
-        frontend_logger.error("render_selection_page | User nonce not found in user object")
-        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
-        st.stop()
-    
+    user_email = getattr(st.experimental_user, "email")
+    login_session_id = getattr(st.experimental_user, "nonce")
+
     active_sessions_success, active_sessions_message, active_sessions = get_active_sessions(
         user_email=user_email,
         login_session_id=login_session_id
@@ -59,7 +48,7 @@ def render_selection_page():
         st.error("Sorry, we're facing an unexpected issue while loading our student profiles. Please try again later.")
         st.stop()
     with cols[1]:
-        add_aligned_text(content="Select a student to chat with", alignment="center", bold=True, size=35)
+        add_text(content="Select a student to chat with", alignment="center", bold=True, size=35)
     st.markdown("<br>", unsafe_allow_html=True)
 
     rows = [students[i:i + 4] for i in range(0, len(students), 4)]
@@ -74,7 +63,7 @@ def render_selection_page():
                 student_sex = student["student_sex"]
                 
                 with st.container(border=True):
-                    add_aligned_text(content=formatted_name(student_name), alignment="center", size=20, bold=True)
+                    add_text(content=formatted(student_name), alignment="center", size=20, bold=True)
                     subcols = st.columns([2,2])
                     
                     with subcols[0]:
@@ -87,7 +76,7 @@ def render_selection_page():
                         if st.button(
                             label=button_label,
                             key=f"{'resume' if has_active_session else 'start'}_chat_{student['student_name']}",
-                            type="primary" if has_active_session else "secondary",
+                            type="secondary" if has_active_session else "primary",
                             use_container_width=True
                         ):
                             get_active_sessions.clear()
@@ -112,8 +101,8 @@ def render_selection_page():
                     with subcols[1]:
                         st.markdown("<br>", unsafe_allow_html=True)
                         st.markdown(f"**Age:** {student_age}")
-                        st.markdown(f"**Sex:** {formatted_name(student_sex)}")
-                        st.markdown(f"**State:** {formatted_name(student_state)}")
+                        st.markdown(f"**Sex:** {formatted(student_sex)}")
+                        st.markdown(f"**State:** {formatted(student_state)}")
                         st.markdown(" ", unsafe_allow_html=True)
 
 if __name__ == "__main__":

@@ -32,7 +32,7 @@ def setup_page(
     st.set_page_config(page_title=page_title, page_icon=page_icon, layout=layout, initial_sidebar_state=initial_sidebar_state)
     st.logo(image=logo_image, size=logo_size, link=logo_link, icon_image=logo_icon_image)
 
-def add_aligned_text(content, alignment="left", size=12, bold=False, italics=False, underline=False, color=None):
+def add_text(content, alignment="left", size=12, bold=False, italics=False, underline=False, color=None):
     rem_size = size / 16
     styles = []
     if bold:
@@ -46,7 +46,7 @@ def add_aligned_text(content, alignment="left", size=12, bold=False, italics=Fal
         style += f"color: {color};"
     st.markdown(body=f"<div style='{style}'>{content}</div>", unsafe_allow_html=True)
 
-def formatted_name(student_name: str):
+def formatted(student_name: str):
     return student_name.replace('-', ' ').title()
     
 def generate_uuid():
@@ -66,25 +66,11 @@ async def initialize_chat_session(student_choice: dict):
             "student_profile": None
         }
 
-    if hasattr(st.experimental_user, "email"):
-        user_email = getattr(st.experimental_user, "email")
-    else:
-        frontend_logger.error("initialize_chat_session | User email not found in st.experimental_user")
-        st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
-        st.stop()
-        
-    if hasattr(st.experimental_user, "nonce"):
-        login_session_id = getattr(st.experimental_user, "nonce")
-    else:
-        frontend_logger.error("initialize_chat_session | User nonce not found in st.experimental_user")
-        st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again later.")
-        st.stop()
-    
-    if hasattr(st.experimental_user, "picture"):
-        user_avatar = getattr(st.experimental_user, "picture")
-    else:
-        user_avatar = "static/silhouette.png"
-    
+    user_email = getattr(st.experimental_user, "email")  
+    login_session_id = getattr(st.experimental_user, "nonce")
+    user_avatar = getattr(st.experimental_user, "picture", "static/silhouette.png")
+    user_first_name = getattr(st.experimental_user, "given_name")
+    user_last_name = getattr(st.experimental_user, "family_name")
     student_name = student_choice['student_name']
     student_avatar = student_choice['student_image']
     is_resuming = st.session_state["active_chat_session"]["id"] is not None
@@ -99,8 +85,8 @@ async def initialize_chat_session(student_choice: dict):
         frontend_logger.info(f"initialize_chat_session | Resuming chat with {student_name}, session id: {chat_session_id}")
         
         resume_chat_success, resume_chat_message, _ = resume_chat(
-            user_first_name=getattr(st.experimental_user, "given_name"),
-            user_last_name=getattr(st.experimental_user, "family_name"),
+            user_first_name=user_first_name,
+            user_last_name=user_last_name,
             user_email=user_email,
             student_name=student_name,
             login_session_id=login_session_id,
@@ -129,8 +115,8 @@ async def initialize_chat_session(student_choice: dict):
         st.session_state["active_chat_session"]["chat_history"] = []
         
         start_chat_success, start_chat_message, first_message = start_chat(
-            user_first_name=getattr(st.experimental_user, "given_name"),
-            user_last_name=getattr(st.experimental_user, "family_name"),
+            user_first_name=user_first_name,
+            user_last_name=user_last_name,
             user_email=user_email,
             student_name=student_name,
             login_session_id=login_session_id,
@@ -194,66 +180,8 @@ def is_kannada(text: str) -> bool:
         return False
     return any('\u0c80' <= ch <= '\u0cff' for ch in text)
 
-def cleanup_chat_session(user_email, chat_session_id, student_name):
-    if hasattr(st.experimental_user, "nonce"):
-        user_login_session_id = getattr(st.experimental_user, "nonce")
-    else:
-        frontend_logger.error("cleanup_chat_session | User nonce not found in st.experimental_user")
-        st.error("Sorry, we're facing an unexpected issue while ending your chat session. Please try again later.")
-        st.stop()
-
-    success, message = end_chat(
-        user_first_name=getattr(st.experimental_user, "given_name"),
-        user_last_name=getattr(st.experimental_user, "family_name"),
-        user_email=user_email,
-        login_session_id=user_login_session_id,
-        chat_session_id=chat_session_id,
-        student_name=student_name
-    )
-    if not success:
-        frontend_logger.error(f"cleanup_chat_session | end_chat failed: {message}")
-        st.error("Sorry, we're facing an unexpected issue while ending your chat session. Please try again later.")
-        st.stop()
-    else:
-        st.session_state["active_chat_session"] = {
-            "id": None,
-            "chat_history": [],
-            "next_questions": [],
-            "recent_questions": [],
-            "chat_start_timestamp": None,
-            "chat_end_timestamp": None,
-            "student_profile": None
-        }
-
-@st.dialog(title="Are you sure?", width="small")
-def end_chat_dialog(current_chat_session: dict, student_name: str):
-    if not hasattr(st.experimental_user, "email"):
-        frontend_logger.error("end_chat_dialog | User email not found in st.experimental_user")
-        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
-        st.stop()
-
-    user_email = getattr(st.experimental_user, "email")
-    add_aligned_text(content=f"This will end your current chat session with {formatted_name(student_name=student_name).split(' ')[0]}.", size=16, bold=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    button_cols = st.columns(spec=[1,1], gap="small")
-
-    with button_cols[0]:
-        if st.button(label="Confirm", type="primary", icon=":material/check:", use_container_width=True):
-            cleanup_chat_session(
-                user_email=user_email,
-                chat_session_id=current_chat_session["id"],
-                student_name=student_name
-            )
-            st.session_state["end_chat_dialog"] = False
-            st.switch_page(page="pages/home.py")
-            
-    with button_cols[1]:
-        if st.button(label="Cancel", type="secondary", icon=":material/close:", use_container_width=True):
-            st.session_state["end_chat_dialog"] = False
-            st.rerun()
-
 def render_chat_subheader(student_name):
-    add_aligned_text(content=f"Chat with {formatted_name(student_name)}", alignment="center", size=35, bold=True)
+    add_text(content=f"Chat with {formatted(student_name)}", alignment="center", size=35, bold=True)
 
 def render_chat_history(chat_history):
     for message in chat_history:
@@ -270,12 +198,7 @@ def render_chat_history(chat_history):
                 st.markdown(body=display_message)
 
 async def generate_next_questions(chat_history, student_name, num_questions=4):
-    if hasattr(st.experimental_user, "given_name") and hasattr(st.experimental_user, "family_name"):
-        user_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
-    else:
-        frontend_logger.error("generate_next_questions | User first name or last name not found in st.experimental_user")
-        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
-        st.stop()
+    user_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
 
     if hasattr(st.secrets, "LLM") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_ID") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_TEMPERATURE") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_MAX_TOKENS") and hasattr(st.secrets.LLM, "API_KEY"):
         llm = ChatGoogleGenerativeAI(
@@ -294,12 +217,12 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
         if message.get('role') == 'user':
             formatted_message = f"{user_full_name}: {message.get('content-en', '')}"
         elif message.get('role') == 'assistant':
-            formatted_message = f"{formatted_name(student_name)}: {message.get('content-en', '')}"
+            formatted_message = f"{formatted(student_name)}: {message.get('content-en', '')}"
         formatted_history.append(formatted_message)
     formatted_history = "\n".join(formatted_history)
 
     generate_next_questions_prompt = SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS.format(
-        student=formatted_name(student_name),
+        student=formatted(student_name),
         formatted_history=formatted_history
     )
     response = await llm.ainvoke(generate_next_questions_prompt)
@@ -316,7 +239,7 @@ async def render_next_questions(next_questions):
 
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
-        add_aligned_text(content="You may also ask:", alignment="center", size=24, bold=True)
+        add_text(content="You may also ask:", alignment="center", size=24, bold=True)
         st.markdown("<br>", unsafe_allow_html=True)
     for question in next_questions:
         if st.sidebar.button(label=question, use_container_width=True):
@@ -329,24 +252,9 @@ async def render_next_questions(next_questions):
             )
 
 async def handle_user_input(user_input: str, current_chat_session: dict, student_name: str, student_avatar: str, input_type: str):
-    if hasattr(st.experimental_user, "picture"):
-        user_image = getattr(st.experimental_user, "picture")
-    else:
-        user_image = "static/silhouette.png"
-    
-    if hasattr(st.experimental_user, "nonce"):
-        user_login_session_id = getattr(st.experimental_user, "nonce")
-    else:
-        frontend_logger.error("handle_user_input | User nonce not found in st.experimental_user")
-        st.error("Sorry, we're facing an unexpected internal error. Please contact support")
-        st.stop()
-
-    if hasattr(st.experimental_user, "given_name") and hasattr(st.experimental_user, "family_name"):
-        user_full_name = getattr(st.experimental_user, "given_name", " ") + " " + getattr(st.experimental_user, "family_name", " ")
-    else:
-        frontend_logger.error("handle_user_input | User given_name or family_name not found in st.experimental_user")
-        st.error("Sorry, we're facing an unexpected internal error. Please contact support")
-        st.stop()
+    user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
+    user_login_session_id = getattr(st.experimental_user, "nonce")
+    user_full_name = getattr(st.experimental_user, "given_name", " ") + " " + getattr(st.experimental_user, "family_name", " ")
 
     if input_type == "manual-kannada":
         question_for_api = translate_kannada_to_english(user_input)
@@ -356,7 +264,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
     with st.chat_message(name="user", avatar=user_image):
         st.markdown(body=user_input)
 
-    spinner_message = f"{formatted_name(student_name=student_name).split(' ')[0]} is typing..."
+    spinner_message = f"{formatted(student_name=student_name).split(' ')[0]} is typing..."
     with st.spinner(spinner_message):
         success, message, answer = chat(
             login_session_id=user_login_session_id,
@@ -421,8 +329,6 @@ def reset_session_state():
         st.session_state["next_questions"] = []
     if "recent_questions" not in st.session_state:
         st.session_state["recent_questions"] = []
-    if "end_chat_dialog" not in st.session_state:
-        st.session_state["end_chat_dialog"] = False
     if "loading_page" not in st.session_state:
         st.session_state["loading_page"] = False
 

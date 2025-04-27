@@ -1,7 +1,7 @@
 import streamlit as st
 
 from frontend.utils import (
-    add_aligned_text,
+    add_text,
     reset_session_state,
     security_check,
     setup_page
@@ -15,29 +15,10 @@ setup_page(initial_sidebar_state="expanded")
 
 def render_home_page():
     security_check()
-    if hasattr(st.experimental_user, "given_name"):
-        user_first_name = getattr(st.experimental_user, "given_name")
-    else:
-        frontend_logger.error("render_home_page | User first name not found in user object")
-        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
-        st.stop()
-    if hasattr(st.experimental_user, "family_name"):
-        user_last_name = getattr(st.experimental_user, "family_name")
-    else:
-        frontend_logger.error("render_home_page | User last name not found in user object")
-        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
-        st.stop()
-    if hasattr(st.experimental_user, "email"):
-        user_email = getattr(st.experimental_user, "email")
-    else:
-        frontend_logger.error("render_home_page | User email not found in user object")
-        st.error("Sorry, we're facing an unexpected internal issue. Please contact support")
-        st.stop()
-    if hasattr(st.experimental_user, "picture"):
-        user_image = getattr(st.experimental_user, "picture")
-    else:
-        user_image = "static/silhouette.png"
-    
+    user_first_name = getattr(st.experimental_user, "given_name")
+    user_last_name = getattr(st.experimental_user, "family_name")
+    user_email = getattr(st.experimental_user, "email")
+    user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
     login_session_id = getattr(st.experimental_user, "nonce")
     user_full_name = user_first_name + " " + user_last_name
     
@@ -45,14 +26,15 @@ def render_home_page():
         reset_session_state()
 
     with st.sidebar:
-        add_aligned_text(content="My Profile", alignment="center", bold=True, size=30)
+        add_text(content="My Profile", alignment="center", bold=True, size=30)
         st.markdown("<br>", unsafe_allow_html=True)
         image_col = st.columns([1,3])
         with image_col[0]:
             st.image(image=user_image, use_container_width=True)
         with image_col[1]:
-            add_aligned_text(content=user_full_name, alignment="left", bold=True, size=18)
-            add_aligned_text(content=user_email, alignment="left", bold=False, size=16, color="blue", underline=True)
+            add_text(content=user_full_name, alignment="left", bold=True, size=18)
+            add_text(content=user_email, alignment="left", bold=False, size=16, color="blue", underline=True)        
+        
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button(label="Logout", icon=":material/logout:", type="primary", use_container_width=True):
             st.cache_resource.clear()
@@ -66,7 +48,7 @@ def render_home_page():
                 frontend_logger.warning(f"render_home_page | Failed to end all chats on logout: {end_all_message}")
 
         st.markdown("---", unsafe_allow_html=True)
-        add_aligned_text(content="Contact us", alignment="center", bold=True, size=30)
+        add_text(content="Contact us", alignment="center", bold=True, size=30)
         st.markdown("<br>", unsafe_allow_html=True)
         contact_cols = st.columns(2)
         with contact_cols[0]:
@@ -76,7 +58,7 @@ def render_home_page():
             st.link_button("Phone", "tel:+918041124132", icon=":material/phone:", use_container_width=True)
         
         st.markdown("---", unsafe_allow_html=True)
-        add_aligned_text(content="You may also", alignment="center", bold=True, size=30)
+        add_text(content="You may also", alignment="center", bold=True, size=30)
         st.markdown("<br>", unsafe_allow_html=True)
         other_cols = st.columns(2)
         with other_cols[0]:
@@ -84,18 +66,18 @@ def render_home_page():
         with other_cols[1]:
             st.link_button("Donate", "https://www.agastya.org/donate", icon=":material/attach_money:", use_container_width=True)
 
-    add_aligned_text(content=f"Hello, {user_first_name}!", alignment="center", bold=True, size=40)
-    add_aligned_text(content="Welcome to your training program", alignment="center", bold=True, size=32)
+    add_text(content=f"Hello, {user_first_name}!", alignment="center", bold=True, size=40)
+    add_text(content="Welcome to your training program", alignment="center", bold=True, size=32)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    add_aligned_text(
+    add_text(
         content="""
         At Agastya, we empower you for a bright future through engagement with AI-driven student simulations. As an instructor, you'll interact with digital avatars of students from Agastya. These AI-simulated students will provide you with real-world experiences and insights into their learning process. You can choose a student to chat with, ask questions and engage in a conversation to understand the student better.""",
         alignment="left",
         size=20
     )
     st.markdown("<br>", unsafe_allow_html=True)
-    add_aligned_text(
+    add_text(
         content="""
         We hope you enjoy the experience!
         """,
@@ -107,9 +89,9 @@ def render_home_page():
     
     cols = st.columns([4, 4, 4], gap="medium")
     with cols[1]:
-        add_aligned_text(content="Chat with a student", alignment="center", bold=True, size=32)
+        add_text(content="Chat with a student", alignment="center", bold=True, size=32)
         st.markdown("<br>", unsafe_allow_html=True)
-        subcols = st.columns([1,4,1])
+        subcols = st.columns([1,2,1])
         with subcols[1]:
             if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
                 st.switch_page(page="pages/selection.py")
