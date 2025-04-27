@@ -37,15 +37,17 @@ def render_home_page():
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button(label="Logout", icon=":material/logout:", type="primary", use_container_width=True):
-            st.cache_resource.clear()
-            st.logout()
-            
-            end_all_success, end_all_message = end_all_chats(
-                user_email=user_email,
-                login_session_id=login_session_id
-            )
-            if not end_all_success:
-                frontend_logger.warning(f"render_home_page | Failed to end all chats on logout: {end_all_message}")
+            with st.spinner("Logging out..."):
+                st.cache_resource.clear()
+                st.logout()
+                
+                end_all_success, end_all_message = end_all_chats(
+                    user_email=user_email,
+                    login_session_id=login_session_id
+                )
+                
+                if not end_all_success:
+                    frontend_logger.warning(f"render_home_page | Failed to end all chats on logout: {end_all_message}")
 
         st.markdown("---", unsafe_allow_html=True)
         add_text(content="Contact us", alignment="center", bold=True, size=30)
