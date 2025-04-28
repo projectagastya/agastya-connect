@@ -17,6 +17,7 @@ from frontend.prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from shared.logger import frontend_logger
 from shared.translate import translate_english_to_kannada, translate_kannada_to_english
+from shared.utils import formatted
 from uuid import uuid4
 
 def setup_page(
@@ -46,9 +47,6 @@ def add_text(content, alignment="left", size=12, bold=False, italics=False, unde
         style += f"color: {color};"
     st.markdown(body=f"<div style='{style}'>{content}</div>", unsafe_allow_html=True)
 
-def formatted(student_name: str):
-    return student_name.replace('-', ' ').title()
-    
 def generate_uuid():
     new_uuid = str(uuid4())
     frontend_logger.info(f"Generated UUID: {new_uuid}")
@@ -264,7 +262,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
     with st.chat_message(name="user", avatar=user_image):
         st.markdown(body=user_input)
 
-    spinner_message = f"{formatted(student_name=student_name).split(' ')[0]} is typing..."
+    spinner_message = f"{formatted(text=student_name).split(' ')[0]} is typing..."
     with st.spinner(spinner_message):
         success, message, answer = chat(
             login_session_id=user_login_session_id,

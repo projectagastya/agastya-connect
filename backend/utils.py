@@ -51,10 +51,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, Side
 from shared.logger import backend_logger
 from shared.translate import translate_english_to_kannada
+from shared.utils import formatted
 from typing import Dict, List, Optional, Tuple
-
-def formatted(student_name: str):
-    return student_name.replace('-', ' ').title()
 
 def fetch_vectorstore_from_s3(user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> Tuple[bool, str, bool, Optional[str]]:
     success = False
