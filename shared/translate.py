@@ -1,8 +1,8 @@
 from typing import Optional
 
-from backend.core.config import GCP_CREDENTIALS
 from google.cloud import translate_v2 as translate
 from google.oauth2 import service_account
+from shared.config import GCP_CREDENTIALS
 from shared.logger import backend_logger, frontend_logger
 
 def get_translate_client() -> Optional[translate.Client]:
