@@ -1,11 +1,7 @@
-import os
-import shutil
-
 from backend.core.config import (
     BACKEND_API_KEY,
     BACKEND_ORIGINS,
-    MAX_DOCS_TO_RETRIEVE,
-    LOCAL_VECTORSTORES_DIRECTORY,
+    MAX_DOCS_TO_RETRIEVE
 )
 from backend.api.models import (
     ChatMessageRequest,
