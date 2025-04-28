@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, constr
 from typing import Literal, Optional
+
+NonBlankStr = constr(strip_whitespace=True, min_length=1)
 
 class StudentProfileSchema(BaseModel):
     student_name: str = Field(..., description="Name of the student.")
@@ -25,48 +27,12 @@ class GetStudentProfilesResponse(BaseModel):
     timestamp: str | None = Field(None, description="Timestamp of the student profiles retrieval.")
 
 class StartEndChatRequest(BaseModel):
-    user_first_name: str = Field(..., min_length=1, description="First name of the user.")
-    user_last_name: str = Field(..., min_length=1, description="Last name of the user.")
-    user_email: str = Field(..., min_length=1, description="Email of the user to initialize the chat session for.")
-    login_session_id: str = Field(..., min_length=1, description="Login session ID for which the chat session needs to be initialized.")
-    chat_session_id: str = Field(..., min_length=1, description="Chat session ID for which the vectorstore needs to be initialized.")
-    student_name: str = Field(..., min_length=1, description="Name of the student to initialize the chat session for.")
-
-    @field_validator("user_first_name")
-    def validate_user_first_name(cls, v):
-        if not v.strip():
-            raise ValueError("First name cannot be a blank string")
-        return v
-    
-    @field_validator("user_last_name")
-    def validate_user_last_name(cls, v):
-        if not v.strip():
-            raise ValueError("Last name cannot be a blank string")
-        return v
-    
-    @field_validator("user_email")
-    def validate_email(cls, v):
-        if not v.strip():
-            raise ValueError("Email cannot be a blank string")
-        return v
-    
-    @field_validator("student_name")
-    def validate_student_name(cls, v):
-        if not v.strip():
-            raise ValueError("Student name cannot be a blank string")
-        return v
-    
-    @field_validator("login_session_id")
-    def validate_login_session_id(cls, v):
-        if not v.strip():
-            raise ValueError("Login session ID cannot be a blank string")
-        return v
-    
-    @field_validator("chat_session_id")
-    def validate_chat_session_id(cls, v):
-        if not v.strip():
-            raise ValueError("Chat session ID cannot be a blank string")
-        return v
+    user_first_name: NonBlankStr = Field(..., description="First name of the user.")
+    user_last_name: NonBlankStr = Field(..., description="Last name of the user.")
+    user_email: NonBlankStr = Field(..., description="Email of the user to initialize the chat session for.")
+    login_session_id: NonBlankStr = Field(..., description="Login session ID for which the chat session needs to be initialized.")
+    chat_session_id: NonBlankStr = Field(..., description="Chat session ID for which the vectorstore needs to be initialized.")
+    student_name: NonBlankStr = Field(..., description="Name of the student to initialize the chat session for.")
 
 class StartChatResponse(BaseModel):
     success: bool = Field(..., description="Whether the chat session was initialized successfully.")
@@ -76,33 +42,15 @@ class StartChatResponse(BaseModel):
     timestamp: str | None = Field(None, description="Timestamp of the chat session initialization.")
 
 class ChatMessageRequest(BaseModel):
-    login_session_id: str = Field(..., min_length=1, description="Login session ID for which the chat session needs to be initialized.")
-    chat_session_id: str = Field(..., min_length=1, description="Unique identifier for the chat session.")
-    question: str = Field(..., min_length=1, description="The question being asked to the LLM in English.")
+    login_session_id: NonBlankStr = Field(..., description="Login session ID for which the chat session needs to be initialized.")
+    chat_session_id: NonBlankStr = Field(..., description="Unique identifier for the chat session.")
+    question: NonBlankStr = Field(..., description="The question being asked to the LLM in English.")
     question_kannada: str | None = Field(None, description="The question being asked to the LLM in Kannada.") # Can be none
     input_type: Literal["manual-english", "manual-kannada", "button", "default", "system"] = Field(..., description="The type of input being provided to the LLM.")
-    student_name: str = Field(..., min_length=1, description="The student involved in this conversation")
-    user_full_name: str = Field(..., min_length=1, description="The user asking the question")
+    student_name: NonBlankStr = Field(..., description="The student involved in this conversation")
+    user_full_name: NonBlankStr = Field(..., description="The user asking the question")
     user_email: Optional[str] = Field(None, description="Email of the user (added for DynamoDB)")
 
-    @field_validator("login_session_id")
-    def validate_login_session_id(cls, v):
-        if not v.strip():
-            raise ValueError("Login session ID cannot be a blank string")
-        return v
-    
-    @field_validator("chat_session_id")
-    def validate_chat_session_id(cls, v):
-        if not v.strip():
-            raise ValueError("Chat session ID cannot be a blank string")
-        return v
-    
-    @field_validator("question")
-    def validate_question(cls, v):
-        if not v.strip():
-            raise ValueError("Your question cannot be blank")
-        return v
-    
     @field_validator("input_type")
     def validate_input_type(cls, v):
         if v not in ["manual-english", "manual-kannada", "button", "default", "system"]:
@@ -122,8 +70,8 @@ class EndChatResponse(BaseModel):
     timestamp: str | None = Field(None, description="Timestamp of the chat session end.")
 
 class GetActiveSessionsRequest(BaseModel):
-    user_email: str = Field(..., min_length=1, description="Email of the user to retrieve active chat sessions for.")
-    login_session_id: str = Field(..., min_length=1, description="Login session ID to retrieve active chat sessions for.")
+    user_email: NonBlankStr = Field(..., description="Email of the user to retrieve active chat sessions for.")
+    login_session_id: NonBlankStr = Field(..., description="Login session ID to retrieve active chat sessions for.")
 
 class ChatSessionInfo(BaseModel):
     student_name: str = Field(..., description="Name of the student.")
@@ -140,8 +88,8 @@ class GetActiveSessionsResponse(BaseModel):
     timestamp: str | None = Field(None, description="Timestamp of the retrieval.")
 
 class GetChatHistoryRequest(BaseModel):
-    login_session_id: str = Field(..., min_length=1, description="Login session ID")
-    chat_session_id: str = Field(..., min_length=1, description="Chat session ID")
+    login_session_id: NonBlankStr = Field(..., description="Login session ID")
+    chat_session_id: NonBlankStr = Field(..., description="Chat session ID")
 
 class ChatMessageInfo(BaseModel):
     role: str = Field(..., description="Role (user or assistant)")
