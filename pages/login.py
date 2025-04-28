@@ -23,15 +23,18 @@ def render_login_page():
             reset_session_state()
             st.switch_page(page="pages/home.py")
     else:
-        add_text(content="Welcome to Agastya International Foundation's Instructor Training Program!",
-                        alignment="center",
-                        bold=True,
-                        size=36)
-        add_text(content="The world's largest \"Creativity Laboratory\"",
-                        alignment="center",
-                        bold=True,
-                        italics=True,
-                        size=24)
+        add_text(
+            content="Welcome to Agastya International Foundation's Instructor Training Program!",
+            alignment="center",
+            bold=True,
+            size=36
+        )
+        add_text(
+            content="The world's largest \"Creativity Laboratory\"",
+            alignment="center",
+            bold=True,
+            size=24
+        )
         
         st.markdown("<br><br>", unsafe_allow_html=True)
         main_cols = st.columns(spec=[1, 1, 1], gap="medium")
