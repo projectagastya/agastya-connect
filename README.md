@@ -6,6 +6,7 @@
 ![Backend](https://img.shields.io/badge/Backend-FastAPI-blue)
 ![AWS](https://img.shields.io/badge/Cloud-AWS-orange)
 ![RAG](https://img.shields.io/badge/AI-RAG_Architecture-green)
+![Last Updated](https://img.shields.io/badge/Last_Updated-April_2025-blue)
 
 ## 📚 Table of Contents
 - [Introduction](#-introduction)
@@ -61,14 +62,34 @@ The platform uses advanced artificial intelligence techniques, specifically Retr
 
 Agastya AI implements a modern client-server architecture with several interconnected components:
 
-### System Overview
+### Project Structure
+
 ```
-┌─────────────────┐     ┌───────────────────┐     ┌─────────────────────┐
-│                 │     │                   │     │                     │
-│  Streamlit UI   │────▶│  FastAPI Backend  │────▶│  AWS Infrastructure │
-│  (Frontend)     │◀────│  (Application)    │◀────│  (Data Services)    │
-│                 │     │                   │     │                     │
-└─────────────────┘     └───────────────────┘     └─────────────────────┘
+agastya-app/
+├── .streamlit/              # Streamlit configuration
+├── backend/                 # Backend API code
+│   ├── api/                 # API models and schemas
+│   ├── core/                # Core utilities and config
+│   ├── utils/               # Helper functions
+├── frontend/                # Frontend application code
+│   ├── api_calls.py         # API communication
+│   ├── components/          # UI components
+│   ├── utils.py             # Frontend helper functions
+├── pages/                   # Streamlit pages
+│   ├── home.py              # Home dashboard
+│   ├── selection.py         # Student selection
+│   ├── chat.py              # Chat interface
+│   ├── login.py             # Authentication
+│   ├── loading.py           # Intermediary loading page
+├── shared/                  # Shared modules
+├── static/                  # Static assets
+├── local-student-vectorstores/ # Local vectorstore storage
+├── logs/                    # Application logs
+├── .env                     # Environment variables
+├── backend_initialize_database.py # Database initialization
+├── backend_server.py        # FastAPI entry point
+├── frontend_server.py       # Streamlit entry point
+├── requirements.txt         # Dependencies
 ```
 
 ### Frontend Architecture (Streamlit)
@@ -105,7 +126,6 @@ The backend server is developed with FastAPI, a high-performance Python web fram
   - `/get-chat-history`: Fetch message history for a specific chat session
   - `/resume-chat`: Reload and continue a previously started session
   - `/end-all-chats`: Terminate all active sessions for a user
-  - `/export-chats`: Export chat histories to Excel format
 
 - **Security Layer**:
   - API key authentication via `X-API-Key` header
@@ -160,19 +180,19 @@ The intelligence layer uses a sophisticated Retrieval Augmented Generation appro
 ## 🔧 Technology Stack
 
 ### Frontend Technologies
-- **Streamlit** (v1.27+): Web application framework
+- **Streamlit**: Web application framework
 - **Python** (v3.9+): Core programming language
 - **AsyncIO**: For asynchronous operations
 - **Google OAuth**: Authentication provider
 
 ### Backend Technologies
-- **FastAPI** (v0.103+): API framework
-- **Uvicorn**: ASGI server
+- **FastAPI**: API framework
+- **Uvicorn**: ASGI server (run with `uvicorn backend_server:app --reload`)
 - **Pydantic**: Data validation and settings management
 - **Python** (v3.9+): Core programming language
 
 ### AI & Machine Learning
-- **LangChain** (v0.0.310+): Framework for LLM applications
+- **LangChain**: Framework for LLM applications
   - `langchain-core`: Core components
   - `langchain-chroma`: Vector store integration
   - `langchain-community`: Document loaders and utilities
@@ -197,8 +217,10 @@ The intelligence layer uses a sophisticated Retrieval Augmented Generation appro
 
 ### Development & Operations
 - **Python-dotenv**: Environment variable management
-- **Logging**: Comprehensive logging with rotation
+- **Logging**: Comprehensive logging with backend_logger
 - **Boto3**: AWS SDK for Python
+- **openpyxl**: Excel file generation for chat exports
+- **pandas**: Data manipulation and analysis
 - **UUID**: Unique identifier generation
 - **OpenPyXL**: Excel file generation for exports
 
@@ -266,8 +288,8 @@ The system implements a sophisticated data flow architecture to handle conversat
 
 1. **Clone the Repository**
    ```bash
-   git clone <repository_url>
-   cd agastyaconnect
+   git clone https://github.com/projectagastya/app.git
+   cd app
    ```
 
 2. **Create and Activate Virtual Environment**
