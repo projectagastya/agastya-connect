@@ -23,6 +23,7 @@ DYNAMODB_STUDENT_TABLE_WRITE_CAPACITY = max(1, validate_int_env_var("DYNAMODB_ST
 DYNAMODB_STUDENT_TABLE_KEY_SCHEMA = [{'AttributeName': 'student_name', 'KeyType': 'HASH'}]
 DYNAMODB_STUDENT_TABLE_ATTRIBUTE_DEFINITIONS = [{'AttributeName': 'student_name', 'AttributeType': 'S'}]
 
+# Configuration dictionary for the DynamoDB student table.
 DYNAMODB_STUDENT_TABLE_CONFIG = {
     'TableName': DYNAMODB_STUDENT_TABLE_NAME,
     'KeySchema': DYNAMODB_STUDENT_TABLE_KEY_SCHEMA,
@@ -37,6 +38,8 @@ if DYNAMODB_STUDENT_TABLE_BILLING_MODE == "PROVISIONED":
     }
 
 DYNAMODB_CHAT_SESSIONS_TABLE_NAME = validate_env_var("DYNAMODB_CHAT_SESSIONS_TABLE_NAME")
+
+# Configuration dictionary for the DynamoDB chat sessions table.
 DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
     'TableName': DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
     'KeySchema': [
@@ -80,6 +83,8 @@ DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG = {
 }
 
 DYNAMODB_CHAT_MESSAGES_TABLE_NAME = validate_env_var("DYNAMODB_CHAT_MESSAGES_TABLE_NAME")
+
+# Configuration dictionary for the DynamoDB chat messages table.
 DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG = {
     'TableName': DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
     'KeySchema': [

@@ -1,3 +1,4 @@
+# System prompt for the frontend LLM call to generate relevant follow-up questions for the instructor.
 SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS = """
 You are an instructor at Agastya International Foundation and you are having a conversation with your student, {student}.
 

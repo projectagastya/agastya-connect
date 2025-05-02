@@ -39,16 +39,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from shared.logger import backend_logger
 
+# Check if BACKEND_API_KEY is set. If not, raise an HTTP exception.
 if BACKEND_API_KEY is None:
     backend_logger.error("BACKEND_API_KEY is not set")
     raise HTTPException(status_code=500, detail="BACKEND_API_KEY is not set")
 
+# Dictionary to store loaded vectorstores mapped by login_session_id and chat_session_id.
 vectorstore_map = defaultdict(dict)
 
 app = FastAPI(title="Agastya API", description="API for the Agastya application")
 
+# Define the API key header.
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+# Add CORS middleware to allow cross-origin requests.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin for origin in BACKEND_ORIGINS],
@@ -57,13 +61,16 @@ app.add_middleware(
     allow_headers=["X-API-Key"]
 )
 
+# Function to validate the provided API key from the X-API-Key header.
 def get_api_key(api_key: str = Security(api_key_header)):
+    # Check if the API key is provided. If not, raise an HTTP exception.
     if not api_key:
         backend_logger.error("API key not provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API Key header missing"
         )
+    # Check if the API key is valid. If not, raise an HTTP exception.
     if api_key != BACKEND_API_KEY:
         backend_logger.error("Invalid BACKEND API key")
         raise HTTPException(
@@ -72,6 +79,7 @@ def get_api_key(api_key: str = Security(api_key_header)):
         )
     return api_key
 
+# Endpoint for simple health check.
 @app.get("/health", summary="Check API health")
 def health_endpoint():
     try:
@@ -116,6 +124,7 @@ def get_student_profiles_endpoint(api_request: GetStudentProfilesRequest):
         backend_logger.error(f"Get student profiles endpoint error for {count} student profiles: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve {count} student profiles. Please try again.")
 
+# Endpoint to initialize a new chat session for a user and student, loading the vectorstore.
 @app.post("/start-chat", summary="Initialize chat session with vectorstore", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
 def start_chat_endpoint(api_request: StartEndChatRequest):
     try:
@@ -198,6 +207,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         backend_logger.error(f"Start chat session endpoint error: {e}")
         raise HTTPException(status_code=500, detail="Failed to initialize chat session. Please try again.")
 
+# Endpoint to handle a user's chat message, generate a response using RAG, and store the interaction.
 @app.post(path="/chat", summary="Chat with student", response_model=ChatMessageResponse, dependencies=[Depends(get_api_key)])
 def chat_endpoint(api_request: ChatMessageRequest):
     try:
@@ -267,7 +277,8 @@ def chat_endpoint(api_request: ChatMessageRequest):
         backend_logger.error(f"Chat endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve chat response. Please try again.")
 
-@app.post("/get-active-sessions", summary="Get active chat sessions", response_model=GetActiveSessionsResponse, dependencies=[Depends(get_api_key)])
+# Endpoint to retrieve all active chat sessions for a specific user login.
+@app.post("/get-active-sessions", summary="Get active chat sessions for a user", response_model=GetActiveSessionsResponse, dependencies=[Depends(get_api_key)])
 def get_active_sessions_endpoint(api_request: GetActiveSessionsRequest):
     try:
         user_email = api_request.user_email.strip()
@@ -308,6 +319,7 @@ def get_active_sessions_endpoint(api_request: GetActiveSessionsRequest):
         backend_logger.error(f"Get active sessions endpoint error for user {api_request.user_email}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to retrieve active sessions. Please try again.")
 
+# Endpoint to retrieve the complete chat history for a specific chat session.
 @app.post("/get-chat-history", summary="Get chat history for a session", response_model=GetChatHistoryResponse, dependencies=[Depends(get_api_key)])
 def get_chat_history_endpoint(api_request: GetChatHistoryRequest):
     try:
@@ -359,7 +371,8 @@ def get_chat_history_endpoint(api_request: GetChatHistoryRequest):
         backend_logger.error(f"Get chat history endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve chat history. Please try again.")
 
-@app.post("/end-all-chats", summary="End all active chat sessions", response_model=EndChatResponse, dependencies=[Depends(get_api_key)])
+# Endpoint to mark all chat sessions associated with a specific user login as inactive.
+@app.post("/end-all-chats", summary="End all chat sessions for a login", response_model=EndChatResponse, dependencies=[Depends(get_api_key)])
 def end_all_chats_endpoint(api_request: GetActiveSessionsRequest):
     try:
         user_email = api_request.user_email.strip()
@@ -383,10 +396,11 @@ def end_all_chats_endpoint(api_request: GetActiveSessionsRequest):
         backend_logger.error(f"HTTP exception in ending all chat sessions for user {user_email}: {http_e}")
         raise http_e
     except Exception as e:
-        backend_logger.error(f"End all chat sessions endpoint error for user {user_email}: {e}")
+        backend_logger.error(f"End all chats endpoint error for user {user_email}: {e}")
         raise HTTPException(status_code=500, detail="Failed to end all chat sessions. Please try again.")
 
-@app.post("/resume-chat", summary="Resume existing chat session with vectorstore", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
+# Endpoint to resume a specific chat session by reloading its vectorstore.
+@app.post("/resume-chat", summary="Resume a specific chat session", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
 def resume_chat_endpoint(api_request: StartEndChatRequest):
     try:
         user_email = api_request.user_email.strip()

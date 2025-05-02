@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, field_validator, constr
 from typing import Literal, Optional
 
+# Custom string type ensuring non-blank input after stripping whitespace.
 NonBlankStr = constr(strip_whitespace=True, min_length=1)
 
 class StudentProfileSchema(BaseModel):
@@ -14,6 +15,7 @@ class GetStudentProfilesRequest(BaseModel):
     count: int = Field(..., description="Number of student profiles to retrieve.")
 
     @field_validator("count")
+    # Validator to ensure count is positive.
     def validate_count(cls, v):
         if v <= 0:
             raise ValueError("Count must be greater than 0")
@@ -52,6 +54,7 @@ class ChatMessageRequest(BaseModel):
     user_email: Optional[str] = Field(None, description="Email of the user (added for DynamoDB)")
 
     @field_validator("input_type")
+    # Validator to ensure input_type is one of the allowed values.
     def validate_input_type(cls, v):
         if v not in ["manual-english", "manual-kannada", "button", "default", "system"]:
             raise ValueError("Invalid input type")

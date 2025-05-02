@@ -3,17 +3,21 @@ import streamlit as st
 
 from shared.logger import frontend_logger
 
+# Backend API URL and Key loaded from Streamlit secrets.
 backend_api_url = st.secrets.BACKEND.API_URL
 backend_api_key = st.secrets.BACKEND.API_KEY
 
+# Headers including the API key for backend requests.
 headers = {
     "X-API-Key": backend_api_key
 }
 
+# Function to check the health of the backend API.
 def healthy() -> bool:
     response = requests.get(f"{backend_api_url}/health", headers=headers)
     return response.status_code == 200
 
+# Function to fetch student profiles from the backend API (/get-student-profiles).
 @st.cache_resource(ttl=3600, show_spinner=False)
 def get_student_profiles(count: int) -> tuple[bool, str, list]:
     success = False
@@ -45,6 +49,7 @@ def get_student_profiles(count: int) -> tuple[bool, str, list]:
         frontend_logger.error(f"get_student_profiles | {message}")
     return success, message, data
 
+# Function to initialize a new chat session via the backend API (/start-chat).
 def start_chat(user_first_name: str, user_last_name: str, user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str, str]:
     success = False
     message = ""
@@ -83,6 +88,7 @@ def start_chat(user_first_name: str, user_last_name: str, user_email: str, login
         frontend_logger.error(f"start_chat | {message} | Response Status Code: {response.status_code}")
     return success, message, data
 
+# Function to send a chat message and get a response from the backend API (/chat).
 def chat(login_session_id: str, chat_session_id: str, question: str, question_kannada: str | None, input_type: str, user_full_name: str, student_name: str) -> tuple[bool, str, str]:
     success = False
     message = ""
@@ -119,6 +125,7 @@ def chat(login_session_id: str, chat_session_id: str, question: str, question_ka
         frontend_logger.error(f"chat | {message}")
     return success, message, data
 
+# Function to resume an existing chat session via the backend API (/resume-chat).
 def resume_chat(user_first_name: str, user_last_name: str, user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str, str]:
     success = False
     message = ""
@@ -154,6 +161,7 @@ def resume_chat(user_first_name: str, user_last_name: str, user_email: str, logi
         frontend_logger.error(f"resume_chat | {message}")
     return success, message, data
 
+# Function to end all active chat sessions for a user login via the backend API (/end-all-chats).
 def end_all_chats(user_email: str, login_session_id: str) -> tuple[bool, str]:
     success = False
     message = ""
@@ -176,6 +184,7 @@ def end_all_chats(user_email: str, login_session_id: str) -> tuple[bool, str]:
         frontend_logger.error(f"end_all_chats | {message}")
     return success, message
 
+# Function to retrieve active chat sessions for a user login from the backend API (/get-active-sessions).
 @st.cache_resource(ttl=300, show_spinner=False)
 def get_active_sessions(user_email: str, login_session_id: str) -> tuple[bool, str, list]:
     success = False
@@ -202,6 +211,7 @@ def get_active_sessions(user_email: str, login_session_id: str) -> tuple[bool, s
         frontend_logger.error(f"get_active_sessions | {message}")
     return success, message, data
 
+# Function to get the chat history messages for a specific session from the backend API (/get-chat-history).
 def get_chat_history_messages(login_session_id: str, chat_session_id: str) -> tuple[bool, str, list]:
     success = False
     message = ""

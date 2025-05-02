@@ -54,6 +54,7 @@ from shared.translate import translate_english_to_kannada
 from shared.utils import formatted
 from typing import Dict, List, Optional, Tuple
 
+# Function to fetch a student's vectorstore from S3, using a local cache if available.
 def fetch_vectorstore_from_s3(user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> Tuple[bool, str, bool, Optional[str]]:
     success = False
     message = ""
@@ -149,6 +150,7 @@ def fetch_vectorstore_from_s3(user_email: str, login_session_id: str, chat_sessi
     
     return success, message, result, data
 
+# Function to load a Chroma vectorstore from a specified local directory path.
 def load_vectorstore_from_path(local_dir: str) -> Tuple[bool, str, Optional[Chroma]]:
     success = False
     message = ""
@@ -166,6 +168,7 @@ def load_vectorstore_from_path(local_dir: str) -> Tuple[bool, str, Optional[Chro
         backend_logger.error(f"load_vectorstore_from_path | {message}")
         return success, message, data
 
+# Function to load and split documents from various file types (PDF, DOCX, HTML).
 def load_and_split_document(file_path: str) -> Tuple[bool, str, List[Document]]:
     success = False
     message = ""
@@ -192,6 +195,7 @@ def load_and_split_document(file_path: str) -> Tuple[bool, str, List[Document]]:
         backend_logger.error(f"load_and_split_document | {message}")
         return success, message, data
 
+# Function to create a Retrieval-Augmented Generation (RAG) chain using a vectorstore retriever.
 def get_rag_chain(retriever: Chroma) -> Tuple[bool, str, Optional[Chain]]:
     success = False
     message = ""
@@ -227,6 +231,7 @@ def get_rag_chain(retriever: Chroma) -> Tuple[bool, str, Optional[Chain]]:
         message = f"Error in getting RAG chain: {e}"
     return success, message, data
 
+# Function to get a boto3 DynamoDB resource object.
 def get_dynamodb_resource():
     return boto3.resource(
         'dynamodb', 
@@ -235,6 +240,7 @@ def get_dynamodb_resource():
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
 
+# Function to create the DynamoDB table for storing student profiles if it doesn't exist.
 def create_student_table() -> tuple[bool, bool, str]:
     success = False
     result = False
@@ -266,10 +272,12 @@ def create_student_table() -> tuple[bool, bool, str]:
         backend_logger.error(f"create_students_table | {message}")
         return success, result, message
 
+# Function to get the DynamoDB student table object.
 def get_student_table():
     dynamodb = get_dynamodb_resource()
     return dynamodb.Table(DYNAMODB_STUDENT_TABLE_NAME)
 
+# Function to load student metadata from an Excel file stored in S3.
 def load_student_metadata_from_s3() -> Tuple[bool, str, Optional[List[Dict]]]:
     success = False
     message = ""
@@ -300,6 +308,7 @@ def load_student_metadata_from_s3() -> Tuple[bool, str, Optional[List[Dict]]]:
     
     return success, message, data
 
+# Function to validate student data fields.
 def validate_student(student_name: str, student_sex: str, student_age: int, student_state: str) -> Tuple[bool, str]:
     success = False
     message = ""
@@ -330,6 +339,7 @@ def validate_student(student_name: str, student_sex: str, student_age: int, stud
     message = "Student profile data is valid"
     return success, message
 
+# Function to insert or update a student's profile in the DynamoDB table.
 def insert_student(student_name: str, student_sex: str, student_age: int, student_state: str, student_image: str) -> Tuple[bool, str, Optional[bool], Optional[str]]:
     success = False
     message = ""
@@ -376,6 +386,7 @@ def insert_student(student_name: str, student_sex: str, student_age: int, studen
     
     return success, message, result, data
 
+# Function to retrieve a single student's profile from DynamoDB by name.
 def get_single_student_profile(student_name: str) -> Tuple[bool, str, Optional[bool], Dict]:
     success = False
     message = ""
@@ -410,6 +421,7 @@ def get_single_student_profile(student_name: str) -> Tuple[bool, str, Optional[b
     
     return success, message, result, data
 
+# Function to retrieve a specified number of random student profiles from DynamoDB.
 def get_student_profiles(count: int = 8) -> Tuple[bool, str, Optional[bool], List[Dict]]:
     success = False
     message = ""
@@ -447,6 +459,7 @@ def get_student_profiles(count: int = 8) -> Tuple[bool, str, Optional[bool], Lis
     
     return success, message, result, data
 
+# Function to populate the student DynamoDB table using metadata from S3.
 def populate_student_table() -> Tuple[bool, str]:
     success = False
     message = ""
@@ -491,6 +504,7 @@ def populate_student_table() -> Tuple[bool, str]:
     
     return success, message
 
+# Function to create the DynamoDB table for storing chat messages if it doesn't exist.
 def create_chat_message_table() -> Tuple[bool, str]:
     success = False
     message = ""
@@ -517,6 +531,7 @@ def create_chat_message_table() -> Tuple[bool, str]:
     
     return success, message
 
+# Function to create the DynamoDB table for storing chat session metadata if it doesn't exist.
 def create_chat_session_table() -> Tuple[bool, str]:
     success = False
     message = ""
@@ -544,6 +559,7 @@ def create_chat_session_table() -> Tuple[bool, str]:
     
     return success, message
 
+# Function to initialize a new chat session in DynamoDB.
 def initialize_chat_session(user_email: str, login_session_id: str, chat_session_id: str, user_first_name: str, user_last_name: str, student_name: str) -> Tuple[bool, str]:
     success = False
     message = ""
@@ -580,6 +596,7 @@ def initialize_chat_session(user_email: str, login_session_id: str, chat_session
     
     return success, message
 
+# Function to insert a chat message (user input and assistant output) into DynamoDB.
 def insert_chat_message(login_session_id: str, chat_session_id: str, user_input: str, user_input_kannada: str | None, input_type: str, assistant_output: str) -> Tuple[bool, str]:
     success = False
     message = ""
@@ -647,6 +664,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
 
     return success, message
     
+# Function to retrieve the chat history for a specific session from DynamoDB.
 def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool, str, Optional[bool], list]:
     success = False
     message = ""
@@ -706,6 +724,7 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
     
     return success, message, result, data
 
+# Function to retrieve active chat sessions for a user based on email and login session ID.
 def get_active_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool, str, bool, List[Dict]]:
     success = False
     message = ""
@@ -749,6 +768,7 @@ def get_active_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bo
     
     return success, message, result, data
 
+# Function to retrieve chat history formatted specifically for the UI display.
 def get_chat_history_for_ui(login_session_id: str, chat_session_id: str) -> Tuple[bool, str, bool, List[Dict]]:
     success = False
     message = ""
@@ -802,6 +822,7 @@ def get_chat_history_for_ui(login_session_id: str, chat_session_id: str) -> Tupl
     
     return success, message, result, data
 
+# Function to mark all active chat sessions for a user (based on login session) as inactive.
 def end_all_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool, str]:
     success = False
     message = ""

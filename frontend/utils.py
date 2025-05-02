@@ -20,6 +20,7 @@ from shared.translate import translate_english_to_kannada, translate_kannada_to_
 from shared.utils import formatted
 from uuid import uuid4
 
+# Function to configure Streamlit page settings and display logos.
 def setup_page(
         page_title="Agastya Connect",
         page_icon=":school:",
@@ -33,6 +34,7 @@ def setup_page(
     st.set_page_config(page_title=page_title, page_icon=page_icon, layout=layout, initial_sidebar_state=initial_sidebar_state)
     st.logo(image=logo_image, size=logo_size, link=logo_link, icon_image=logo_icon_image)
 
+# Function to display text with custom formatting using Markdown.
 def add_text(content, alignment="left", size=12, bold=False, italics=False, underline=False, color=None):
     rem_size = size / 16
     styles = []
@@ -47,11 +49,13 @@ def add_text(content, alignment="left", size=12, bold=False, italics=False, unde
         style += f"color: {color};"
     st.markdown(body=f"<div style='{style}'>{content}</div>", unsafe_allow_html=True)
 
+# Function to generate a version 4 UUID.
 def generate_uuid():
     new_uuid = str(uuid4())
     frontend_logger.info(f"Generated UUID: {new_uuid}")
     return new_uuid
 
+# Function to initialize or resume a chat session in Streamlit session state.
 async def initialize_chat_session(student_choice: dict):
     if "active_chat_session" not in st.session_state:
         st.session_state["active_chat_session"] = {
@@ -138,6 +142,7 @@ async def initialize_chat_session(student_choice: dict):
         student_name=student_name
     )
 
+# Function to retrieve chat history from the backend and format it for UI display.
 def get_chat_history_formatted(login_session_id: str, chat_session_id: str, user_avatar: str, student_avatar: str) -> tuple[bool, str, list]:
     success = False
     message = ""
@@ -173,14 +178,17 @@ def get_chat_history_formatted(login_session_id: str, chat_session_id: str, user
         frontend_logger.error(f"get_chat_history_formatted | {message}")
     return success, message, data
 
+# Function to check if a string contains Kannada characters.
 def is_kannada(text: str) -> bool:
     if text is None:
         return False
     return any('\u0c80' <= ch <= '\u0cff' for ch in text)
 
+# Function to render the chat subheader with the student's name.
 def render_chat_subheader(student_name):
     add_text(content=f"Chat with {formatted(student_name)}", alignment="center", size=35, bold=True)
 
+# Function to render the chat history messages in the Streamlit UI.
 def render_chat_history(chat_history):
     for message in chat_history:
         display_message = message["content"]
@@ -195,6 +203,7 @@ def render_chat_history(chat_history):
             else:
                 st.markdown(body=display_message)
 
+# Function to generate suggested next questions for the instructor using an LLM.
 async def generate_next_questions(chat_history, student_name, num_questions=4):
     user_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
 
@@ -231,6 +240,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
 
     return questions[:num_questions]
 
+# Function to render the suggested next questions as buttons in the UI.
 async def render_next_questions(next_questions):
     current_chat_session = st.session_state["active_chat_session"]
     student_profile = current_chat_session["student_profile"]
@@ -249,6 +259,7 @@ async def render_next_questions(next_questions):
                 input_type="button"
             )
 
+# Function to handle user input (manual text or button click), interact with the backend chat API, and update session state.
 async def handle_user_input(user_input: str, current_chat_session: dict, student_name: str, student_avatar: str, input_type: str):
     user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
     user_login_session_id = getattr(st.experimental_user, "nonce")
@@ -293,12 +304,14 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
         current_chat_session["next_questions"] = generated_questions
         st.rerun()
 
+# Function to check if the user is authenticated via Streamlit.
 def authenticated():
     if getattr(st.experimental_user, "is_logged_in"):
         return True
     else:
         return False
 
+# Function to perform security checks (authentication, backend health).
 def security_check():
     if not healthy():
         frontend_logger.error("security_check | Health check failed")
@@ -307,6 +320,7 @@ def security_check():
     elif not authenticated():
         st.switch_page(page="pages/login.py")
 
+# Function to reset the session state, ending active chats.
 def reset_session_state():
     if "active_chat_session" not in st.session_state:
         st.session_state["active_chat_session"] = {}

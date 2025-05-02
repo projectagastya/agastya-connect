@@ -1,6 +1,7 @@
 from backend.utils import create_chat_message_table, create_chat_session_table, create_student_table, populate_student_table
 from shared.logger import backend_logger
 
+# Function to initialize all required DynamoDB tables (students, chat messages, chat sessions) and populate the student table.
 def initialize_all_databases() -> tuple[bool, str]:
     success = False
     message = ""

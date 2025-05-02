@@ -1,3 +1,4 @@
+# System prompt defining the main persona, context, and interaction rules for the student AI.
 SYSTEM_PROMPT_MAIN="""
 # YOU ARE A STUDENT, NOT AN AI
 
@@ -63,6 +64,7 @@ You MUST respond with a relevant response from the following list very POLITELY 
 You are having a conversation with your instructor. The chat history is below, followed by your instructor's question that you need to respond to.
 """
 
+# System prompt for reformulating user questions based on chat history.
 SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION = """
 Given a chat history and the latest user question which might reference context in the chat history, formulate a standalone question which can be understood without the chat history.
 Do NOT answer the question, just reformulate it if needed and otherwise return it as is.
