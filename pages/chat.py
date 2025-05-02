@@ -1,6 +1,7 @@
 import asyncio
 import streamlit as st
 
+from frontend.api_calls import get_student_profiles
 from frontend.utils import (
     formatted,
     handle_user_input,
@@ -35,6 +36,7 @@ async def render_chat_page():
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button(label="Chat with another student", icon=":material/arrow_back:", type="primary", use_container_width=True):
+            get_student_profiles.clear()
             st.switch_page(page="pages/selection.py")
         st.markdown("---")
     

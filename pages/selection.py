@@ -37,11 +37,6 @@ def render_selection_page():
         if st.button(label="Back", icon=":material/arrow_back:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
             st.switch_page(page="pages/home.py")
 
-    with cols[2]:
-        if st.button(label="Refresh", icon=":material/refresh:", type="secondary", disabled=st.session_state["loading_page"], use_container_width=True):
-            get_student_profiles.clear()
-            st.rerun()
-    
     success, message, students = get_student_profiles(count=8)
     if not success:
         frontend_logger.error(f"render_selection_page | Error loading student profiles from backend : {message}")
