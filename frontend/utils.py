@@ -23,7 +23,7 @@ from uuid import uuid4
 # Function to configure Streamlit page settings and display logos.
 def setup_page(
         page_title="Agastya Connect",
-        page_icon=":school:",
+        page_icon="static/logo.png",
         layout="wide",
         initial_sidebar_state="auto",
         logo_image="static/logo.png",
