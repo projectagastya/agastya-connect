@@ -189,7 +189,7 @@ app/
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/app.git
+   git clone https://github.com/projectagastya/app.git
    cd app
    ```
 
