@@ -1,4 +1,4 @@
-# Agastya AI: Instructor Training Platform
+# Agastya Connect: Instructor Training Platform
 
 ![Agastya International Foundation](https://img.shields.io/badge/Agastya-Training_Platform-orange)
 ![Status](https://img.shields.io/badge/Status-Production-green)
@@ -24,7 +24,7 @@
 
 ## 🌟 Introduction
 
-Agastya AI is an innovative training platform developed for the Agastya International Foundation, India's "largest creativity laboratory." The platform enables instructors to practice their teaching and engagement skills through realistic conversations with AI-simulated students, helping them prepare for real-world classroom scenarios.
+Agastya Connect is an innovative training platform developed for the Agastya International Foundation, India's "largest creativity laboratory." The platform enables instructors to practice their teaching and engagement skills through realistic conversations with AI-simulated students, helping them prepare for real-world classroom scenarios.
 
 Unlike generic chatbots, the platform uses advanced Retrieval Augmented Generation (RAG) technology to create authentic and context-aware student personas that respond based on detailed background information, creating meaningful training experiences for instructors.
 
@@ -49,7 +49,7 @@ Unlike generic chatbots, the platform uses advanced Retrieval Augmented Generati
 
 ## 🏗️ Technical Architecture
 
-Agastya AI implements a modern client-server architecture:
+Agastya Connect implements a modern client-server architecture:
 
 ```
 ┌───────────────────┐     ┌─────────────────┐     ┌─────────────────────┐
@@ -467,7 +467,7 @@ The application implements several security measures:
 
 ## 🤝 Contributing
 
-We welcome contributions to the Agastya AI platform! Here's how you can contribute:
+We welcome contributions to the Agastya Connect platform! Here's how you can contribute:
 
 1. **Fork the Repository**: Create your own copy of the project
 2. **Create a Feature Branch**: Make your changes in a new branch
