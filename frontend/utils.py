@@ -20,7 +20,7 @@ from shared.translate import translate_english_to_kannada, translate_kannada_to_
 from shared.utils import formatted
 from uuid import uuid4
 
-# Function to configure Streamlit page settings and display logos.
+# Function to configure Streamlit page settings.
 def setup_page(
         page_title="Agastya Connect",
         page_icon="static/logo.png",
