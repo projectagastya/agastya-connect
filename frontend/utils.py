@@ -26,13 +26,8 @@ def setup_page(
         page_icon="static/logo.png",
         layout="wide",
         initial_sidebar_state="auto",
-        logo_image="static/logo.png",
-        logo_size="large",
-        logo_link="https://agastya.org",
-        logo_icon_image="static/logo.png"
     ):
     st.set_page_config(page_title=page_title, page_icon=page_icon, layout=layout, initial_sidebar_state=initial_sidebar_state)
-    st.logo(image=logo_image, size=logo_size, link=logo_link, icon_image=logo_icon_image)
 
 # Function to display text with custom formatting using Markdown.
 def add_text(content, alignment="left", size=12, bold=False, italics=False, underline=False, color=None):
