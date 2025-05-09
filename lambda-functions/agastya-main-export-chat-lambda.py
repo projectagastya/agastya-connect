@@ -186,7 +186,35 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
         buffer.seek(0)
         
         s3_client = boto3.client('s3')
-        s3_key = f"{CHAT_TRANSCRIPTS_FOLDER_PATH}/{user_email}/{login_session_id}.xlsx"
+        date_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        year = datetime.now().strftime("%Y")
+        month = datetime.now().strftime("%m")
+        if month == '01':
+            month = 'January'
+        elif month == '02':
+            month = 'February'
+        elif month == '03':
+            month = 'March'
+        elif month == '04':
+            month = 'April'
+        elif month == '05':
+            month = 'May'
+        elif month == '06':
+            month = 'June'
+        elif month == '07':
+            month = 'July'
+        elif month == '08':
+            month = 'August'
+        elif month == '09':
+            month = 'September'
+        elif month == '10':
+            month = 'October'
+        elif month == '11':
+            month = 'November'
+        elif month == '12':
+            month = 'December'
+        date = datetime.now().strftime("%d")
+        s3_key = f"{CHAT_TRANSCRIPTS_FOLDER_PATH}/{user_email}/{year}/{month}/{date}/{login_session_id}.xlsx"
         
         s3_client.put_object(
             Bucket=S3_BUCKET_NAME,
