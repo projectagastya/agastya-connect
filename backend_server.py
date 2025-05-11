@@ -1,6 +1,9 @@
+import os
+
 from backend.core.config import (
     BACKEND_API_KEY,
     BACKEND_ORIGINS,
+    LOCAL_VECTORSTORES_DIRECTORY,
     MAX_DOCS_TO_RETRIEVE
 )
 from backend.api.models import (
@@ -43,9 +46,6 @@ from shared.logger import backend_logger
 if BACKEND_API_KEY is None:
     backend_logger.error("BACKEND_API_KEY is not set")
     raise HTTPException(status_code=500, detail="BACKEND_API_KEY is not set")
-
-# Dictionary to store loaded vectorstores mapped by login_session_id and chat_session_id.
-vectorstore_map = defaultdict(dict)
 
 app = FastAPI(title="Agastya API", description="API for the Agastya application")
 
@@ -138,11 +138,6 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        if login_session_id in vectorstore_map:
-            if chat_session_id in vectorstore_map[login_session_id]:
-                backend_logger.info(f"Chat session already exists for global_session_id={global_session_id}")
-                raise HTTPException(status_code=400, detail=f"Chat session {chat_session_id} already exists for login_session_id={login_session_id}")
-
         fetch_vectorstore_from_s3_success, fetch_vectorstore_from_s3_message, fetch_vectorstore_from_s3_result, fetch_vectorstore_from_s3_data = fetch_vectorstore_from_s3(
             user_email=user_email,
             login_session_id=login_session_id,
@@ -160,9 +155,6 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         if not load_vectorstore_from_path_success:
             backend_logger.error(f"Error in loading vectorstore from path: {load_vectorstore_from_path_message}")
             raise HTTPException(status_code=500, detail="Failed to load vectorstore from path. Please try again.")
-
-        vectorstore_map[login_session_id][chat_session_id] = rag_vectorstore
-        backend_logger.info(f"Initialized chat session vectorstore for global_session_id={global_session_id}")
 
         init_chat_success, init_chat_message = initialize_chat_session(
             user_email=user_email,
@@ -224,14 +216,11 @@ def chat_endpoint(api_request: ChatMessageRequest):
 
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        if login_session_id not in vectorstore_map:
-            backend_logger.error(f"Login session not found for login_session_id={login_session_id}")
-            raise HTTPException(status_code=404, detail="Login session not found in vectorstore map. Please try again.")
-        if chat_session_id not in vectorstore_map[login_session_id]:
-            backend_logger.error(f"Chat session not found for global_session_id={global_session_id}")
-            raise HTTPException(status_code=404, detail="Chat session not found in vectorstore map. Please try again.")
-        
-        rag_vectorstore = vectorstore_map[login_session_id][chat_session_id]
+        local_dir = os.path.join(LOCAL_VECTORSTORES_DIRECTORY, student_name)
+        load_vectorstore_success, load_vectorstore_message, rag_vectorstore = load_vectorstore_from_path(local_dir)
+        if not load_vectorstore_success:
+            backend_logger.error(f"Error in loading vectorstore from path: {load_vectorstore_message}")
+            raise HTTPException(status_code=500, detail="Failed to load vectorstore from path. Please try again.")
         
         get_chat_history_success, get_chat_history_message, get_chat_history_result, chat_history = get_chat_history(login_session_id=login_session_id, chat_session_id=chat_session_id)
         if not get_chat_history_success:
@@ -428,9 +417,6 @@ def resume_chat_endpoint(api_request: StartEndChatRequest):
         if not load_vectorstore_from_path_success:
             backend_logger.error(f"Error in loading vectorstore from path: {load_vectorstore_from_path_message}")
             raise HTTPException(status_code=500, detail="Failed to load vectorstore from path. Please try again.")
-
-        vectorstore_map[login_session_id][chat_session_id] = rag_vectorstore
-        backend_logger.info(f"Resumed chat session vectorstore for global_session_id={global_session_id}")
 
         return StartChatResponse(
             success=True,
