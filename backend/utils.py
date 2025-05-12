@@ -50,7 +50,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, Side
 from shared.logger import backend_logger
-from shared.translate import translate_english_to_kannada
+from shared.translate import translate_text
 from shared.utils import formatted
 from typing import Dict, List, Optional, Tuple
 
@@ -625,7 +625,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
                 'message_timestamp': user_message_timestamp,
                 'role': 'user',
                 'message': user_input,
-                'message_kannada': user_input_kannada if user_input_kannada else translate_english_to_kannada(user_input),
+                'message_kannada': user_input_kannada if user_input_kannada else translate_text(text=user_input, source_language="en", target_language="kn"),
                 'input_type': input_type,
                 'created_at': user_timestamp
             }
@@ -640,7 +640,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
                 'message_timestamp': assistant_message_timestamp,
                 'role': 'assistant',
                 'message': assistant_output,
-                'message_kannada': translate_english_to_kannada(assistant_output),
+                'message_kannada': translate_text(text=assistant_output, source_language="en", target_language="kn"),
                 'input_type': 'default',
                 'created_at': assistant_timestamp
             }

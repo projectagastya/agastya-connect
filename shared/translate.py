@@ -14,7 +14,7 @@ def get_translate_client() -> Optional[translate.Client]:
         return None
     return translate.Client(credentials=credentials)
 
-def translate_kannada_to_english(text):
+def translate_text(text: str, source_language: str, target_language: str):
     if not text:
         return ""
     
@@ -27,21 +27,5 @@ def translate_kannada_to_english(text):
     if isinstance(text, bytes):
         text = text.decode("utf-8")
         
-    result = translate_client.translate(text, source_language="kn", target_language="en")
-    return result["translatedText"]
-
-def translate_english_to_kannada(text):
-    if not text:
-        return ""
-    
-    translate_client = get_translate_client()
-    if not translate_client:
-        backend_logger.error("Google Cloud Translation client could not be initialized. Check your credentials.")
-        frontend_logger.error("Google Cloud Translation client could not be initialized. Check your credentials.")
-        return ""
-    
-    if isinstance(text, bytes):
-        text = text.decode("utf-8")
-        
-    result = translate_client.translate(text, source_language="en", target_language="kn")
+    result = translate_client.translate(text, source_language=source_language, target_language=target_language)
     return result["translatedText"]

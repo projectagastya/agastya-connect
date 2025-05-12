@@ -16,7 +16,7 @@ from frontend.api_calls import (
 from frontend.prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from shared.logger import frontend_logger
-from shared.translate import translate_english_to_kannada, translate_kannada_to_english
+from shared.translate import translate_text
 from shared.utils import formatted
 from uuid import uuid4
 
@@ -261,7 +261,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
     user_full_name = getattr(st.experimental_user, "given_name", " ") + " " + getattr(st.experimental_user, "family_name", " ")
 
     if input_type == "manual-kannada":
-        question_for_api = translate_kannada_to_english(user_input)
+        question_for_api = translate_text(text=user_input, source_language="kn", target_language="en")
     else:
         question_for_api = user_input
 
