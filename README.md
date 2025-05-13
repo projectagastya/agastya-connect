@@ -170,8 +170,8 @@ app/
 ├── .env.example               # Environment variables template
 ├── .gitignore                 # Git ignore patterns
 ├── backend_initialize_database.py  # Database initialization
-├── backend_server.py          # FastAPI entry point
-├── frontend_server.py         # Streamlit entry point
+├── api.py          # FastAPI entry point
+├── app.py         # Streamlit entry point
 ├── README.md                  # Project documentation
 └── requirements.txt           # Python dependencies
 ```
@@ -223,7 +223,7 @@ app/
 
 8. **Start the Backend Server**
    ```bash
-   uvicorn backend_server:app --reload --host 0.0.0.0 --port 8000
+   uvicorn api:app --reload --host 0.0.0.0 --port 8000
    ```
 
 9. **Start the Frontend Server**
@@ -382,9 +382,9 @@ After=network.target
 [Service]
 User=ubuntu
 Group=ubuntu
-WorkingDirectory=/home/ubuntu/app
-Environment="PATH=/home/ubuntu/app/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/home/ubuntu/app/venv/bin/uvicorn backend_server:app --host 0.0.0.0 --port 8000
+WorkingDirectory=/home/ubuntu/agastya-connect
+Environment="PATH=/home/ubuntu/agastya-connect/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/ubuntu/agastya-connect/venv/bin/uvicorn api:app --host 0.0.0.0 --port 8000
 Restart=always
 
 [Install]
@@ -400,9 +400,9 @@ After=network.target
 [Service]
 User=ubuntu
 Group=ubuntu
-WorkingDirectory=/home/ubuntu/app
-Environment="PATH=/home/ubuntu/app/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/home/ubuntu/app/venv/bin/streamlit run frontend_server.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+WorkingDirectory=/home/ubuntu/agastya-connect
+Environment="PATH=/home/ubuntu/agastya-connect/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/ubuntu/agastya-connect/venv/bin/streamlit run frontend_server.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
 Restart=always
 
 [Install]
@@ -444,8 +444,8 @@ sudo systemctl start fastapi.service streamlit.service
 ### For Administrators
 
 #### Accessing Logs
-- Backend logs: Located in `/home/ubuntu/app/logs/backend_logs/`
-- Frontend logs: Located in `/home/ubuntu/app/logs/frontend_logs/`
+- Backend logs: Located in `/home/ubuntu/agastya-connect/logs/backend_logs/`
+- Frontend logs: Located in `/home/ubuntu/agastya-connect/logs/frontend_logs/`
 
 #### Managing Users
 - Add allowed email addresses in `.streamlit/secrets.toml` for access control

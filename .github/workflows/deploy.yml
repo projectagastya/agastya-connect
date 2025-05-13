@@ -22,7 +22,7 @@ jobs:
             echo "Current directory: $(pwd)"
             
             # Navigate to repository directory
-            cd /home/ubuntu/app
+            cd /home/ubuntu/agastya-connect
             echo "Changed to directory: $(pwd)"
             
             # Check for local changes that might prevent pull
