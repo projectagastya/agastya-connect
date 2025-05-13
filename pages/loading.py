@@ -10,7 +10,7 @@ from frontend.utils import (
 )
 from shared.logger import frontend_logger
 
-setup_page(initial_sidebar_state="collapsed")
+setup_page()
 
 async def render_loading_page():
     security_check()
