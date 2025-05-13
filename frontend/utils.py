@@ -67,11 +67,11 @@ async def initialize_chat_session(student_choice: dict):
             "student_profile": None
         }
 
-    user_email = getattr(st.experimental_user, "email")  
-    login_session_id = getattr(st.experimental_user, "nonce")
-    user_avatar = getattr(st.experimental_user, "picture", "static/silhouette.png")
-    user_first_name = getattr(st.experimental_user, "given_name")
-    user_last_name = getattr(st.experimental_user, "family_name")
+    user_email = getattr(st.user, "email")  
+    login_session_id = getattr(st.user, "nonce")
+    user_avatar = getattr(st.user, "picture", "static/silhouette.png")
+    user_first_name = getattr(st.user, "given_name")
+    user_last_name = getattr(st.user, "family_name")
     student_name = student_choice['student_name']
     student_avatar = student_choice['student_image']
     is_resuming = st.session_state["active_chat_session"]["id"] is not None
@@ -195,7 +195,7 @@ def render_chat_history(chat_history):
         with st.chat_message(name=message["role"], avatar=message["avatar"]):
             if display_message.strip() == "":
                 display_message = "Sorry, I'm unable to provide a response at this time. Please check in again with me later. Thanks for understanding!"
-                frontend_logger.warning(f"render_chat_history | Empty response received from chat message: Login Session ID: {st.experimental_user.nonce}, Chat Session ID: {st.session_state['active_chat_session']['id']}")
+                frontend_logger.warning(f"render_chat_history | Empty response received from chat message: Login Session ID: {st.user.nonce}, Chat Session ID: {st.session_state['active_chat_session']['id']}")
                 st.markdown(body=display_message)
                 st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
                 st.stop()
@@ -204,7 +204,7 @@ def render_chat_history(chat_history):
 
 # Function to generate suggested next questions for the instructor using an LLM.
 async def generate_next_questions(chat_history, student_name, num_questions=4):
-    user_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
+    user_full_name = getattr(st.user, "given_name") + " " + getattr(st.user,"family_name")
 
     llm = ChatGoogleGenerativeAI(
         model=os.getenv("QUESTIONS_GENERATION_MODEL_ID"), 
@@ -254,9 +254,9 @@ async def render_next_questions(next_questions):
 
 # Function to handle user input (manual text or button click), interact with the backend chat API, and update session state.
 async def handle_user_input(user_input: str, current_chat_session: dict, student_name: str, student_avatar: str, input_type: str):
-    user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
-    user_login_session_id = getattr(st.experimental_user, "nonce")
-    user_full_name = getattr(st.experimental_user, "given_name", " ") + " " + getattr(st.experimental_user, "family_name", " ")
+    user_image = getattr(st.user, "picture", "static/silhouette.png")
+    user_login_session_id = getattr(st.user, "nonce")
+    user_full_name = getattr(st.user, "given_name", " ") + " " + getattr(st.user, "family_name", " ")
 
     if input_type == "manual-kannada":
         question_for_api = translate_text(text=user_input, source_language="kn", target_language="en")
@@ -299,7 +299,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
 
 # Function to check if the user is authenticated via Streamlit.
 def authenticated():
-    if getattr(st.experimental_user, "is_logged_in"):
+    if getattr(st.user, "is_logged_in"):
         return True
     else:
         return False

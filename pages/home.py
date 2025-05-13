@@ -13,11 +13,11 @@ setup_page(initial_sidebar_state="expanded")
 
 def render_home_page():
     security_check()
-    user_first_name = getattr(st.experimental_user, "given_name")
-    user_last_name = getattr(st.experimental_user, "family_name")
-    user_email = getattr(st.experimental_user, "email")
-    user_image = getattr(st.experimental_user, "picture", "static/silhouette.png")
-    login_session_id = getattr(st.experimental_user, "nonce")
+    user_first_name = getattr(st.user, "given_name")
+    user_last_name = getattr(st.user, "family_name")
+    user_email = getattr(st.user, "email")
+    user_image = getattr(st.user, "picture", "static/silhouette.png")
+    login_session_id = getattr(st.user, "nonce")
     user_full_name = user_first_name + " " + user_last_name
     
     if len(st.session_state) == 0:

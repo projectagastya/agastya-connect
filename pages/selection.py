@@ -19,8 +19,8 @@ def render_selection_page():
     if len(st.session_state) == 0:
         reset_session_state()
 
-    user_email = getattr(st.experimental_user, "email")
-    login_session_id = getattr(st.experimental_user, "nonce")
+    user_email = getattr(st.user, "email")
+    login_session_id = getattr(st.user, "nonce")
 
     active_sessions_success, active_sessions_message, active_sessions = get_active_sessions(
         user_email=user_email,
