@@ -89,6 +89,19 @@ jobs:
                 echo "requirements.txt unchanged, skipping dependency updates."
               fi
               
+              # Check if service files have changed
+              if git diff --name-only $OLD_COMMIT $NEW_COMMIT | grep -q "services/.*\.service"; then
+                echo "Service definitions have changed, updating systemd files..."
+                # Copy the service files to systemd directory
+                sudo cp -f services/fastapi.service /etc/systemd/system/fastapi.service
+                sudo cp -f services/streamlit.service /etc/systemd/system/streamlit.service
+                # Reload systemd to recognize changes
+                sudo systemctl daemon-reload
+                echo "Systemd service files updated and daemon reloaded."
+              else
+                echo "Service definitions unchanged, skipping systemd updates."
+              fi
+              
               # Restart services
               echo "Restarting services..."
               sudo systemctl status fastapi streamlit || true
