@@ -6,12 +6,10 @@ from frontend.utils import (
     security_check,
     setup_page
 )
-from frontend.api_calls import (
-    end_all_chats
-)
+from frontend.api_calls import end_all_chats
 from shared.logger import frontend_logger
 
-setup_page(initial_sidebar_state="expanded")
+setup_page()
 
 def render_home_page():
     security_check()
@@ -26,7 +24,6 @@ def render_home_page():
         reset_session_state()
 
     with st.sidebar:
-        add_text(content="My Profile", alignment="center", bold=True, size=30)
         st.markdown("<br>", unsafe_allow_html=True)
         image_col = st.columns([1,3])
         with image_col[0]:
@@ -36,8 +33,8 @@ def render_home_page():
             add_text(content=user_email, alignment="left", bold=False, size=16, color="blue", underline=True)        
         
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button(label="Logout", icon=":material/logout:", type="primary", use_container_width=True):
-            with st.spinner("Logging out..."):
+        if st.button(label="Sign out", icon=":material/logout:", type="primary", use_container_width=True):
+            with st.spinner("Signing out..."):
                 st.cache_resource.clear()
                 st.logout()
                 
@@ -50,23 +47,18 @@ def render_home_page():
                     frontend_logger.warning(f"render_home_page | Failed to end all chats on logout: {end_all_message}")
 
         st.markdown("---", unsafe_allow_html=True)
-        add_text(content="Contact us", alignment="center", bold=True, size=30)
-        st.markdown("<br>", unsafe_allow_html=True)
-        contact_cols = st.columns(2)
-        with contact_cols[0]:
-            st.link_button("Email", "mailto:info@agastya.org", icon=":material/email:", use_container_width=True)
 
-        with contact_cols[1]:
-            st.link_button("Phone", "tel:+918041124132", icon=":material/phone:", use_container_width=True)
-        
-        st.markdown("---", unsafe_allow_html=True)
         add_text(content="You may also", alignment="center", bold=True, size=30)
         st.markdown("<br>", unsafe_allow_html=True)
-        other_cols = st.columns(2)
-        with other_cols[0]:
-            st.link_button("Volunteer", "https://www.agastya.org/agastya-volunteer-program", icon=":material/emoji_people:", use_container_width=True)
-        with other_cols[1]:
-            st.link_button("Donate", "https://www.agastya.org/donate", icon=":material/attach_money:", use_container_width=True)
+        st.link_button("Volunteer", "https://www.agastya.org/agastya-volunteer-program", icon=":material/emoji_people:", use_container_width=True)
+        st.link_button("Donate", "https://www.agastya.org/donate", icon=":material/attach_money:", use_container_width=True)
+
+        st.markdown("---", unsafe_allow_html=True)
+
+        add_text(content="Contact us", alignment="center", bold=True, size=30)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.link_button("Email", "mailto:info@agastya.org", icon=":material/email:", use_container_width=True)
+        st.link_button("Phone", "tel:+918041124132", icon=":material/phone:", use_container_width=True)
 
     add_text(content=f"Hello, {user_first_name}!", alignment="center", bold=True, size=40)
     add_text(content="Welcome to your training program", alignment="center", bold=True, size=32)
