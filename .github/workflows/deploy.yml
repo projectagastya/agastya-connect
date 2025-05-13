@@ -89,17 +89,39 @@ jobs:
                 echo "requirements.txt unchanged, skipping dependency updates."
               fi
               
-              # Check if service files have changed
-              if git diff --name-only $OLD_COMMIT $NEW_COMMIT | grep -q "services/.*\.service"; then
-                echo "Service definitions have changed, updating systemd files..."
+              # Update systemd service files with safety checks
+              echo "Checking and updating systemd service files..."
+              
+              # Verify service files exist before copying
+              if [ -f "services/fastapi.service" ] && [ -f "services/streamlit.service" ]; then
+                # Backup existing service files
+                sudo cp /etc/systemd/system/fastapi.service /etc/systemd/system/fastapi.service.backup 2>/dev/null || true
+                sudo cp /etc/systemd/system/streamlit.service /etc/systemd/system/streamlit.service.backup 2>/dev/null || true
+                
                 # Copy the service files to systemd directory
                 sudo cp -f services/fastapi.service /etc/systemd/system/fastapi.service
                 sudo cp -f services/streamlit.service /etc/systemd/system/streamlit.service
-                # Reload systemd to recognize changes
-                sudo systemctl daemon-reload
-                echo "Systemd service files updated and daemon reloaded."
+                
+                # Verify new service files are valid
+                if sudo systemd-analyze verify /etc/systemd/system/fastapi.service && \
+                   sudo systemd-analyze verify /etc/systemd/system/streamlit.service; then
+                  # Reload systemd to recognize changes
+                  sudo systemctl daemon-reload
+                  echo "Systemd service files updated and daemon reloaded."
+                  # Remove backups after successful verification
+                  sudo rm -f /etc/systemd/system/*.backup
+                else
+                  echo "ERROR: New service files are invalid! Rolling back..."
+                  # Restore from backup
+                  sudo cp -f /etc/systemd/system/fastapi.service.backup /etc/systemd/system/fastapi.service 2>/dev/null || true
+                  sudo cp -f /etc/systemd/system/streamlit.service.backup /etc/systemd/system/streamlit.service 2>/dev/null || true
+                  sudo systemctl daemon-reload
+                  sudo rm -f /etc/systemd/system/*.backup
+                  exit 1
+                fi
               else
-                echo "Service definitions unchanged, skipping systemd updates."
+                echo "ERROR: Service files not found in services/ directory!"
+                exit 1
               fi
               
               # Restart services
