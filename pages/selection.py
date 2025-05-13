@@ -34,7 +34,7 @@ def render_selection_page():
 
     cols = st.columns([0.9,10,1.1], gap="small")
     with cols[0]:
-        if st.button(label="Back", icon=":material/arrow_back:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
+        if st.button(label="", icon=":material/arrow_back:", type="primary", disabled=st.session_state["loading_page"], use_container_width=True):
             st.switch_page(page="pages/home.py")
 
     success, message, students = get_student_profiles(count=8)
