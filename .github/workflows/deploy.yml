@@ -18,7 +18,7 @@ jobs:
             # Enable verbose execution tracing
             set -x
             
-            echo "====== DEPLOYMENT STARTED: $(date) ======"
+            echo "====== DEPLOYMENT HAS STARTED: $(date) ======"
             echo "Current directory: $(pwd)"
             
             # Navigate to repository directory
@@ -136,5 +136,5 @@ jobs:
               echo "OLD_COMMIT: $OLD_COMMIT"
               echo "NEW_COMMIT: $NEW_COMMIT"
               echo "Skipping deployment."
-              echo "====== DEPLOYMENT SKIPPED: $(date) ======"
+              echo "====== DEPLOYMENT HAS BEEN SKIPPED: $(date) ======"
             fi
