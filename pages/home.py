@@ -81,14 +81,10 @@ def render_home_page():
     )
     st.markdown("---", unsafe_allow_html=True)
     
-    cols = st.columns([4, 4, 4], gap="medium")
+    cols = st.columns([4, 2, 4], gap="medium")
     with cols[1]:
-        add_text(content="Chat with a student", alignment="center", bold=True, size=32)
-        st.markdown("<br>", unsafe_allow_html=True)
-        subcols = st.columns([1,2,1])
-        with subcols[1]:
-            if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
-                st.switch_page(page="pages/selection.py")
+        if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
+            st.switch_page(page="pages/selection.py")
 
 if __name__ == "__main__":
     render_home_page()
