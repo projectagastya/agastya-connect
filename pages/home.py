@@ -9,7 +9,7 @@ from frontend.utils import (
 from frontend.api_calls import end_all_chats
 from shared.logger import frontend_logger
 
-setup_page()
+setup_page(initial_sidebar_state="expanded")
 
 def render_home_page():
     security_check()
