@@ -1,5 +1,4 @@
 import boto3
-import io
 import json
 import os
 import pandas as pd
@@ -7,25 +6,32 @@ import random
 import shutil
 import time
 
-from backend.core.config import (
+from config.backend.aws import (
     AWS_ACCESS_KEY_ID,
     AWS_REGION,
-    AWS_SECRET_ACCESS_KEY,
-    CHAT_TRANSCRIPTS_FOLDER_PATH,
-    DOCUMENT_EMBEDDING_MODEL_ID,
+    AWS_SECRET_ACCESS_KEY
+)
+from config.backend.dynamodb import (
     DYNAMODB_CHAT_SESSIONS_TABLE_NAME,
     DYNAMODB_CHAT_MESSAGES_TABLE_NAME,
     DYNAMODB_CHAT_SESSIONS_TABLE_CONFIG,
     DYNAMODB_CHAT_MESSAGES_TABLE_CONFIG,
     DYNAMODB_STUDENT_TABLE_CONFIG,
-    DYNAMODB_STUDENT_TABLE_NAME,
-    MAIN_S3_BUCKET_NAME,
+    DYNAMODB_STUDENT_TABLE_NAME
+)
+from config.backend.llm import (
+    DOCUMENT_EMBEDDING_MODEL_ID,
     RESPONSE_GENERATION_MODEL_ID,
     RESPONSE_GENERATION_MODEL_MAX_TOKENS,
-    RESPONSE_GENERATION_MODEL_TEMPERATURE,
+    RESPONSE_GENERATION_MODEL_TEMPERATURE
+)
+from config.backend.s3 import (
+    MAIN_S3_BUCKET_NAME,
     STUDENT_METADATA_FILE_NAME,
     STUDENT_METADATA_FOLDER_PATH,
-    STUDENT_VECTORSTORE_FOLDER_PATH,
+    STUDENT_VECTORSTORE_FOLDER_PATH
+)
+from config.backend.vectorstores import (
     LOCAL_VECTORSTORES_DIRECTORY
 )
 from backend.prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
@@ -36,19 +42,13 @@ from langchain.chains import create_history_aware_retriever, create_retrieval_ch
 from langchain.chains.base import Chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_chroma import Chroma
-from langchain_community.document_loaders import (
-    Docx2txtLoader,
-    PyPDFLoader,
-    UnstructuredHTMLLoader,
-)
+from langchain_community.document_loaders import Docx2txtLoader
 from langchain_core.documents import Document
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
 from langchain_google_genai.embeddings import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Font, Side
 from shared.logger import backend_logger
 from shared.translate import translate_text
 from shared.utils import formatted
@@ -174,12 +174,8 @@ def load_and_split_document(file_path: str) -> Tuple[bool, str, List[Document]]:
     message = ""
     data = None
     try:
-        if file_path.endswith('.pdf'):
-            loader = PyPDFLoader(file_path)
-        elif file_path.endswith('.docx'):
+        if file_path.endswith('.docx'):
             loader = Docx2txtLoader(file_path)
-        elif file_path.endswith('.html'):
-            loader = UnstructuredHTMLLoader(file_path)
         else:
             message = f"Unsupported file type: {file_path}"
             backend_logger.error(f"load_and_split_document | {message}")

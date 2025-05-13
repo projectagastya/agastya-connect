@@ -1,0 +1,5 @@
+from shared.utils import validate_env_var, validate_int_env_var, validate_float_env_var
+
+QUESTIONS_GENERATION_MODEL_ID = validate_env_var("QUESTIONS_GENERATION_MODEL_ID")
+QUESTIONS_GENERATION_MODEL_TEMPERATURE = validate_float_env_var("QUESTIONS_GENERATION_MODEL_TEMPERATURE")
+QUESTIONS_GENERATION_MODEL_MAX_TOKENS = validate_int_env_var("QUESTIONS_GENERATION_MODEL_MAX_TOKENS")

@@ -1,7 +1,5 @@
 from shared.utils import validate_env_var
 
-LOGS_FOLDER_PATH = validate_env_var("LOGS_FOLDER_PATH")
-
 GCP_TYPE = validate_env_var("GCP_TYPE")
 GCP_PROJECT_ID = validate_env_var("GCP_PROJECT_ID")
 GCP_PRIVATE_KEY_ID = validate_env_var("GCP_PRIVATE_KEY_ID")

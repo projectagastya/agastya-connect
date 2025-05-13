@@ -3,7 +3,6 @@ import streamlit as st
 
 from frontend.api_calls import get_student_profiles
 from frontend.utils import (
-    formatted,
     handle_user_input,
     is_kannada,
     render_chat_history,

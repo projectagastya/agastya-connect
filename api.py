@@ -1,8 +1,10 @@
 import os
 
-from backend.core.config import (
+from config.backend.api import (
     BACKEND_API_KEY,
-    BACKEND_ORIGINS,
+    BACKEND_ORIGINS
+)
+from config.backend.vectorstores import (
     LOCAL_VECTORSTORES_DIRECTORY,
     MAX_DOCS_TO_RETRIEVE
 )
@@ -35,7 +37,6 @@ from backend.utils import (
     insert_chat_message,
     load_vectorstore_from_path
 )
-from collections import defaultdict
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Security, status
 from fastapi.middleware.cors import CORSMiddleware

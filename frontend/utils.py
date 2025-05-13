@@ -3,9 +3,8 @@ import os
 import re
 import streamlit as st
 
+from config.frontend.llm import QUESTIONS_GENERATION_MODEL_ID, QUESTIONS_GENERATION_MODEL_TEMPERATURE, QUESTIONS_GENERATION_MODEL_MAX_TOKENS
 from datetime import datetime
-from dotenv import load_dotenv
-
 from frontend.api_calls import (
     chat,
     healthy,
@@ -21,8 +20,6 @@ from shared.logger import frontend_logger
 from shared.translate import translate_text
 from shared.utils import formatted
 from uuid import uuid4
-
-load_dotenv()
 
 # Function to configure Streamlit page settings.
 def setup_page(
@@ -207,9 +204,9 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     user_full_name = getattr(st.user, "given_name") + " " + getattr(st.user,"family_name")
 
     llm = ChatGoogleGenerativeAI(
-        model=os.getenv("QUESTIONS_GENERATION_MODEL_ID"), 
-        temperature=os.getenv("QUESTIONS_GENERATION_MODEL_TEMPERATURE"),
-        max_tokens=os.getenv("QUESTIONS_GENERATION_MODEL_MAX_TOKENS")
+        model=QUESTIONS_GENERATION_MODEL_ID, 
+        temperature=QUESTIONS_GENERATION_MODEL_TEMPERATURE,
+        max_tokens=QUESTIONS_GENERATION_MODEL_MAX_TOKENS
     )
 
     formatted_history = []
