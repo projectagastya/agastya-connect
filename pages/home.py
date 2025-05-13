@@ -62,7 +62,6 @@ def render_home_page():
 
     add_text(content=f"Hello, {user_first_name}!", alignment="center", bold=True, size=40)
     add_text(content="Welcome to your training program", alignment="center", bold=True, size=32)
-    add_text(content=f"You are accessing the app from {st.context.ip_address}", alignment="center", bold=False, size=24)
 
     st.markdown("<br>", unsafe_allow_html=True)
     add_text(
