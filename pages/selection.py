@@ -11,7 +11,7 @@ from frontend.utils import (
 from datetime import datetime
 from shared.logger import frontend_logger
 
-setup_page(initial_sidebar_state="collapsed")
+setup_page()
 
 def render_selection_page():
     security_check()
