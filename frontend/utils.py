@@ -29,7 +29,7 @@ def setup_page(
         page_title="Agastya Connect",
         page_icon="static/logo.png",
         layout="wide",
-        initial_sidebar_state="auto",
+        initial_sidebar_state="collapsed",
     ):
     st.set_page_config(page_title=page_title, page_icon=page_icon, layout=layout, initial_sidebar_state=initial_sidebar_state)
 
