@@ -4,6 +4,8 @@ import re
 import streamlit as st
 
 from datetime import datetime
+from dotenv import load_dotenv
+
 from frontend.api_calls import (
     chat,
     healthy,
@@ -19,6 +21,8 @@ from shared.logger import frontend_logger
 from shared.translate import translate_text
 from shared.utils import formatted
 from uuid import uuid4
+
+load_dotenv()
 
 # Function to configure Streamlit page settings.
 def setup_page(
@@ -202,17 +206,11 @@ def render_chat_history(chat_history):
 async def generate_next_questions(chat_history, student_name, num_questions=4):
     user_full_name = getattr(st.experimental_user, "given_name") + " " + getattr(st.experimental_user,"family_name")
 
-    if hasattr(st.secrets, "LLM") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_ID") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_TEMPERATURE") and hasattr(st.secrets.LLM, "QUESTIONS_GENERATION_MODEL_MAX_TOKENS") and hasattr(st.secrets.LLM, "API_KEY"):
-        llm = ChatGoogleGenerativeAI(
-            model=st.secrets.LLM.QUESTIONS_GENERATION_MODEL_ID, 
-            temperature=st.secrets.LLM.QUESTIONS_GENERATION_MODEL_TEMPERATURE,
-            max_tokens=st.secrets.LLM.QUESTIONS_GENERATION_MODEL_MAX_TOKENS,
-            api_key=st.secrets.LLM.API_KEY
-        )
-    else:
-        frontend_logger.error("generate_next_questions | LLM secrets not found in st.secrets")
-        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
-        st.stop()
+    llm = ChatGoogleGenerativeAI(
+        model=os.getenv("QUESTIONS_GENERATION_MODEL_ID"), 
+        temperature=os.getenv("QUESTIONS_GENERATION_MODEL_TEMPERATURE"),
+        max_tokens=os.getenv("QUESTIONS_GENERATION_MODEL_MAX_TOKENS")
+    )
 
     formatted_history = []
     for message in chat_history:
