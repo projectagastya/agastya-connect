@@ -211,7 +211,7 @@ def chat_endpoint(api_request: ChatMessageRequest):
         else:
             question_kannada = None
         input_type = api_request.input_type.strip()
-        student_name = formatted(api_request.student_name.strip())
+        student_name = api_request.student_name.strip()
         user_full_name = api_request.user_full_name.strip()
 
         global_session_id = f"{login_session_id}#{chat_session_id}"
@@ -240,7 +240,7 @@ def chat_endpoint(api_request: ChatMessageRequest):
             backend_logger.error(f"Error in getting RAG chain for global_session_id={global_session_id}: {get_rag_chain_message}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain. Please try again.")
         
-        answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "user_full_name": user_full_name, "student_name": student_name}).get("answer", None)
+        answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "user_full_name": user_full_name, "student_name": formatted(student_name)}).get("answer", None)
         if answer is None:
             backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}, question_kannada: {question_kannada}")
             raise HTTPException(status_code=500, detail="Failed to get RAG chain answer. Please try again.")
