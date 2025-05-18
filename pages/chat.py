@@ -1,8 +1,8 @@
 import asyncio
 import streamlit as st
 
-from frontend.api_calls import get_student_profiles
-from frontend.utils import (
+from utils.frontend.api_calls import get_student_profiles
+from utils.frontend.all import (
     handle_user_input,
     is_kannada,
     render_chat_history,
@@ -11,7 +11,7 @@ from frontend.utils import (
     security_check,
     setup_page
 )
-from shared.logger import frontend_logger
+from utils.shared.logger import frontend_logger
 
 setup_page(initial_sidebar_state="expanded")
 

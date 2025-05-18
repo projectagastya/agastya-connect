@@ -1,7 +1,7 @@
 import requests
 import streamlit as st
 
-from shared.logger import frontend_logger
+from utils.shared.logger import frontend_logger
 
 # Backend API URL and Key loaded from Streamlit secrets.
 backend_api_url = st.secrets.BACKEND.API_URL

@@ -1,12 +1,9 @@
 import os
 
 from dotenv import load_dotenv
-from shared.logger import backend_logger
+from utils.shared.logger import backend_logger
 
 load_dotenv()
-
-def formatted(text: str):
-    return text.replace('-', ' ').title()
 
 def validate_env_var(var_name: str, required: bool = True, default: str = None, allowed_values: list = None) -> str:
     value = os.getenv(var_name)

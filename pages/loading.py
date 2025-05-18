@@ -1,14 +1,14 @@
 import asyncio
 import streamlit as st
 
-from frontend.utils import (
+from utils.frontend.all import (
     add_text,
     formatted,
     initialize_chat_session,
     security_check,
     setup_page
 )
-from shared.logger import frontend_logger
+from utils.shared.logger import frontend_logger
 
 setup_page()
 

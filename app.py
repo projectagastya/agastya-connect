@@ -1,7 +1,7 @@
 import streamlit as st
 
-from frontend.api_calls import healthy
-from frontend.utils import authenticated, reset_session_state
+from utils.frontend.api_calls import healthy
+from utils.frontend.all import authenticated, reset_session_state
 
 def main():
     if not healthy():

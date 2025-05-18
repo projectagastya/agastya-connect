@@ -1,7 +1,7 @@
 import streamlit as st
 
-from frontend.api_calls import get_student_profiles, get_active_sessions
-from frontend.utils import (
+from utils.frontend.api_calls import get_student_profiles, get_active_sessions
+from utils.frontend.all import (
     add_text,
     formatted,
     reset_session_state,
@@ -9,7 +9,7 @@ from frontend.utils import (
     setup_page,
 )
 from datetime import datetime
-from shared.logger import frontend_logger
+from utils.shared.logger import frontend_logger
 
 setup_page()
 

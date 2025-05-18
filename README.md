@@ -134,10 +134,43 @@ The production environment is currently deployed and accessible:
 - **Openpyxl**: Excel file generation for chat exports
 - **GitHub Actions**: CI/CD automation
 
-## 📂 Project Structure
+agastya-connect/
+├── .github/                  # CI/CD pipelines
+│   └── workflows/
+├── .streamlit/               # Streamlit configuration
+│   └── config.toml
+├── api/                      # API models and schemas (FastAPI)
+│   └── models.py
+├── config/                   # Configuration modules
+├── local-student-vectorstores/ # Local vectorstores storage
+├── logs/                     # Log files
+├── misc/                     # Miscellaneous scripts/files
+├── pages/                    # Streamlit pages (frontend UI)
+│   ├── chat.py
+│   ├── home.py
+│   ├── loading.py
+│   ├── login.py
+│   └── selection.py
+├── prompts/                  # Prompt templates
+├── requirements.txt          # Python dependencies
+├── server.py                 # FastAPI backend entry point
+├── services/
+│   └── ec2-linux/
+│       ├── fastapi.service   # Systemd template for FastAPI
+│       └── streamlit.service # Systemd template for Streamlit
+├── setup_db.py               # DynamoDB initialization script
+├── static/                   # Static assets
+├── utils/                    # Shared utilities
+│   └── ...
+├── venv/                     # Python virtual environment
+├── .env                      # Environment variables
+├── .gitignore
+└── README.md
+
+> Note: Systemd service templates for deployment are versioned under `services/ec2-linux/`. Entry points are `app.py` (Streamlit frontend) and `server.py` (FastAPI backend).
 
 ```
-app/
+agastya-connect/
 ├── .github/
 │   └── workflows/             # CI/CD pipelines
 │       └── deploy.yml         # AWS deployment workflow
@@ -189,8 +222,8 @@ app/
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/projectagastya/app.git
-   cd app
+   git clone https://github.com/projectagastya/agastya-connect.git
+   cd agastya-connect
    ```
 
 2. **Create and Activate Virtual Environment**
@@ -218,21 +251,21 @@ app/
 
 7. **Initialize the Database**
    ```bash
-   python backend_initialize_database.py
+   python setup_db.py
    ```
 
 8. **Start the Backend Server**
    ```bash
-   uvicorn api:app --reload --host 0.0.0.0 --port 8000
+   uvicorn server:app --reload --host 0.0.0.0 --port 8000
    ```
 
 9. **Start the Frontend Server**
    ```bash
-   streamlit run frontend_server.py
+   streamlit run app.py
    ```
 
 10. **Access the Application**
-    Open your browser and navigate to `http://localhost:8501`
+     Open your browser and navigate to `http://localhost:8501`
 
 ## ⚙️ Configuration
 
@@ -367,13 +400,20 @@ The application uses GitHub Actions for CI/CD. The workflow in `.github/workflow
 1. Connects to EC2 via SSH
 2. Pulls the latest code from the main branch
 3. Updates dependencies if requirements.txt has changed
-4. Restarts the FastAPI and Streamlit services
+4. Updates systemd service files with safety measures:
+   - Backs up existing service files
+   - Validates new service files before applying
+   - Automatically rolls back if validation fails
+5. Restarts the FastAPI and Streamlit services
 
 ### Setting Up Services
 
 Create systemd service files for both backend and frontend:
 
 **FastAPI Service** (`/etc/systemd/system/fastapi.service`):
+
+> The template for this service is versioned in `services/ec2-linux/fastapi.service`.
+
 ```ini
 [Unit]
 Description=Agastya Backend FastAPI Service
@@ -384,7 +424,7 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/home/ubuntu/agastya-connect
 Environment="PATH=/home/ubuntu/agastya-connect/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/home/ubuntu/agastya-connect/venv/bin/uvicorn api:app --host 0.0.0.0 --port 8000
+ExecStart=/home/ubuntu/agastya-connect/venv/bin/uvicorn server:app --host 0.0.0.0 --port 8000
 Restart=always
 
 [Install]
@@ -392,6 +432,9 @@ WantedBy=multi-user.target
 ```
 
 **Streamlit Service** (`/etc/systemd/system/streamlit.service`):
+
+> The template for this service is versioned in `services/ec2-linux/streamlit.service`.
+
 ```ini
 [Unit]
 Description=Agastya Frontend Streamlit Service
@@ -402,7 +445,7 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/home/ubuntu/agastya-connect
 Environment="PATH=/home/ubuntu/agastya-connect/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/home/ubuntu/agastya-connect/venv/bin/streamlit run frontend_server.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+ExecStart=/home/ubuntu/agastya-connect/venv/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
 Restart=always
 
 [Install]

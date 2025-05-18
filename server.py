@@ -8,7 +8,7 @@ from config.backend.vectorstores import (
     LOCAL_VECTORSTORES_DIRECTORY,
     MAX_DOCS_TO_RETRIEVE
 )
-from backend.api.models import (
+from api.models import (
     ChatMessageRequest,
     ChatMessageResponse,
     EndChatResponse,
@@ -24,7 +24,7 @@ from backend.api.models import (
     StartEndChatRequest,
     StudentProfileSchema
 )
-from backend.utils import (
+from utils.backend.all import (
     end_all_chat_sessions,
     fetch_vectorstore_from_s3,
     formatted,
@@ -41,7 +41,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
-from shared.logger import backend_logger
+from utils.shared.logger import backend_logger
 
 # Check if BACKEND_API_KEY is set. If not, raise an HTTP exception.
 if BACKEND_API_KEY is None:

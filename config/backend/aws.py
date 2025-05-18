@@ -1,4 +1,4 @@
-from shared.utils import validate_env_var
+from utils.shared.env import validate_env_var
 
 AWS_ACCESS_KEY_ID = validate_env_var("AWS_ACCESS_KEY_ID") 
 AWS_SECRET_ACCESS_KEY = validate_env_var("AWS_SECRET_ACCESS_KEY")

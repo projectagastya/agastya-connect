@@ -1,4 +1,4 @@
-from shared.utils import validate_env_var, validate_int_env_var, validate_float_env_var
+from utils.shared.env import validate_env_var, validate_int_env_var, validate_float_env_var
 
 DOCUMENT_EMBEDDING_MODEL_ID = validate_env_var("DOCUMENT_EMBEDDING_MODEL_ID")
 

@@ -34,7 +34,7 @@ from config.backend.s3 import (
 from config.backend.vectorstores import (
     LOCAL_VECTORSTORES_DIRECTORY
 )
-from backend.prompts import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
+from prompts.backend import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
 from datetime import datetime, timedelta
@@ -49,9 +49,9 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
 from langchain_google_genai.embeddings import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from shared.logger import backend_logger
-from shared.translate import translate_text
-from shared.utils import formatted
+from utils.shared.logger import backend_logger
+from utils.shared.translate import translate_text
+from utils.shared.other import formatted
 from typing import Dict, List, Optional, Tuple
 
 # Function to fetch a student's vectorstore from S3, using a local cache if available.

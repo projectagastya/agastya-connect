@@ -1,4 +1,4 @@
-from shared.utils import validate_env_var
+from utils.shared.env import validate_env_var
 
 GCP_TYPE = validate_env_var("GCP_TYPE")
 GCP_PROJECT_ID = validate_env_var("GCP_PROJECT_ID")

@@ -1,13 +1,13 @@
 import streamlit as st
 
-from frontend.utils import (
+from utils.frontend.all import (
     add_text,
     reset_session_state,
     security_check,
     setup_page
 )
-from frontend.api_calls import end_all_chats
-from shared.logger import frontend_logger
+from utils.frontend.api_calls import end_all_chats
+from utils.shared.logger import frontend_logger
 
 setup_page(initial_sidebar_state="expanded")
 

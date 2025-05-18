@@ -1,4 +1,4 @@
-from shared.utils import validate_env_var, validate_int_env_var
+from utils.shared.env import validate_env_var, validate_int_env_var
 
 DYNAMODB_STUDENT_TABLE_BILLING_MODE = validate_env_var(
     "DYNAMODB_STUDENT_TABLE_BILLING_MODE", 

@@ -1,7 +1,7 @@
 import streamlit as st
 
-from frontend.api_calls import healthy
-from frontend.utils import (
+from utils.frontend.api_calls import healthy
+from utils.frontend.all import (
     add_text,
     authenticated,
     reset_session_state,

@@ -5,7 +5,7 @@ import streamlit as st
 
 from config.frontend.llm import QUESTIONS_GENERATION_MODEL_ID, QUESTIONS_GENERATION_MODEL_TEMPERATURE, QUESTIONS_GENERATION_MODEL_MAX_TOKENS
 from datetime import datetime
-from frontend.api_calls import (
+from utils.frontend.api_calls import (
     chat,
     healthy,
     start_chat,
@@ -14,11 +14,11 @@ from frontend.api_calls import (
     get_chat_history_messages,
     end_all_chats
 )
-from frontend.prompts import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
+from prompts.frontend import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
-from shared.logger import frontend_logger
-from shared.translate import translate_text
-from shared.utils import formatted
+from utils.shared.logger import frontend_logger
+from utils.shared.translate import translate_text
+from utils.shared.other import formatted
 from uuid import uuid4
 
 # Function to configure Streamlit page settings.
