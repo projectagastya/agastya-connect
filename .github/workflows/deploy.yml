@@ -93,14 +93,14 @@ jobs:
               echo "Checking and updating systemd service files..."
               
               # Verify service files exist before copying
-              if [ -f "services/fastapi.service" ] && [ -f "services/streamlit.service" ]; then
+              if [ -f "services/ec2-linux/fastapi.service" ] && [ -f "services/ec2-linux/streamlit.service" ]; then
                 # Backup existing service files
                 sudo cp /etc/systemd/system/fastapi.service /etc/systemd/system/fastapi.service.backup 2>/dev/null || true
                 sudo cp /etc/systemd/system/streamlit.service /etc/systemd/system/streamlit.service.backup 2>/dev/null || true
                 
                 # Copy the service files to systemd directory
-                sudo cp -f services/fastapi.service /etc/systemd/system/fastapi.service
-                sudo cp -f services/streamlit.service /etc/systemd/system/streamlit.service
+                sudo cp -f services/ec2-linux/fastapi.service /etc/systemd/system/fastapi.service
+                sudo cp -f services/ec2-linux/streamlit.service /etc/systemd/system/streamlit.service
                 
                 # Verify new service files are valid
                 if sudo systemd-analyze verify /etc/systemd/system/fastapi.service && \
@@ -120,7 +120,7 @@ jobs:
                   exit 1
                 fi
               else
-                echo "ERROR: Service files not found in services/ directory!"
+                echo "ERROR: Service files not found in services/ec2-linux/ directory!"
                 exit 1
               fi
               
