@@ -69,14 +69,14 @@ def get_api_key(api_key: str = Security(api_key_header)):
         backend_logger.error("API key not provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="API Key header missing"
+            detail="Unauthorized"
         )
     # Check if the API key is valid. If not, raise an HTTP exception.
     if api_key != BACKEND_API_KEY:
         backend_logger.error("Invalid BACKEND API key")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid BACKEND API Key"
+            detail="Access denied"
         )
     return api_key
 
