@@ -3,7 +3,7 @@ from utils.frontend.all import setup_page, add_text
 
 setup_page(page_title="Agastya Connect", page_icon="static/logo.png", layout="wide")
 
-st.title("Terms and Conditions", anchor=False)
+st.title("Terms of Service", anchor=False)
 st.caption("Last updated: June 10, 2025")
 
 content = {
