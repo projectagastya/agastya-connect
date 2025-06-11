@@ -40,7 +40,7 @@ from utils.backend.all import (
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Security, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -449,3 +449,14 @@ def resume_chat_endpoint(api_request: StartEndChatRequest):
     except Exception as e:
         backend_logger.error(f"Resume chat session endpoint error: {e}")
         raise HTTPException(status_code=500, detail="Failed to resume chat session. Please try again.")
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def catch_all(full_path: str):
+    streamlit_pages = ["home", "login", "chat", "selection", "loading"]
+    
+    if any(full_path.startswith(page) for page in streamlit_pages):
+        backend_logger.info(f"Redirecting {full_path} to /app/{full_path}")
+        return RedirectResponse(url=f"/app/{full_path}", status_code=301)
+    
+    backend_logger.warning(f"Undefined path accessed: {full_path}")
+    return FileResponse('static/404.html', status_code=404)
