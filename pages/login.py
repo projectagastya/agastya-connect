@@ -16,12 +16,8 @@ def render_login_page():
         st.stop()
     
     if authenticated():
-        st.warning("You will be logged out. Do you want to continue?")
-        if st.button("Logout", type="primary", icon=":material/logout:", use_container_width=True):
-            st.logout()
-        elif st.button("Cancel", type="secondary", icon=":material/close:", use_container_width=True):
-            reset_session_state()
-            st.switch_page(page="pages/home.py")
+        reset_session_state()
+        st.switch_page(page="pages/home.py")
     else:
         add_text(
             content="Welcome to Agastya International Foundation's Instructor Training Program!",
