@@ -104,12 +104,6 @@ def render_login_page():
                     if st.button("Sign in with Google", type="primary", use_container_width=True):
                         st.login()
                 st.markdown("<br>", unsafe_allow_html=True)
-        
-        footer_cols = st.columns([6, 1, 1, 6], gap="small")
-        with footer_cols[1]:
-            st.page_link("pages/terms-of-service.py", label="Terms")
-        with footer_cols[2]:
-            st.page_link("pages/privacy.py", label="Privacy")
                 
 if __name__ == "__main__":
     render_login_page()
