@@ -105,7 +105,7 @@ def render_login_page():
                         st.login()
                 st.markdown("<br>", unsafe_allow_html=True)
         
-        footer_cols = st.columns([5, 1, 1, 5], gap="small")
+        footer_cols = st.columns([6, 1, 1, 6], gap="small")
         with footer_cols[1]:
             st.page_link("pages/terms-of-service.py", label="Terms")
         with footer_cols[2]:
