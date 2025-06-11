@@ -3,7 +3,7 @@ from utils.frontend.all import setup_page, add_text
 
 setup_page(page_title="Agastya Connect", page_icon="static/logo.png", layout="wide")
 
-st.title("Terms and Conditions")
+st.title("Terms and Conditions", anchor=False)
 st.caption("Last updated: June 10, 2025")
 
 content = {
@@ -37,6 +37,6 @@ for header, text in content.items():
         st.markdown(text)
 
 with st.container(border=True):
-    st.header("11. Contact Information")
+    st.header("11. Contact Information", anchor=False)
     st.markdown("If you have any questions about these Terms and Conditions, please contact us at:")
     st.markdown("projectagastya2024@gmail.com")

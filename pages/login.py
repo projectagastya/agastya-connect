@@ -103,12 +103,13 @@ def render_login_page():
                 with button_cols[1]:
                     if st.button("Sign in with Google", type="primary", use_container_width=True):
                         st.login()
-                st.markdown("---")
+                st.markdown("<br>", unsafe_allow_html=True)
         
-        final_cols = st.columns([4, 1.6, 4])
-        with final_cols[1]:
-            st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
-            st.markdown("[Terms and Conditions](terms-and-conditions) | [Privacy Policy](privacy-policy)", unsafe_allow_html=True)
+        footer_cols = st.columns([3, 1, 1, 3], gap="small")
+        with footer_cols[1]:
+            st.page_link("pages/terms-and-conditions.py", label="Terms & Conditions")
+        with footer_cols[2]:
+            st.page_link("pages/privacy-policy.py", label="Privacy Policy")
                 
 if __name__ == "__main__":
     render_login_page()
