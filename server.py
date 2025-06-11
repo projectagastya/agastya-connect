@@ -40,7 +40,10 @@ from utils.backend.all import (
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Security, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.security.api_key import APIKeyHeader
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from utils.shared.logger import backend_logger
 
 # Check if BACKEND_API_KEY is set. If not, raise an HTTP exception.
@@ -79,6 +82,20 @@ def get_api_key(api_key: str = Security(api_key_header)):
             detail="Access denied"
         )
     return api_key
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/", response_class=FileResponse, summary="Serve the welcome page")
+async def get_welcome_page():
+    return 'static/welcome.html'
+
+@app.get("/privacy", response_class=FileResponse, summary="Serve the privacy policy")
+async def get_privacy_page():
+    return 'static/privacy.html'
+
+@app.get("/terms-of-service", response_class=FileResponse, summary="Serve the terms of service")
+async def get_terms_of_service_page():
+    return 'static/terms-of-service.html'
 
 # Endpoint for simple health check.
 @app.get("/health", summary="Check API health")
