@@ -19,8 +19,8 @@ We do not collect or store your Google password or any other sensitive authentic
 
 #### 2.2 Usage Data
 When you use our services, we may collect certain information automatically, including:
-- Prompts given as input
 - Chat history
+
 """,
     "3. How We Use Your Information": """
 We use the information we collect to:
