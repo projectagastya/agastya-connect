@@ -23,7 +23,7 @@ def render_login_page():
         main_2_cols = st.columns([2, 2.5, 2])
         with main_2_cols[1]:
             with st.container():
-                st.markdown("---")
+                st.markdown("<br><br>", unsafe_allow_html=True)
                 add_text(content="Please sign in to access your portal",
                                 alignment="center",
                                 bold=True,
@@ -33,7 +33,7 @@ def render_login_page():
                 with button_cols[1]:
                     if st.button("Sign in with Google", type="primary", use_container_width=True):
                         st.login()
-                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown("<br><br>", unsafe_allow_html=True)
                 
 if __name__ == "__main__":
     render_login_page()
