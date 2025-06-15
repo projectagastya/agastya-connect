@@ -7,6 +7,9 @@ from utils.shared.logger import frontend_logger
 backend_api_url = st.secrets.BACKEND.API_URL
 backend_api_key = st.secrets.BACKEND.API_KEY
 
+# Serverless API URL loaded from Streamlit secrets.
+serverless_api_url = st.secrets.SERVERLESS.API_URL
+
 # Headers including the API key for backend requests.
 headers = {
     "X-API-Key": backend_api_key
@@ -27,7 +30,7 @@ def get_student_profiles(count: int) -> tuple[bool, str, list]:
         payload = {
             "count": count
         }
-        response = requests.post(f"{backend_api_url}/get-student-profiles", json=payload, headers=headers)
+        response = requests.post(f"{serverless_api_url}/get-student-profiles", json=payload, headers=headers)
 
         if response.status_code == 200:
             success = True
