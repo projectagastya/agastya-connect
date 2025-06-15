@@ -49,6 +49,9 @@ jobs:
             # Show differences between local and remote
             echo "Differences between local and remote:"
             git log HEAD..origin/main --oneline
+
+            echo "Configuring git to skip welcome.html updates..."
+            git update-index --skip-worktree static/welcome.html
             
             # Reset and clean
             git reset --hard HEAD
