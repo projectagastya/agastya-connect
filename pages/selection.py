@@ -9,6 +9,7 @@ from utils.frontend.all import (
     setup_page,
 )
 from datetime import datetime
+from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 
 setup_page()
@@ -40,7 +41,7 @@ def render_selection_page():
     success, message, students = get_student_profiles(count=8)
     if not success:
         frontend_logger.error(f"render_selection_page | Error loading student profiles from backend : {message}")
-        st.error("Sorry, we're facing an unexpected issue while loading our student profiles. Please try again later.")
+        st.error(get_user_error())
         st.stop()
     with cols[1]:
         add_text(content="Select a student to chat with", alignment="center", bold=True, size=35)

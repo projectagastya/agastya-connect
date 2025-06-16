@@ -16,6 +16,7 @@ from utils.frontend.api_calls import (
 )
 from prompts.frontend import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
+from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 from utils.shared.translate import translate_text
 from utils.shared.other import formatted
@@ -93,7 +94,7 @@ async def initialize_chat_session(student_choice: dict):
         
         if not resume_chat_success:
             frontend_logger.error(f"initialize_chat_session | Failed to resume chat: {resume_chat_message}")
-            st.error("Sorry, we're facing an unexpected issue resuming your chat. Please try again.")
+            st.error(get_user_error())
             st.stop()
             
         history_success, history_message, formatted_history = get_chat_history_formatted(
@@ -105,7 +106,7 @@ async def initialize_chat_session(student_choice: dict):
         
         if not history_success:
             frontend_logger.error(f"initialize_chat_session | Failed to get chat history: {history_message}")
-            st.error("Sorry, we're facing an unexpected issue retrieving chat history. Please try again.")
+            st.error(get_user_error())
             st.stop()
             
         st.session_state["active_chat_session"]["chat_history"] = formatted_history
@@ -123,7 +124,7 @@ async def initialize_chat_session(student_choice: dict):
 
         if not start_chat_success:
             frontend_logger.error(f"initialize_chat_session | start_chat failed: {start_chat_message}")
-            st.error("Sorry, we're facing an unexpected issue while setting up your chat session. Please try again.")
+            st.error(get_user_error())
             st.stop()
 
         st.session_state["active_chat_session"]["chat_history"].append({
@@ -150,8 +151,8 @@ def get_chat_history_formatted(login_session_id: str, chat_session_id: str, user
         )
         
         if not history_success:
-            message = f"Failed to retrieve chat history: {history_message}"
-            frontend_logger.error(f"get_chat_history_formatted | {message}")
+            message = get_user_error()
+            frontend_logger.error(f"get_chat_history_formatted | Failed to retrieve chat history | Error: {history_message}")
             return False, message, []
             
         for msg in messages:
@@ -167,11 +168,11 @@ def get_chat_history_formatted(login_session_id: str, chat_session_id: str, user
             })
             
         success = True
-        message = f"Retrieved and formatted {len(data)} messages"
+        message = "Retrieved and formatted chat history"
         frontend_logger.info(f"get_chat_history_formatted | {message}")
     except Exception as e:
-        message = str(e)
-        frontend_logger.error(f"get_chat_history_formatted | {message}")
+        message = get_user_error()
+        frontend_logger.error(f"get_chat_history_formatted | Error: {str(e)}")
     return success, message, data
 
 # Function to check if a string contains Kannada characters.
@@ -194,41 +195,46 @@ def render_chat_history(chat_history):
                 display_message = "Sorry, I'm unable to provide a response at this time. Please check in again with me later. Thanks for understanding!"
                 frontend_logger.warning(f"render_chat_history | Empty response received from chat message: Login Session ID: {st.user.nonce}, Chat Session ID: {st.session_state['active_chat_session']['id']}")
                 st.markdown(body=display_message)
-                st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
+                st.error(get_user_error())
                 st.stop()
             else:
                 st.markdown(body=display_message)
 
 # Function to generate suggested next questions for the instructor using an LLM.
 async def generate_next_questions(chat_history, student_name, num_questions=4):
-    user_full_name = getattr(st.user, "given_name") + " " + getattr(st.user,"family_name")
+    try:
+        user_full_name = getattr(st.user, "given_name") + " " + getattr(st.user,"family_name")
 
-    llm = ChatGoogleGenerativeAI(
-        model=QUESTIONS_GENERATION_MODEL_ID, 
-        temperature=QUESTIONS_GENERATION_MODEL_TEMPERATURE,
-        max_tokens=QUESTIONS_GENERATION_MODEL_MAX_TOKENS
-    )
+        llm = ChatGoogleGenerativeAI(
+            model=QUESTIONS_GENERATION_MODEL_ID, 
+            temperature=QUESTIONS_GENERATION_MODEL_TEMPERATURE,
+            max_tokens=QUESTIONS_GENERATION_MODEL_MAX_TOKENS
+        )
 
-    formatted_history = []
-    for message in chat_history:
-        if message.get('role') == 'user':
-            formatted_message = f"{user_full_name}: {message.get('content-en', '')}"
-        elif message.get('role') == 'assistant':
-            formatted_message = f"{formatted(student_name)}: {message.get('content-en', '')}"
-        formatted_history.append(formatted_message)
-    formatted_history = "\n".join(formatted_history)
+        formatted_history = []
+        for message in chat_history:
+            if message.get('role') == 'user':
+                formatted_message = f"{user_full_name}: {message.get('content-en', '')}"
+            elif message.get('role') == 'assistant':
+                formatted_message = f"{formatted(student_name)}: {message.get('content-en', '')}"
+            formatted_history.append(formatted_message)
+        formatted_history = "\n".join(formatted_history)
 
-    generate_next_questions_prompt = SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS.format(
-        student=formatted(student_name),
-        formatted_history=formatted_history
-    )
-    response = await llm.ainvoke(generate_next_questions_prompt)
-    generated_text = response.content.strip()
+        generate_next_questions_prompt = SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS.format(
+            student=formatted(student_name),
+            formatted_history=formatted_history
+        )
+        response = await llm.ainvoke(generate_next_questions_prompt)
+        generated_text = response.content.strip()
 
-    match = re.search(r'\[.*?\]', generated_text, re.DOTALL)
-    questions = ast.literal_eval(match.group(0)) if match else []
+        match = re.search(r'\[.*?\]', generated_text, re.DOTALL)
+        questions = ast.literal_eval(match.group(0)) if match else []
 
-    return questions[:num_questions]
+        return questions[:num_questions]
+    except Exception as e:
+        message = get_user_error()
+        frontend_logger.error(f"generate_next_questions | Error: {str(e)}")
+        return []
 
 # Function to render the suggested next questions as buttons in the UI.
 async def render_next_questions(next_questions):
@@ -256,7 +262,13 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
     user_full_name = getattr(st.user, "given_name", " ") + " " + getattr(st.user, "family_name", " ")
 
     if input_type == "manual-kannada":
-        question_for_api = translate_text(text=user_input, source_language="kn", target_language="en")
+        try:
+            question_for_api = translate_text(text=user_input, source_language="kn", target_language="en")
+        except Exception as e:
+            message = get_user_error()
+            frontend_logger.error(f"handle_user_input | Error: {str(e)}")
+            st.error(get_user_error())
+            st.stop()
     else:
         question_for_api = user_input
 
@@ -277,7 +289,7 @@ async def handle_user_input(user_input: str, current_chat_session: dict, student
 
         if not success:
             frontend_logger.error(f"handle_user_input | Getting chat response failed: {message}")
-            st.error("Sorry, we're facing an unexpected issue on our end while processing your request. Please try again later.")
+            st.error(get_user_error())
             st.stop()
         
         current_chat_session["chat_history"].append({"role": "user", "content": user_input if input_type == "manual-kannada" else question_for_api, "content-en": question_for_api, "avatar": user_image})
@@ -305,7 +317,7 @@ def authenticated():
 def security_check():
     if not healthy():
         frontend_logger.error("security_check | Health check failed")
-        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
+        st.error(get_user_error())
         st.stop()
     elif not authenticated():
         st.switch_page(page="pages/login.py")

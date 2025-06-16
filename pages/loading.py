@@ -8,6 +8,7 @@ from utils.frontend.all import (
     security_check,
     setup_page
 )
+from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 
 setup_page()
@@ -39,7 +40,12 @@ async def render_loading_page():
             st.markdown(f"**Gender:** {formatted(student_choice['student_sex'])}")
 
             with st.spinner(text="Loading..."):
-                await initialize_chat_session(student_choice=student_choice)
+                try:
+                    await initialize_chat_session(student_choice=student_choice)
+                except Exception as e:
+                    frontend_logger.error(f"render_loading_page | Error: {str(e)}")
+                    st.error(get_user_error())
+                    st.stop()
 
     st.session_state["student_choice"] = None
     st.cache_resource.clear()

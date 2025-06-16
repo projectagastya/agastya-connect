@@ -417,44 +417,6 @@ def get_single_student_profile(student_name: str) -> Tuple[bool, str, Optional[b
     
     return success, message, result, data
 
-# Function to retrieve a specified number of random student profiles from DynamoDB.
-def get_student_profiles(count: int = 8) -> Tuple[bool, str, Optional[bool], List[Dict]]:
-    success = False
-    message = ""
-    result = False
-    data = []
-    
-    try:
-        table = get_student_table()
-        response = table.scan()
-        
-        if 'Items' in response:
-            students = response['Items']
-            data = [
-                {
-                    "student_name": student.get('student_name'),
-                    "student_sex": student.get('student_sex'),
-                    "student_age": student.get('student_age'),
-                    "student_state": student.get('student_state'),
-                    "student_image": student.get('student_image')
-                }
-                for student in students
-            ]
-            
-            random.shuffle(data)
-            
-            data = data[:min(count, len(data))]
-            
-            result = len(data) > 0
-            success = True
-            message = result and f"Retrieved {len(data)} student profiles successfully" or f"No student profiles found for a request to get {count} student profiles"
-            backend_logger.info(f"get_students | {message}")
-    except ClientError as e:
-        message = f"Error getting {count} student profiles: {e}"
-        backend_logger.error(f"get_students | {message}")
-    
-    return success, message, result, data
-
 # Function to populate the student DynamoDB table using metadata from S3.
 def populate_student_table() -> Tuple[bool, str]:
     success = False

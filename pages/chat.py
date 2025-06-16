@@ -11,6 +11,7 @@ from utils.frontend.all import (
     security_check,
     setup_page
 )
+from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 
 setup_page(initial_sidebar_state="expanded")
@@ -27,7 +28,7 @@ async def render_chat_page():
         student_avatar = current_chat_session["student_profile"]["student_image"]
     else:
         frontend_logger.error(f"render_chat_page | No active chat session found for user {getattr(st.user, 'email')}")
-        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
+        st.error(get_user_error())
         st.stop()
     
     render_chat_subheader(student_name)

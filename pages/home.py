@@ -7,6 +7,7 @@ from utils.frontend.all import (
     setup_page
 )
 from utils.frontend.api_calls import end_all_chats
+from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 
 setup_page(initial_sidebar_state="expanded")
@@ -38,10 +39,15 @@ def render_home_page():
                 st.cache_resource.clear()
                 st.logout()
                 
-                end_all_success, end_all_message = end_all_chats(
-                    user_email=user_email,
-                    login_session_id=login_session_id
-                )
+                try:
+                    end_all_success, end_all_message = end_all_chats(
+                        user_email=user_email,
+                        login_session_id=login_session_id
+                    )
+                except Exception as e:
+                    frontend_logger.error(f"render_home_page | Error: {str(e)}")
+                    st.error(get_user_error())
+                    st.stop()
                 
                 if not end_all_success:
                     frontend_logger.warning(f"render_home_page | Failed to end all chats on logout: {end_all_message}")

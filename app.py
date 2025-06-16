@@ -3,9 +3,10 @@ import streamlit as st
 from utils.frontend.api_calls import healthy
 from utils.frontend.all import authenticated, reset_session_state
 
+from utils.shared.errors import get_user_error
 def main():
     if not healthy():
-        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
+        st.error(get_user_error())
         st.stop()
     elif not authenticated():
         st.switch_page("pages/login.py")

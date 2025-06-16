@@ -7,12 +7,12 @@ from utils.frontend.all import (
     reset_session_state,
     setup_page
 )
-
+from utils.shared.errors import get_user_error
 setup_page()
 
 def render_login_page():
     if not healthy():
-        st.error("Sorry, we're facing an unexpected issue on our end. Please try again later.")
+        st.error(get_user_error())
         st.stop()
     
     if authenticated():
