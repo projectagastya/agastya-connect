@@ -25,7 +25,6 @@ from api.models import (
     StudentProfileSchema
 )
 from utils.backend.all import (
-    end_all_chat_sessions,
     fetch_vectorstore_from_s3,
     formatted,
     get_chat_history,
