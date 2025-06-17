@@ -346,33 +346,6 @@ def get_chat_history_endpoint(api_request: GetChatHistoryRequest):
         backend_logger.error(f"Get chat history endpoint error: {str(e)} | global_session_id={global_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
-# Endpoint to mark all chat sessions associated with a specific user login as inactive.
-@app.post("/end-all-chats", summary="End all chat sessions for a login", response_model=EndChatResponse, dependencies=[Depends(get_api_key)])
-def end_all_chats_endpoint(api_request: GetActiveSessionsRequest):
-    try:
-        user_email = api_request.user_email.strip()
-        login_session_id = api_request.login_session_id.strip()
-        
-        end_all_chat_success, end_all_chat_message = end_all_chat_sessions(
-            user_email=user_email,
-            login_session_id=login_session_id
-        )
-        
-        if not end_all_chat_success:
-            backend_logger.error(f"Error ending all chat sessions for user: {end_all_chat_message} | user_email={user_email} | login_session_id={login_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        
-        return EndChatResponse(
-            success=True,
-            message=f"Chat sessions ended successfully for user {user_email}",
-            timestamp=datetime.now().isoformat()
-        )
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"End all chats endpoint error for user: {e} | user_email={user_email} | login_session_id={login_session_id}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
 # Endpoint to resume a specific chat session by reloading its vectorstore.
 @app.post("/resume-chat", summary="Resume a specific chat session", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
 def resume_chat_endpoint(api_request: StartEndChatRequest):

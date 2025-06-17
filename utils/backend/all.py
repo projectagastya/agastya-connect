@@ -780,49 +780,5 @@ def get_chat_history_for_ui(login_session_id: str, chat_session_id: str) -> Tupl
     
     return success, message, result, data
 
-# Function to mark all active chat sessions for a user (based on login session) as inactive.
-def end_all_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool, str]:
-    success = False
-    message = ""
-    
-    try:
-        dynamodb = get_dynamodb_resource()
-        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
-        
-        response = chat_sessions_table.query(
-            IndexName='UserSessionsIndex',
-            KeyConditionExpression=Key('user_email').eq(user_email),
-            FilterExpression=Attr('login_session_id').eq(login_session_id) & Attr('session_status').eq('active')
-        )
-        
-        if 'Items' not in response or len(response['Items']) == 0:
-            success = True
-            message = f"No active chat sessions found for user: {user_email}"
-            backend_logger.info(f"end_all_chat_sessions | {message}")
-            return success, message
-        
-        now = datetime.now().isoformat()
-        
-        for session in response['Items']:
-            global_session_id = session['global_session_id']
-            chat_sessions_table.update_item(
-                Key={'global_session_id': global_session_id},
-                UpdateExpression="SET session_status = :status, last_updated_at = :time",
-                ExpressionAttributeValues={
-                    ':status': 'ended',
-                    ':time': now
-                }
-            )
-            backend_logger.info(f"end_all_chat_sessions | Ended chat session with global_session_id={global_session_id}")
-        
-        success = True
-        message = f"Ended all {len(response['Items'])} active chat sessions for user: {user_email}"
-        backend_logger.info(f"end_all_chat_sessions | {message}")
-    except Exception as e:
-        message = f"Error ending all chat sessions for user: {user_email}: {e}"
-        backend_logger.error(f"end_all_chat_sessions | {message}")
-    
-    return success, message
-
 if __name__ == "__main__":
     pass
