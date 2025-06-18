@@ -682,50 +682,6 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
     
     return success, message, result, data
 
-# Function to retrieve active chat sessions for a user based on email and login session ID.
-def get_active_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool, str, bool, List[Dict]]:
-    success = False
-    message = ""
-    result = False
-    data = []
-    
-    try:
-        dynamodb = get_dynamodb_resource()
-        chat_sessions_table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
-        
-        response = chat_sessions_table.query(
-            IndexName='UserSessionsIndex',
-            KeyConditionExpression=Key('user_email').eq(user_email),
-            FilterExpression=Attr('login_session_id').eq(login_session_id) & Attr('session_status').eq('active')
-        )
-        
-        if 'Items' in response and len(response['Items']) > 0:
-            sessions = response['Items']
-            data = [
-                {
-                    "student_name": session.get('student_name'),
-                    "chat_session_id": session.get('chat_session_id'),
-                    "global_session_id": session.get('global_session_id'),
-                    "started_at": session.get('started_at'),
-                    "last_updated_at": session.get('last_updated_at')
-                }
-                for session in sessions
-            ]
-            
-            result = True
-            success = True
-            message = f"Retrieved {len(data)} active chat sessions for user: {user_email}"
-            backend_logger.info(f"get_active_chat_sessions | {message}")
-        else:
-            success = True
-            message = f"No active chat sessions found for user: {user_email}"
-            backend_logger.info(f"get_active_chat_sessions | {message}")
-    except ClientError as e:
-        message = f"Error getting active chat sessions for user: {user_email}: {e}"
-        backend_logger.error(f"get_active_chat_sessions | {message}")
-    
-    return success, message, result, data
-
 # Function to retrieve chat history formatted specifically for the UI display.
 def get_chat_history_for_ui(login_session_id: str, chat_session_id: str) -> Tuple[bool, str, bool, List[Dict]]:
     success = False

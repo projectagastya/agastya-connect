@@ -30,7 +30,6 @@ from utils.backend.all import (
     get_chat_history,
     get_rag_chain,
     get_chat_history_for_ui,
-    get_active_chat_sessions,
     initialize_chat_session,
     insert_chat_message,
     load_vectorstore_from_path
@@ -251,47 +250,6 @@ def chat_endpoint(api_request: ChatMessageRequest):
         raise http_e
     except Exception as e:
         backend_logger.error(f"Chat endpoint error: {str(e)} | global_session_id={global_session_id}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
-# Endpoint to retrieve all active chat sessions for a specific user login.
-@app.post("/get-active-sessions", summary="Get active chat sessions for a user", response_model=GetActiveSessionsResponse, dependencies=[Depends(get_api_key)])
-def get_active_sessions_endpoint(api_request: GetActiveSessionsRequest):
-    try:
-        user_email = api_request.user_email.strip()
-        login_session_id = api_request.login_session_id.strip()
-        
-        get_active_sessions_success, get_active_sessions_message, get_active_sessions_result, sessions = get_active_chat_sessions(
-            user_email=user_email,
-            login_session_id=login_session_id
-        )
-        
-        if not get_active_sessions_success:
-            backend_logger.error(f"Database error in getting active sessions: {get_active_sessions_message} | user_email={user_email} | login_session_id={login_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        
-        session_infos = [
-            ChatSessionInfo(
-                student_name=session["student_name"],
-                chat_session_id=session["chat_session_id"],
-                global_session_id=session["global_session_id"],
-                started_at=session["started_at"],
-                last_updated_at=session["last_updated_at"]
-            ) for session in sessions
-        ]
-        
-        backend_logger.info(f"Retrieved {len(session_infos)} active chat sessions for user {user_email}")
-        return GetActiveSessionsResponse(
-            success=get_active_sessions_success,
-            message=get_active_sessions_message,
-            result=get_active_sessions_result,
-            data=session_infos,
-            timestamp=datetime.now().isoformat()
-        )
-    
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"Get active sessions endpoint error: {str(e)} | user_email={user_email} | login_session_id={login_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
 # Endpoint to retrieve the complete chat history for a specific chat session.
