@@ -229,7 +229,7 @@ def get_chat_history_messages(login_session_id: str, chat_session_id: str) -> tu
             "login_session_id": login_session_id,
             "chat_session_id": chat_session_id
         }
-        response = requests.post(f"{backend_api_url}/get-chat-history", json=payload, headers=headers)
+        response = requests.post(f"{serverless_api_url}/get-chat-history", json=payload, headers=headers)
 
         if response.status_code == 200:
             success = True
