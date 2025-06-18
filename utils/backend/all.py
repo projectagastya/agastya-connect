@@ -682,59 +682,5 @@ def get_chat_history(login_session_id: str, chat_session_id: str) -> Tuple[bool,
     
     return success, message, result, data
 
-# Function to retrieve chat history formatted specifically for the UI display.
-def get_chat_history_for_ui(login_session_id: str, chat_session_id: str) -> Tuple[bool, str, bool, List[Dict]]:
-    success = False
-    message = ""
-    result = False
-    data = []
-
-    if not login_session_id or not chat_session_id:
-        message = "Login session id and chat session id are required"
-        backend_logger.error(f"get_chat_history_for_ui | {message}")
-        return success, message, result, data
-    
-    try:
-        dynamodb = get_dynamodb_resource()
-        chat_messages_table = dynamodb.Table(DYNAMODB_CHAT_MESSAGES_TABLE_NAME)
-        
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        response = chat_messages_table.query(
-            KeyConditionExpression=Key('global_session_id').eq(global_session_id),
-            ScanIndexForward=True
-        )
-        
-        if 'Items' in response and len(response['Items']) > 0:
-            for item in response.get('Items', []):
-                role = item.get('role')
-                msg = item.get('message')
-                created_at = item.get('created_at')
-                input_type = item.get('input_type')
-
-                if input_type == "system":
-                    continue
-
-                if msg and msg.strip():
-                    data.append({
-                        "role": role,
-                        "content": msg,
-                        "created_at": created_at
-                    })
-            
-            success = True
-            result = True
-            message = f"Retrieved {len(data)} messages for session {global_session_id}"
-            backend_logger.info(f"get_chat_history_for_ui | {message}")
-        else:
-            success = True
-            message = f"No chat history found for session {global_session_id}"
-            backend_logger.info(f"get_chat_history_for_ui | {message}")
-    except Exception as e:
-        message = f"Error getting chat history: {str(e)}"
-        backend_logger.error(f"get_chat_history_for_ui | {message}")
-    
-    return success, message, result, data
-
 if __name__ == "__main__":
     pass

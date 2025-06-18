@@ -29,7 +29,6 @@ from utils.backend.all import (
     formatted,
     get_chat_history,
     get_rag_chain,
-    get_chat_history_for_ui,
     initialize_chat_session,
     insert_chat_message,
     load_vectorstore_from_path
@@ -250,57 +249,6 @@ def chat_endpoint(api_request: ChatMessageRequest):
         raise http_e
     except Exception as e:
         backend_logger.error(f"Chat endpoint error: {str(e)} | global_session_id={global_session_id}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
-# Endpoint to retrieve the complete chat history for a specific chat session.
-@app.post("/get-chat-history", summary="Get chat history for a session", response_model=GetChatHistoryResponse, dependencies=[Depends(get_api_key)])
-def get_chat_history_endpoint(api_request: GetChatHistoryRequest):
-    try:
-        login_session_id = api_request.login_session_id.strip()
-        chat_session_id = api_request.chat_session_id.strip()
-        
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        get_chat_history_success, get_chat_history_message, get_chat_history_result, messages = get_chat_history_for_ui(
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id
-        )
-        
-        if not get_chat_history_success:
-            backend_logger.error(f"Database error in getting chat history for session {global_session_id}: {get_chat_history_message}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        
-        if not get_chat_history_result:
-            backend_logger.info(f"No chat history found for session {global_session_id}")
-            return GetChatHistoryResponse(
-                success=True,
-                message="No chat history found",
-                result=False,
-                data=[],
-                timestamp=datetime.now().isoformat()
-            )
-        
-        message_infos = [
-            ChatMessageInfo(
-                role=message["role"],
-                content=message["content"],
-                created_at=message["created_at"]
-            ) for message in messages
-        ]
-        
-        backend_logger.info(f"Retrieved {len(message_infos)} messages for session {global_session_id}")
-        return GetChatHistoryResponse(
-            success=True,
-            message=f"Retrieved {len(message_infos)} messages",
-            result=True,
-            data=message_infos,
-            timestamp=datetime.now().isoformat()
-        )
-    
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"Get chat history endpoint error: {str(e)} | global_session_id={global_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
 # Endpoint to resume a specific chat session by reloading its vectorstore.
