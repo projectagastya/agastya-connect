@@ -9,6 +9,7 @@ font = "sans-serif"
 runOnSave = true
 headless = true
 enableStaticServing = true
+baseUrlPath = "app"
 
 [runner]
 fastReruns = true
