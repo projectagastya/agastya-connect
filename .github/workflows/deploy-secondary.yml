@@ -50,24 +50,15 @@ jobs:
             echo "Differences between local and remote:"
             git log HEAD..origin/main --oneline
 
-            echo "Configuring git to skip welcome.html updates..."
-            git update-index --skip-worktree static/welcome.html
+            # Forcefully reset the local branch to match the remote branch.
+            # This discards all local changes to tracked files and makes 'git pull' unnecessary.
+            echo "Resetting local branch to match origin/main..."
+            git reset --hard origin/main
             
-            # Reset and clean
-            git reset --hard HEAD
+            # Clean up any untracked files and directories.
+            # This will NOT remove 'static/welcome.html' if it's in your .gitignore file.
+            echo "Cleaning untracked files..."
             git clean -fd
-            
-            # Set upstream branch
-            git branch --set-upstream-to=origin/main main
-            
-            # Clean any potentially conflicting files that might block the pull
-            echo "Cleaning any potential untracked files that might conflict..."
-            git clean -f .github/workflows/deploy.yml || true
-            git clean -f test.txt || true
-            
-            # Pull latest changes
-            echo "Pulling latest changes..."
-            git pull origin main
             
             # Check new commit hash
             NEW_COMMIT=$(git rev-parse HEAD)
