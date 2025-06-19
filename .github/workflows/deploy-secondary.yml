@@ -42,6 +42,14 @@ jobs:
             git remote -v
             git branch -vv
             
+            # Change remote URL from HTTPS to SSH for private repo access
+            echo "Switching remote URL to SSH..."
+            git remote set-url origin git@github.com:projectagastya/agastya-connect.git
+
+            # Verify the change
+            echo "Updated remote URL:"
+            git remote -v
+            
             # Fetch latest changes before pull
             echo "Fetching latest changes..."
             git fetch origin
