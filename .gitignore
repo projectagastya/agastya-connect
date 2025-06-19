@@ -6,4 +6,3 @@ __pycache__/
 venv/
 misc/
 local-student-vectorstores
-static/welcome.html
