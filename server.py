@@ -125,24 +125,6 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        fetch_vectorstore_from_s3_success, fetch_vectorstore_from_s3_message, fetch_vectorstore_from_s3_result, fetch_vectorstore_from_s3_data = fetch_vectorstore_from_s3(
-            user_email=user_email,
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id,
-            student_name=student_name
-        )
-        if not fetch_vectorstore_from_s3_success:
-            backend_logger.error(f"Error in fetching vectorstore from S3: {fetch_vectorstore_from_s3_message}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        if not fetch_vectorstore_from_s3_result:
-            backend_logger.error(f"Vectorstore not found for email={user_email}, student_name={student_name}, global_session_id={global_session_id}")
-            raise HTTPException(status_code=404, detail=get_user_error())
-        
-        load_vectorstore_from_path_success, load_vectorstore_from_path_message, rag_vectorstore = load_vectorstore_from_path(local_dir=fetch_vectorstore_from_s3_data)
-        if not load_vectorstore_from_path_success:
-            backend_logger.error(f"Error in loading vectorstore from path: {load_vectorstore_from_path_message}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-
         init_chat_success, init_chat_message = initialize_chat_session(
             user_email=user_email,
             login_session_id=login_session_id,
@@ -182,7 +164,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
     except HTTPException as http_e:
         raise http_e
     except Exception as e:
-        backend_logger.error(f"Start chat session endpoint error: {e} | global_session_id={global_session_id}")
+        backend_logger.error(f"Start chat session endpoint error: {e} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
 # Endpoint to handle a user's chat message, generate a response using RAG, and store the interaction.
@@ -216,7 +198,11 @@ def chat_endpoint(api_request: ChatMessageRequest):
             backend_logger.error(f"Chat history not found for global_session_id={global_session_id}")
             raise HTTPException(status_code=404, detail=get_user_error())
 
-        retriever = rag_vectorstore.as_retriever(search_kwargs={"k": MAX_DOCS_TO_RETRIEVE})
+        retriever = rag_vectorstore.as_retriever(
+            search_kwargs={
+                "k": MAX_DOCS_TO_RETRIEVE
+            }
+        )
         if not retriever:
             backend_logger.error(f"Error in creating session retriever for global_session_id={global_session_id}")
             raise HTTPException(status_code=500, detail=get_user_error())
@@ -226,7 +212,15 @@ def chat_endpoint(api_request: ChatMessageRequest):
             backend_logger.error(f"Error in getting RAG chain for global_session_id={global_session_id}: {get_rag_chain_message}")
             raise HTTPException(status_code=500, detail=get_user_error())
         
-        answer = rag_chain.invoke({"input": question, "chat_history": chat_history, "user_full_name": user_full_name, "student_name": formatted(student_name)}).get("answer", None)
+        rag_response = rag_chain.invoke({
+            "input": question,
+            "chat_history": chat_history,
+            "user_full_name": user_full_name,
+            "student_name": formatted(student_name)
+        })
+        
+        answer = rag_response.get("answer", None)
+
         if answer is None:
             backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}, question_kannada: {question_kannada}")
             raise HTTPException(status_code=500, detail=get_user_error())
@@ -248,7 +242,7 @@ def chat_endpoint(api_request: ChatMessageRequest):
     except HTTPException as http_e:
         raise http_e
     except Exception as e:
-        backend_logger.error(f"Chat endpoint error: {str(e)} | global_session_id={global_session_id}")
+        backend_logger.error(f"Chat endpoint error: {str(e)} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
 # Endpoint to resume a specific chat session by reloading its vectorstore.
@@ -256,30 +250,6 @@ def chat_endpoint(api_request: ChatMessageRequest):
 def resume_chat_endpoint(api_request: StartEndChatRequest):
     try:
         user_email = api_request.user_email.strip()
-        login_session_id = api_request.login_session_id.strip()
-        chat_session_id = api_request.chat_session_id.strip()
-        student_name = api_request.student_name.strip()
-        
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        fetch_vectorstore_from_s3_success, fetch_vectorstore_from_s3_message, fetch_vectorstore_from_s3_result, fetch_vectorstore_from_s3_data = fetch_vectorstore_from_s3(
-            user_email=user_email,
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id,
-            student_name=student_name
-        )
-        
-        if not fetch_vectorstore_from_s3_success:
-            backend_logger.error(f"Error in fetching {student_name}'s vectorstore from S3: {fetch_vectorstore_from_s3_message} | global_session_id={global_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        if not fetch_vectorstore_from_s3_result:
-            backend_logger.error(f"Vectorstore not found for email={user_email}, student_name={student_name}, global_session_id={global_session_id}")
-            raise HTTPException(status_code=404, detail=get_user_error())
-        
-        load_vectorstore_from_path_success, load_vectorstore_from_path_message, rag_vectorstore = load_vectorstore_from_path(local_dir=fetch_vectorstore_from_s3_data)
-        if not load_vectorstore_from_path_success:
-            backend_logger.error(f"Error in loading {student_name}'s vectorstore from path: {load_vectorstore_from_path_message} | global_session_id={global_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
 
         return StartChatResponse(
             success=True,
@@ -291,7 +261,7 @@ def resume_chat_endpoint(api_request: StartEndChatRequest):
     except HTTPException as http_e:
         raise http_e
     except Exception as e:
-        backend_logger.error(f"Resume chat session with {student_name} endpoint error: {e} | global_session_id={global_session_id}")
+        backend_logger.error(f"Resume chat session with student {api_request.student_name} for user {api_request.user_email} endpoint error: {e} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
 @app.get("/{full_path:path}", include_in_schema=False)
