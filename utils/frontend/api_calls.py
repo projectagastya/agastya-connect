@@ -71,7 +71,7 @@ def start_chat(user_first_name: str, user_last_name: str, user_email: str, login
             "chat_session_id": chat_session_id,
             "student_name": student_name
         }
-        response = requests.post(f"{serverless_api_url}/start-chat", json=payload, headers=headers)
+        response = requests.post(f"{backend_api_url}/start-chat", json=payload, headers=headers)
 
         if response.status_code == 500:
             message = get_user_error()
