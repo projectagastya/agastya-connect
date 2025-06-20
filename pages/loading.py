@@ -20,7 +20,7 @@ async def render_loading_page():
         st.switch_page(page="pages/home.py")
 
     if "student_choice" not in st.session_state or st.session_state["student_choice"] is None:
-        st.switch_page(page="pages/selection.py")
+        st.switch_page(page="pages/students.py")
 
     if not st.session_state["loading_page"]:
         st.session_state["loading_page"] = True

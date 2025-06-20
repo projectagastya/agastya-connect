@@ -90,7 +90,7 @@ def render_home_page():
     cols = st.columns([4, 2, 4], gap="medium")
     with cols[1]:
         if st.button(label="Get Started", icon=":material/arrow_outward:", type="primary", use_container_width=True):
-            st.switch_page(page="pages/selection.py")
+            st.switch_page(page="pages/students.py")
 
 if __name__ == "__main__":
     render_home_page()

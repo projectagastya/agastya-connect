@@ -266,7 +266,7 @@ def resume_chat_endpoint(api_request: StartEndChatRequest):
 
 @app.get("/{full_path:path}", include_in_schema=False)
 async def catch_all(full_path: str):
-    streamlit_pages = ["home", "login", "chat", "selection", "loading"]
+    streamlit_pages = ["home", "login", "chat", "students", "loading"]
     
     if any(full_path.startswith(page) for page in streamlit_pages):
         backend_logger.info(f"Redirecting {full_path} to /app/{full_path}")

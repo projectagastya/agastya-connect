@@ -14,7 +14,7 @@ from utils.shared.logger import frontend_logger
 
 setup_page()
 
-def render_selection_page():
+def render_students_page():
     security_check()
     
     if len(st.session_state) == 0:
@@ -40,7 +40,7 @@ def render_selection_page():
 
     success, message, students = get_student_profiles(count=8)
     if not success:
-        frontend_logger.error(f"render_selection_page | Error loading student profiles from backend : {message}")
+        frontend_logger.error(f"render_students_page | Error loading student profiles from backend : {message}")
         st.error(get_user_error())
         st.stop()
     with cols[1]:
@@ -102,4 +102,4 @@ def render_selection_page():
                         st.markdown(" ", unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    render_selection_page()
+    render_students_page()

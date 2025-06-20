@@ -20,7 +20,7 @@ async def render_chat_page():
     security_check()
 
     if "active_chat_session" not in st.session_state or len(st.session_state["active_chat_session"]) == 0:
-        st.switch_page(page="pages/selection.py")
+        st.switch_page(page="pages/students.py")
     
     current_chat_session = st.session_state["active_chat_session"]
     if current_chat_session:
@@ -37,7 +37,7 @@ async def render_chat_page():
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button(label="Chat with another student", icon=":material/arrow_back:", type="primary", use_container_width=True):
             get_student_profiles.clear()
-            st.switch_page(page="pages/selection.py")
+            st.switch_page(page="pages/students.py")
         st.markdown("---")
     
     render_chat_history(chat_history=current_chat_session["chat_history"])
