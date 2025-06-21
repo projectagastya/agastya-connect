@@ -71,7 +71,7 @@ def start_chat(user_first_name: str, user_last_name: str, user_email: str, login
             "chat_session_id": chat_session_id,
             "student_name": student_name
         }
-        response = requests.post(f"{backend_api_url}/start-chat", json=payload, headers=headers)
+        response = requests.post(f"{serverless_api_url}/start-chat", json=payload, headers=headers)
 
         if response.status_code == 500:
             message = get_user_error()
@@ -131,42 +131,6 @@ def chat(login_session_id: str, chat_session_id: str, question: str, question_ka
     except Exception as e:
         message = get_user_error()
         frontend_logger.error(f"chat | Server error | Error: {str(e)}")
-    return success, message, data
-
-# Function to resume an existing chat session via the backend API (/resume-chat).
-def resume_chat(user_first_name: str, user_last_name: str, user_email: str, login_session_id: str, chat_session_id: str, student_name: str) -> tuple[bool, str, str]:
-    success = False
-    message = ""
-    data = ""
-    try:
-        payload = {
-            "user_first_name": user_first_name,
-            "user_last_name": user_last_name,
-            "user_email": user_email,
-            "login_session_id": login_session_id,
-            "chat_session_id": chat_session_id,
-            "student_name": student_name
-        }
-        response = requests.post(f"{backend_api_url}/resume-chat", json=payload, headers=headers)
-
-        if response.status_code == 500:
-            message = get_user_error()
-            frontend_logger.error(f"resume_chat | Server error | Response Status Code: {response.status_code}")
-        elif response.status_code == 422:
-            message = get_user_error()
-            frontend_logger.error(f"resume_chat | Invalid parameters sent in the API request | Response Status Code: {response.status_code}")
-        elif response.status_code == 404:
-            message = get_user_error()
-            frontend_logger.error(f"resume_chat | Invalid parameters sent in the API request | Response Status Code: {response.status_code}")
-        else:
-            success = True
-            message = response.json()["message"]
-            data = response.json().get("data", "")
-            frontend_logger.info(f"resume_chat | {message} | Response Status Code: {response.status_code}")
-    except Exception as e:
-        success = False
-        message = get_user_error()
-        frontend_logger.error(f"resume_chat | Server error | Error: {str(e)}")
     return success, message, data
 
 # Function to end all active chat sessions for a user login via the backend API (/end-all-chats).

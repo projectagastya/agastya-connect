@@ -8,6 +8,7 @@ from config.backend.vectorstores import (
     LOCAL_VECTORSTORES_DIRECTORY,
     MAX_DOCS_TO_RETRIEVE
 )
+from config.shared.timezone import get_current_timestamp
 from api.models import (
     ChatMessageRequest,
     ChatMessageResponse,
@@ -106,7 +107,7 @@ async def get_terms_of_service_page():
 @app.get("/health", summary="Check API health")
 def health_endpoint():
     try:
-        return {"success": True, "message": "Backend is healthy", "timestamp": datetime.now().isoformat()}
+        return {"success": True, "message": "Backend is healthy", "timestamp": get_current_timestamp()}
     except Exception as e:
         backend_logger.error(f"Health check error: {str(e)}")
         raise HTTPException(status_code=500, detail=get_user_error())
@@ -159,7 +160,7 @@ def start_chat_endpoint(api_request: StartEndChatRequest):
             message=f"Chat session initialized successfully for email={user_email}",
             result=True,
             data=first_assistant_message,
-            timestamp=datetime.now().isoformat()
+            timestamp=get_current_timestamp()
         )
     except HTTPException as http_e:
         raise http_e
@@ -238,30 +239,11 @@ def chat_endpoint(api_request: ChatMessageRequest):
             raise HTTPException(status_code=500, detail=get_user_error())
 
         backend_logger.info(f"Chat history inserted for global_session_id={global_session_id}")
-        return ChatMessageResponse(success=True, message=f"Chat history inserted successfully for global_session_id={global_session_id}", result=True, data=answer, timestamp=datetime.now().isoformat())
+        return ChatMessageResponse(success=True, message=f"Chat history inserted successfully for global_session_id={global_session_id}", result=True, data=answer, timestamp=get_current_timestamp())
     except HTTPException as http_e:
         raise http_e
     except Exception as e:
         backend_logger.error(f"Chat endpoint error: {str(e)} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
-# Endpoint to resume a specific chat session by reloading its vectorstore.
-@app.post("/resume-chat", summary="Resume a specific chat session", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
-def resume_chat_endpoint(api_request: StartEndChatRequest):
-    try:
-        user_email = api_request.user_email.strip()
-
-        return StartChatResponse(
-            success=True,
-            message=f"Chat session resumed successfully for email={user_email}",
-            result=True,
-            data="",
-            timestamp=datetime.now().isoformat()
-        )
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"Resume chat session with student {api_request.student_name} for user {api_request.user_email} endpoint error: {e} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
 @app.get("/{full_path:path}", include_in_schema=False)

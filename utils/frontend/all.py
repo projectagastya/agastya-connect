@@ -4,12 +4,11 @@ import re
 import streamlit as st
 
 from config.frontend.llm import QUESTIONS_GENERATION_MODEL_ID, QUESTIONS_GENERATION_MODEL_TEMPERATURE, QUESTIONS_GENERATION_MODEL_MAX_TOKENS
-from datetime import datetime
+from config.shared.timezone import get_current_datetime
 from utils.frontend.api_calls import (
     chat,
     healthy,
     start_chat,
-    resume_chat,
     get_active_sessions,
     get_chat_history_messages,
     end_all_chats
@@ -78,25 +77,11 @@ async def initialize_chat_session(student_choice: dict):
     
     st.session_state["active_chat_session"]["id"] = chat_session_id
     st.session_state["active_chat_session"]["student_profile"] = student_choice
-    st.session_state["active_chat_session"]["chat_start_timestamp"] = datetime.now() if not is_resuming else st.session_state["active_chat_session"]["chat_start_timestamp"]
+    st.session_state["active_chat_session"]["chat_start_timestamp"] = get_current_datetime() if not is_resuming else st.session_state["active_chat_session"]["chat_start_timestamp"]
     
     if is_resuming:
         frontend_logger.info(f"initialize_chat_session | Resuming chat with {student_name}, session id: {chat_session_id}")
         
-        resume_chat_success, resume_chat_message, _ = resume_chat(
-            user_first_name=user_first_name,
-            user_last_name=user_last_name,
-            user_email=user_email,
-            student_name=student_name,
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id
-        )
-        
-        if not resume_chat_success:
-            frontend_logger.error(f"initialize_chat_session | Failed to resume chat: {resume_chat_message}")
-            st.error(get_user_error())
-            st.stop()
-            
         history_success, history_message, formatted_history = get_chat_history_formatted(
             login_session_id=login_session_id,
             chat_session_id=chat_session_id,

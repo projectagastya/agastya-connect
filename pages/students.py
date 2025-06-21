@@ -1,5 +1,6 @@
 import streamlit as st
 
+from config.shared.timezone import get_current_datetime
 from utils.frontend.api_calls import get_student_profiles, get_active_sessions
 from utils.frontend.all import (
     add_text,
@@ -83,7 +84,7 @@ def render_students_page():
                                     "chat_history": [],
                                     "next_questions": [],
                                     "recent_questions": [],
-                                    "chat_start_timestamp": datetime.now(),
+                                    "chat_start_timestamp": get_current_datetime(),
                                     "chat_end_timestamp": None,
                                     "student_profile": student
                                 }

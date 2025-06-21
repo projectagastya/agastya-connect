@@ -1,11 +1,12 @@
 import boto3
-import openpyxl
-from openpyxl.styles import Font, Alignment
 import io
 import json
+import openpyxl
 import os
-from datetime import datetime
+
+from datetime import datetime, timezone
 from boto3.dynamodb.conditions import Key, Attr
+from openpyxl.styles import Font, Alignment
 from typing import Tuple
 
 CHAT_SESSIONS_TABLE_NAME = os.environ['CHAT_SESSIONS_TABLE_NAME']
@@ -186,9 +187,9 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
         buffer.seek(0)
         
         s3_client = boto3.client('s3')
-        date_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        year = datetime.now().strftime("%Y")
-        month = datetime.now().strftime("%m")
+        date_time = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
+        year = datetime.now(timezone.utc).strftime("%Y")
+        month = datetime.now(timezone.utc).strftime("%m")
         if month == '01':
             month = 'January'
         elif month == '02':
@@ -213,7 +214,7 @@ def export_chat_sessions_to_excel(user_email: str, login_session_id: str, user_f
             month = 'November'
         elif month == '12':
             month = 'December'
-        date = datetime.now().strftime("%d")
+        date = datetime.now(timezone.utc).strftime("%d")
         s3_key = f"{CHAT_TRANSCRIPTS_FOLDER_PATH}/{user_email}/{year}/{month}/{date}/{login_session_id}.xlsx"
         
         s3_client.put_object(

@@ -34,10 +34,11 @@ from config.backend.s3 import (
 from config.backend.vectorstores import (
     LOCAL_VECTORSTORES_DIRECTORY
 )
+from config.shared.timezone import get_current_timestamp, get_current_datetime
+from datetime import datetime, timezone, timedelta
 from prompts.backend import SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION, SYSTEM_PROMPT_MAIN
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-from datetime import datetime, timedelta
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.base import Chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -528,7 +529,7 @@ def initialize_chat_session(user_email: str, login_session_id: str, chat_session
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        now = datetime.now().isoformat()
+        now = get_current_timestamp()
         
         table.put_item(
             Item={
@@ -572,7 +573,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        now = datetime.now()
+        now = get_current_datetime()
         
         user_timestamp = now.isoformat()
         user_message_timestamp = f"{user_timestamp}#user"

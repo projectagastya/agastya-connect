@@ -1,7 +1,8 @@
 import boto3
 import json
 import os
-from datetime import datetime
+
+from datetime import datetime, timezone
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from typing import Tuple
@@ -29,7 +30,7 @@ def end_all_chat_sessions(user_email: str, login_session_id: str) -> Tuple[bool,
             print(f"end_all_chat_sessions | {message}")
             return success, message
         
-        now = datetime.now().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         
         for session in response['Items']:
             global_session_id = session['global_session_id']
@@ -146,7 +147,7 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'success': True,
                 'message': f"Chat sessions ended successfully for user {user_email}",
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         }
         

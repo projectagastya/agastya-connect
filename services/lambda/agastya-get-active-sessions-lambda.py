@@ -1,7 +1,8 @@
 import json
 import boto3
 import os
-from datetime import datetime
+
+from datetime import datetime, timezone
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from typing import List, Dict, Tuple
@@ -159,7 +160,7 @@ def lambda_handler(event, context):
                 'message': get_active_sessions_message,
                 'result': get_active_sessions_result,
                 'data': session_infos,
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         }
         

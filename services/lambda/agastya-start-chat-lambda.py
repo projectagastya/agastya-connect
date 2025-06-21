@@ -1,11 +1,12 @@
-import json
 import boto3
+import json
 import os
-from datetime import datetime, timedelta
+
 from botocore.exceptions import ClientError
-from typing import Tuple, Optional
+from datetime import datetime, timezone, timedelta
 from google.cloud import translate_v2 as translate
 from google.oauth2 import service_account
+from typing import Tuple, Optional
 
 # Environment variables
 CHAT_SESSIONS_TABLE_NAME = os.environ['CHAT_SESSIONS_TABLE_NAME']
@@ -76,7 +77,7 @@ def initialize_chat_session(user_email: str, login_session_id: str, chat_session
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        now = datetime.now().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         
         table.put_item(
             Item={
@@ -104,7 +105,6 @@ def initialize_chat_session(user_email: str, login_session_id: str, chat_session
 
 def insert_chat_message(login_session_id: str, chat_session_id: str, user_input: str, 
                        user_input_kannada: str | None, input_type: str, assistant_output: str) -> Tuple[bool, str]:
-    """Insert a chat message (user input and assistant output) into DynamoDB."""
     success = False
     message = ""
 
@@ -121,7 +121,7 @@ def insert_chat_message(login_session_id: str, chat_session_id: str, user_input:
         
         global_session_id = f"{login_session_id}#{chat_session_id}"
         
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         
         # Insert user message
         user_timestamp = now.isoformat()
@@ -367,7 +367,7 @@ def lambda_handler(event, context):
                 'message': f"Chat session initialized successfully for email={user_email}",
                 'result': True,
                 'data': first_assistant_message,
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         }
         

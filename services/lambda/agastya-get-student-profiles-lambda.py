@@ -1,11 +1,12 @@
-import json
 import boto3
-import random
+import json
 import os
-from datetime import datetime
+import random
+
 from botocore.exceptions import ClientError
-from typing import List, Dict, Tuple, Optional
+from datetime import datetime, timezone
 from decimal import Decimal
+from typing import List, Dict, Tuple, Optional
 
 # Initialize DynamoDB
 dynamodb = boto3.resource('dynamodb')
@@ -144,7 +145,7 @@ def lambda_handler(event, context):
                 'message': get_student_profiles_message,
                 'result': get_student_profiles_result,
                 'data': student_profiles,
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         }
         

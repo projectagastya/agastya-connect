@@ -1,9 +1,10 @@
 import json
 import boto3
 import os
-from datetime import datetime
+
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
+from datetime import datetime, timezone
 from typing import List, Dict, Tuple
 
 # Environment variables
@@ -161,7 +162,7 @@ def lambda_handler(event, context):
                     'message': "No chat history found",
                     'result': False,
                     'data': [],
-                    'timestamp': datetime.now().isoformat()
+                    'timestamp': datetime.now(timezone.utc).isoformat()
                 })
             }
         
@@ -188,7 +189,7 @@ def lambda_handler(event, context):
                 'message': f"Retrieved {len(message_infos)} messages",
                 'result': True,
                 'data': message_infos,
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             })
         }
         
