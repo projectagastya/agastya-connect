@@ -11,30 +11,16 @@ from config.backend.vectorstores import (
 from config.shared.timezone import get_current_timestamp
 from api.models import (
     ChatMessageRequest,
-    ChatMessageResponse,
-    EndChatResponse,
-    GetStudentProfilesRequest,
-    GetStudentProfilesResponse,
-    StartChatResponse,
-    GetActiveSessionsRequest,
-    GetActiveSessionsResponse,
-    GetChatHistoryRequest,
-    GetChatHistoryResponse,
-    ChatSessionInfo,
-    ChatMessageInfo,
-    StartEndChatRequest,
-    StudentProfileSchema
+    ChatMessageResponse
 )
 from utils.backend.all import (
     fetch_vectorstore_from_s3,
     formatted,
     get_chat_history,
     get_rag_chain,
-    initialize_chat_session,
     insert_chat_message,
     load_vectorstore_from_path
 )
-from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Request, Security, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
@@ -110,62 +96,6 @@ def health_endpoint():
         return {"success": True, "message": "Backend is healthy", "timestamp": get_current_timestamp()}
     except Exception as e:
         backend_logger.error(f"Health check error: {str(e)}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
-# Endpoint to initialize a new chat session for a user and student, loading the vectorstore.
-@app.post("/start-chat", summary="Initialize chat session with vectorstore", response_model=StartChatResponse, dependencies=[Depends(get_api_key)])
-def start_chat_endpoint(api_request: StartEndChatRequest):
-    try:
-        user_first_name = api_request.user_first_name.strip()
-        user_last_name = api_request.user_last_name.strip()
-        user_email = api_request.user_email.strip()
-        login_session_id = api_request.login_session_id.strip()
-        chat_session_id = api_request.chat_session_id.strip()
-        student_name = api_request.student_name.strip()
-        user_full_name = f"{user_first_name} {user_last_name}"
-        
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        init_chat_success, init_chat_message = initialize_chat_session(
-            user_email=user_email,
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id,
-            user_first_name=user_first_name,
-            user_last_name=user_last_name,
-            student_name=student_name
-        )
-        
-        if not init_chat_success:
-            backend_logger.error(f"Error initializing chat session in DynamoDB: {init_chat_message} | global_session_id={global_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-
-        first_user_message = f"Hi {formatted(text=student_name).split()[0]}, I'm {user_full_name}, your instructor. I would like to chat with you."
-        first_assistant_message = f"Hi, I'm {formatted(text=student_name).split()[0]} from Agastya International Foundation. What would you like to know about me?"
-    
-        insert_chat_message_success, insert_chat_message_message = insert_chat_message(
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id,
-            user_input=first_user_message,
-            user_input_kannada=None,
-            input_type="system",
-            assistant_output=first_assistant_message
-        )
-        if not insert_chat_message_success:
-            backend_logger.error(f"Error inserting chat history: {insert_chat_message_message} | global_session_id={global_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        backend_logger.info(f"First message inserted for global_session_id={global_session_id}")
-
-        return StartChatResponse(
-            success=True,
-            message=f"Chat session initialized successfully for email={user_email}",
-            result=True,
-            data=first_assistant_message,
-            timestamp=get_current_timestamp()
-        )
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"Start chat session endpoint error: {e} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
 
 # Endpoint to handle a user's chat message, generate a response using RAG, and store the interaction.

@@ -1,8 +1,6 @@
 import boto3
 import json
 import os
-import pandas as pd
-import random
 import shutil
 import time
 
@@ -515,43 +513,6 @@ def create_chat_session_table() -> Tuple[bool, str]:
     except Exception as e:
         message = f"Unexpected error creating chat session table: {e}"
         backend_logger.error(f"create_chat_session_table | {message}")
-    
-    return success, message
-
-# Function to initialize a new chat session in DynamoDB.
-def initialize_chat_session(user_email: str, login_session_id: str, chat_session_id: str, user_first_name: str, user_last_name: str, student_name: str) -> Tuple[bool, str]:
-    success = False
-    message = ""
-    
-    try:
-        dynamodb = get_dynamodb_resource()
-        table = dynamodb.Table(DYNAMODB_CHAT_SESSIONS_TABLE_NAME)
-        
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        now = get_current_timestamp()
-        
-        table.put_item(
-            Item={
-                'global_session_id': global_session_id,
-                'login_session_id': login_session_id,
-                'chat_session_id': chat_session_id,
-                'user_email': user_email,
-                'user_full_name': f"{user_first_name} {user_last_name}",
-                'student_name': student_name,
-                'session_status': 'active',
-                'started_at': now,
-                'last_updated_at': now,
-                'message_count': 0
-            }
-        )
-        
-        success = True
-        message = f"Chat session initialized successfully for email={user_email}"
-        backend_logger.info(f"initialize_chat_session | {message}")
-    except Exception as e:
-        message = f"Error initializing chat session: {e}"
-        backend_logger.error(f"initialize_chat_session | {message}")
     
     return success, message
 
