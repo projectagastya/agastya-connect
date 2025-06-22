@@ -49,17 +49,18 @@ async def render_chat_page():
     user_input = st.chat_input(placeholder=f"Please type your question here")
     await render_next_questions(next_questions=current_chat_session["next_questions"])
 
-    if is_kannada(user_input):
-        input_type = "manual-kannada"
-        frontend_logger.info(f"render_chat_page | Translating Kannada question: {user_input}")
-    else:
-        input_type = "manual-english"
-        frontend_logger.info(f"render_chat_page | Input is English: {user_input}")
-
     if user_input:
+        if is_kannada(user_input):
+            input_type = "manual-kannada"
+            frontend_logger.info(f"render_chat_page | Translating Kannada question: {user_input}")
+        else:
+            input_type = "manual-english"
+            frontend_logger.info(f"render_chat_page | Input is English: {user_input}")
+        
         if user_input.strip() == "":
             st.error("Please enter a question.")
             return
+        
         await handle_user_input(
             user_input=user_input,
             current_chat_session=current_chat_session,
