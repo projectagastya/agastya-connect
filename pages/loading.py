@@ -1,6 +1,7 @@
 import asyncio
 import streamlit as st
 
+from urllib.parse import urlparse
 from utils.frontend.all import (
     add_text,
     formatted,
@@ -29,7 +30,7 @@ async def render_loading_page():
         st.session_state["loading_page"] = True
 
     student_choice = st.session_state["student_choice"]
-    student_image = STUDENT_IMAGE_URL.format(domain=st.context.url, student_name=student_choice['student_name'])
+    student_image = STUDENT_IMAGE_URL.format(domain=urlparse(st.context.url).netloc, student_name=student_choice['student_name'])
 
     with st.container(border=True):
         st.markdown("<br>", unsafe_allow_html=True)

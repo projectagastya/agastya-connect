@@ -1,6 +1,7 @@
 import asyncio
 import streamlit as st
 
+from urllib.parse import urlparse
 from utils.frontend.api_calls import get_student_profiles
 from utils.frontend.all import (
     handle_user_input,
@@ -28,7 +29,7 @@ async def render_chat_page():
     current_chat_session = st.session_state["active_chat_session"]
     if current_chat_session:
         student_name = current_chat_session["student_profile"]["student_name"]
-        student_avatar = STUDENT_IMAGE_URL.format(domain=st.context.url, student_name=student_name)
+        student_avatar = STUDENT_IMAGE_URL.format(domain=urlparse(st.context.url).netloc, student_name=student_name)
     else:
         frontend_logger.error(f"render_chat_page | No active chat session found for user {getattr(st.user, 'email')}")
         st.error(get_user_error())

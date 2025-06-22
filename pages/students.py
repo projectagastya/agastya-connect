@@ -12,6 +12,7 @@ from utils.frontend.all import (
 from config.frontend.other import (
     STUDENT_IMAGE_URL
 )
+from urllib.parse import urlparse
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 
@@ -60,7 +61,7 @@ def render_students_page():
                 student_age = student["student_age"]
                 student_state = student["student_state"]
                 student_sex = student["student_sex"]
-                student_image = STUDENT_IMAGE_URL.format(domain=st.context.url, student_name=student_name)
+                student_image = STUDENT_IMAGE_URL.format(domain=urlparse(st.context.url).netloc, student_name=student_name)
                 
                 with st.container(border=True):
                     add_text(content=formatted(student_name), alignment="center", size=20, bold=True)

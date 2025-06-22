@@ -24,6 +24,7 @@ from utils.frontend.api_calls import (
 )
 from prompts.frontend import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
 from langchain_google_genai import ChatGoogleGenerativeAI
+from urllib.parse import urlparse
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 from utils.shared.translate import translate_text
@@ -33,7 +34,7 @@ from uuid import uuid4
 # Function to configure Streamlit page settings.
 def setup_page(
         page_title="Agastya Connect",
-        page_icon=APP_LOGO_URL.format(domain=st.context.url),
+        page_icon=APP_LOGO_URL.format(domain=urlparse(st.context.url).netloc),
         layout="wide",
         initial_sidebar_state="collapsed",
     ):
@@ -75,11 +76,11 @@ async def initialize_chat_session(student_choice: dict):
 
     user_email = getattr(st.user, "email")  
     login_session_id = getattr(st.user, "nonce")
-    user_avatar = getattr(st.user, "picture", DEFAULT_PROFILE_IMAGE_URL.format(domain=st.context.url))
+    user_avatar = getattr(st.user, "picture", DEFAULT_PROFILE_IMAGE_URL.format(domain=urlparse(st.context.url).netloc))
     user_first_name = getattr(st.user, "given_name")
     user_last_name = getattr(st.user, "family_name")
     student_name = student_choice['student_name']
-    student_avatar = STUDENT_IMAGE_URL.format(domain=st.context.url, student_name=student_name)
+    student_avatar = STUDENT_IMAGE_URL.format(domain=urlparse(st.context.url).netloc, student_name=student_name)
     is_resuming = st.session_state["active_chat_session"]["id"] is not None
     
     chat_session_id = st.session_state["active_chat_session"]["id"] if is_resuming else generate_uuid()
@@ -251,7 +252,7 @@ async def render_next_questions(next_questions):
 
 # Function to handle user input (manual text or button click), interact with the backend chat API, and update session state.
 async def handle_user_input(user_input: str, current_chat_session: dict, student_name: str, student_avatar: str, input_type: str):
-    user_image = getattr(st.user, "picture", DEFAULT_PROFILE_IMAGE_URL.format(domain=st.context.url))
+    user_image = getattr(st.user, "picture", DEFAULT_PROFILE_IMAGE_URL.format(domain=urlparse(st.context.url).netloc))
     user_login_session_id = getattr(st.user, "nonce")
     user_full_name = getattr(st.user, "given_name", " ") + " " + getattr(st.user, "family_name", " ")
 
