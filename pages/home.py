@@ -26,8 +26,6 @@ def render_home_page():
 
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
-        from urllib.parse import urlparse
-        st.write(urlparse(st.context.url).netloc)
         image_col = st.columns([1,3])
         with image_col[0]:
             st.image(image=user_image, use_container_width=True)
