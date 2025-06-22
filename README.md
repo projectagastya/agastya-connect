@@ -1,4 +1,4 @@
-# Agastya Connect: Instructor Training Platform
+# Agastya Connect: AI-Powered Instructor Training Platform
 
 ![Agastya International Foundation](https://img.shields.io/badge/Agastya-Training_Platform-orange)
 ![Status](https://img.shields.io/badge/Status-Production-green)
@@ -7,413 +7,402 @@
 ![AWS](https://img.shields.io/badge/Cloud-AWS-orange)
 ![RAG](https://img.shields.io/badge/AI-RAG_Architecture-green)
 
-## 📚 Table of Contents
-- [Introduction](#-introduction)
-- [Features](#-features)
-- [Technical Architecture](#-technical-architecture)
-- [Live Environment](#-live-environment)
-- [Technology Stack](#-technology-stack)
-- [Project Structure](#-project-structure)
-- [Installation & Setup (Local)](#-installation--setup-local)
-- [Configuration](#-configuration)
-- [Deployment (AWS)](#-deployment-aws)
-- [Usage Guide](#-usage-guide)
-- [Security Considerations](#-security-considerations)
-- [Contributing](#-contributing)
-- [Contact Information](#-contact-information)
+## Table of Contents
+- [Introduction](#introduction)
+- [Features](#features)
+- [Technical Architecture](#technical-architecture)
+- [Live Environment](#live-environment)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Installation & Setup](#installation--setup)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Usage Guide](#usage-guide)
+- [Security](#security)
+- [Support](#support)
 
-## 🌟 Introduction
+## Introduction
 
-Agastya Connect is an innovative training platform developed for the Agastya International Foundation, India's "largest creativity laboratory." The platform enables instructors to practice their teaching and engagement skills through realistic conversations with AI-simulated students, helping them prepare for real-world classroom scenarios.
+Agastya Connect is an innovative AI-powered training platform developed for Agastya International Foundation, recognized as India's largest "Creativity Laboratory." The platform empowers instructors to enhance their teaching skills through realistic conversations with AI-simulated students, providing a safe environment to practice educational techniques before entering real classrooms.
 
-Unlike generic chatbots, the platform uses advanced Retrieval Augmented Generation (RAG) technology to create authentic and context-aware student personas that respond based on detailed background information, creating meaningful training experiences for instructors.
+Our platform leverages advanced Retrieval-Augmented Generation (RAG) technology to create authentic student personas with diverse backgrounds, learning styles, and personalities. Each AI student responds contextually based on detailed background information, creating meaningful and realistic training scenarios for instructors.
 
-## 🔍 Features
+### Key Benefits
+- **Risk-free practice environment** for developing teaching strategies
+- **Personalized AI students** with unique characteristics and backgrounds
+- **Real-time feedback** through natural conversations
+- **Multilingual support** including Kannada language capabilities
+- **Comprehensive session tracking** for progress monitoring
+
+## Features
 
 ### Core Functionality
-- **Interactive Chat Interface**: Clean, intuitive interface for natural conversation flow
-- **AI-Simulated Students**: Diverse student profiles with unique personalities, backgrounds, and learning styles
-- **Context-Aware Responses**: AI responses maintain conversation continuity and reflect each student's unique character
-- **Suggested Questions**: AI-generated follow-up questions to facilitate meaningful conversations
-- **Multilingual Support**: Built-in Kannada language detection and translation capabilities
-- **Advanced Session Management**: Start, pause, resume, and end chat sessions with automatic history tracking
-- **Session Persistence**: All conversations are securely stored and can be resumed later
+- **Interactive Chat Interface**: Intuitive design for natural conversation flow between instructors and AI students
+- **Diverse Student Profiles**: Multiple AI-simulated students with unique personalities, academic backgrounds, and learning preferences
+- **Context-Aware Responses**: AI maintains conversation continuity and responds based on each student's documented characteristics
+- **Smart Question Suggestions**: AI-generated follow-up questions to guide meaningful educational conversations
+- **Multilingual Support**: Automatic Kannada language detection and translation for regional accessibility
+- **Session Management**: Start new conversations, pause ongoing sessions, and resume previous chats seamlessly
+- **Progress Tracking**: All conversations are securely stored for review and improvement analysis
 
 ### Technical Capabilities
-- **RAG Architecture**: Knowledge-enhanced AI responses grounded in factual student information
-- **Secure Authentication**: Google OAuth integration with role-based access control
-- **Cloud-Native**: Fully deployed on AWS with scalable infrastructure
-- **Real-time Processing**: Fast response generation with optimized retrieval algorithms
-- **Comprehensive Logging**: Detailed activity tracking for monitoring and debugging
-- **Multi-Session Support**: Manage multiple concurrent chat sessions with different student profiles
+- **RAG Architecture**: Knowledge-enhanced responses grounded in factual student information
+- **Secure Authentication**: Google OAuth integration with email-based access control
+- **Cloud-Native Design**: Fully deployed on AWS with auto-scaling capabilities
+- **Real-time Processing**: Optimized response generation with intelligent retrieval algorithms
+- **Comprehensive Logging**: Detailed activity tracking for monitoring and troubleshooting
+- **Concurrent Sessions**: Support for multiple active chat sessions with different students
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
-Agastya Connect implements a modern client-server architecture:
+Agastya Connect implements a modern, scalable architecture designed for reliability and performance:
 
 ```
-┌───────────────────┐     ┌─────────────────┐     ┌─────────────────────┐
-│                   │     │                 │     │                     │
-│  Streamlit UI     │────▶│  FastAPI API    │────▶│  AWS Infrastructure │
-│  (Frontend)       │◀────│  (Backend)      │◀────│  (Cloud Services)   │
-│                   │     │                 │     │                     │
-└───────────────────┘     └─────────────────┘     └─────────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   CloudFront    │────▶│ Route 53 DNS    │────▶│ Application      │────▶│    EC2          │
+│  (Static Pages) │     │                 │     │ Load Balancer    │     │  Instance       │
+└─────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+                                                           │                         │
+                                                           ▼                         ▼
+┌─────────────────┐     ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Lambda        │◀────│   DynamoDB      │◀────│   Streamlit      │     │   FastAPI       │
+│  Functions      │     │   Tables        │     │   Frontend       │     │   Backend       │
+└─────────────────┘     └─────────────────┘     └──────────────────┘     └─────────────────┘
+         │                                                                           │
+         ▼                                                                           ▼
+┌─────────────────┐                                                       ┌─────────────────┐
+│   S3 Bucket     │                                                       │   Google AI     │
+│  (Storage)      │                                                       │   Services      │
+└─────────────────┘                                                       └─────────────────┘
 ```
 
-### Frontend Architecture (Streamlit)
-- **User Authentication**: Google OAuth integration for secure login
-- **Stateful UI**: Session management across page refreshes using Streamlit's session state
-- **Page Structure**:
-  - Home dashboard with welcome information
-  - Student selection gallery showing available student profiles
-  - Interactive chat interface with suggested question prompts
-  - Loading screens for asynchronous operations
-  - Authentication management
+### Frontend (Streamlit)
+- **Authentication**: Secure Google OAuth integration
+- **Session Management**: Persistent state across page refreshes
+- **Responsive UI**: Optimized for desktop and tablet devices
+- **Real-time Updates**: Dynamic content rendering during conversations
 
-### Backend Architecture (FastAPI)
-- **API Endpoints**: RESTful API for all operations including student profiles, chat sessions, and message handling
-- **Security Layer**: API key authentication for all endpoints
-- **RAG System**: Retrieval-Augmented Generation pipeline for contextual student responses
-- **Multilingual Support**: Kannada language detection and translation capabilities
-- **Session Management**: Robust handling of concurrent chat sessions
+### Backend (FastAPI)
+- **RESTful API**: Well-documented endpoints for all operations
+- **Security Layer**: API key authentication for all requests
+- **RAG Pipeline**: Advanced retrieval and generation system
+- **Translation Service**: Integrated Google Cloud Translation
 
-### AWS Infrastructure
-- **EC2**: Hosts the FastAPI backend and Streamlit frontend services
-- **Application Load Balancer**: Routes traffic and handles HTTPS termination
-- **DynamoDB**: Stores student profiles, chat sessions, and messages
-- **S3**: Stores vectorstores and exported chat transcripts
-- **Lambda**: Processes chat exports asynchronously when sessions end
-- **Route 53**: DNS management for the agastyaconnect.com domain
-- **GitHub Actions**: CI/CD pipeline for automated deployment
+### Serverless Components (AWS Lambda)
+- **Session Management**: Handles chat session lifecycle operations
+- **Data Export**: Automated chat transcript generation
+- **Profile Management**: Student profile retrieval and caching
+- **History Retrieval**: Efficient chat history access
 
-## 🌐 Live Environment
+### Infrastructure
+- **CloudFront**: CDN for static content delivery (privacy policy, terms of service)
+- **Route 53**: DNS management with health checks
+- **Application Load Balancer**: HTTPS termination and traffic distribution
+- **EC2**: Hosts containerized application services
+- **DynamoDB**: NoSQL database for all application data
+- **S3**: Object storage for vectorstores and chat exports
+- **GitHub Actions**: Automated CI/CD pipeline
 
-The production environment is currently deployed and accessible:
+## Live Environment
 
-- **Domain**: agastyaconnect.com
-- **Protocol**: HTTPS (with automatic HTTP to HTTPS redirection)
-- **Authentication**: Google account login required
-- **Hosting**: AWS EC2 with Application Load Balancer
-- **Services**: FastAPI and Streamlit running as systemd services
-- **Monitoring**: CloudWatch logs and metrics
+**Production URL**: [https://agastyaconnect.com](https://agastyaconnect.com)
 
-## 🔧 Technology Stack
+- **Protocol**: HTTPS only (automatic HTTP redirection)
+- **Authentication**: Google account required with email verification
+- **Static Pages**: Privacy policy and terms of service via CloudFront
+- **API Endpoints**: Secured with API key authentication
+- **Monitoring**: 24/7 uptime monitoring with alerts
+
+## Technology Stack
 
 ### Frontend
-- **Streamlit**: Interactive web application framework
-- **AsyncIO**: For asynchronous operations
-- **Google OAuth**: Authentication provider
+- **Framework**: Streamlit 1.32+
+- **Authentication**: Google OAuth 2.0 via Authlib
+- **Language**: Python 3.9+
+- **Async Support**: AsyncIO for concurrent operations
 
 ### Backend
-- **FastAPI**: High-performance API framework
-- **Uvicorn**: ASGI server
-- **Pydantic**: Data validation and settings management
+- **Framework**: FastAPI 0.104+
+- **Server**: Uvicorn ASGI
+- **Validation**: Pydantic v2
+- **Language**: Python 3.9+
 
-### AI Components
-- **LangChain**: Framework for creating LLM applications
-  - `langchain-core`: Core components
-  - `langchain-chroma`: Vector store integration
-  - `langchain-community`: Document loaders
-  - `langchain-google-genai`: Google AI integration
-- **Google Generative AI**: LLM provider for RAG responses
-- **Google Cloud Translate**: Translation for Kannada support
-- **ChromaDB**: Vector database for embeddings
+### AI & Machine Learning
+- **LLM Framework**: LangChain with modular architecture
+- **Vector Store**: ChromaDB for embeddings
+- **LLM Provider**: Google Generative AI (Gemini)
+- **Translation**: Google Cloud Translation API
+- **Document Processing**: Docx2txt for content extraction
 
-### AWS Services
-- **EC2**: Compute service for backend and frontend
-- **Application Load Balancer**: Traffic management and HTTPS handling
-- **DynamoDB**: NoSQL database for all application data
-- **S3**: Object storage for vectorstores and exports
-- **Lambda**: Serverless functions for asynchronous processing
-- **Route 53**: DNS management
-- **CloudWatch**: Monitoring and logging
+### Cloud Infrastructure
+- **Compute**: AWS EC2 (t3.medium or larger)
+- **CDN**: CloudFront for static content
+- **DNS**: Route 53 with health checks
+- **Load Balancing**: Application Load Balancer
+- **Database**: DynamoDB (3 tables)
+- **Storage**: S3 for vectorstores and exports
+- **Serverless**: Lambda functions for async operations
+- **Monitoring**: CloudWatch logs and metrics
 
-### Development Tools
-- **Python 3.9+**: Core programming language
-- **Boto3**: AWS SDK for Python
-- **Openpyxl**: Excel file generation for chat exports
-- **GitHub Actions**: CI/CD automation
+### Development & Operations
+- **Version Control**: Git with GitHub
+- **CI/CD**: GitHub Actions
+- **Package Management**: pip with requirements.txt
+- **Environment Management**: python-dotenv
+- **Logging**: Python logging with rotation
 
-agastya-connect/
-├── .github/                  # CI/CD pipelines
-│   └── workflows/
-├── .streamlit/               # Streamlit configuration
-│   └── config.toml
-├── api/                      # API models and schemas (FastAPI)
-│   └── models.py
-├── config/                   # Configuration modules
-├── local-student-vectorstores/ # Local vectorstores storage
-├── logs/                     # Log files
-├── misc/                     # Miscellaneous scripts/files
-├── pages/                    # Streamlit pages (frontend UI)
-│   ├── chat.py
-│   ├── home.py
-│   ├── loading.py
-│   ├── login.py
-│   └── selection.py
-├── prompts/                  # Prompt templates
-├── requirements.txt          # Python dependencies
-├── server.py                 # FastAPI backend entry point
-├── services/
-│   └── ec2-linux/
-│       ├── fastapi.service   # Systemd template for FastAPI
-│       └── streamlit.service # Systemd template for Streamlit
-├── setup_db.py               # DynamoDB initialization script
-├── static/                   # Static assets
-├── utils/                    # Shared utilities
-│   └── ...
-├── venv/                     # Python virtual environment
-├── .env                      # Environment variables
-├── .gitignore
-└── README.md
-
-> Note: Systemd service templates for deployment are versioned under `services/ec2-linux/`. Entry points are `app.py` (Streamlit frontend) and `server.py` (FastAPI backend).
+## Project Structure
 
 ```
 agastya-connect/
 ├── .github/
-│   └── workflows/             # CI/CD pipelines
-│       └── deploy.yml         # AWS deployment workflow
-├── .streamlit/                # Streamlit configuration
-│   └── config.toml            # UI settings and theme
-├── backend/                   # Backend API code
-│   ├── api/                   # API models and schemas
-│   │   └── models.py          # Pydantic schemas
-│   ├── core/                  # Core backend functionality
-│   │   └── config.py          # Backend configuration
-│   ├── prompts.py             # System prompts for RAG
-│   └── utils.py               # Backend utilities
-├── frontend/                  # Frontend application code
-│   ├── api_calls.py           # Backend API communication
-│   ├── prompts.py             # Frontend LLM prompts
-│   └── utils.py               # Frontend utilities
-├── lambda-functions/          # AWS Lambda functions
-│   └── agastya-main-export-chat-lambda.py  # Chat export handler
-├── pages/                     # Streamlit pages
-│   ├── chat.py                # Chat interface
-│   ├── home.py                # Dashboard
-│   ├── loading.py             # Loading screen
-│   ├── login.py               # Authentication page
-│   └── selection.py           # Student selection
-├── shared/                    # Shared modules
-│   ├── config.py              # Shared configuration
-│   ├── logger.py              # Logging setup
-│   ├── translate.py           # Translation utilities
-│   └── utils.py               # Shared utilities
-├── .env.example               # Environment variables template
-├── .gitignore                 # Git ignore patterns
-├── backend_initialize_database.py  # Database initialization
-├── api.py          # FastAPI entry point
-├── app.py         # Streamlit entry point
-├── README.md                  # Project documentation
-└── requirements.txt           # Python dependencies
+│   └── workflows/
+│       └── deploy.yml         # CI/CD pipeline
+├── .streamlit/
+│   ├── config.toml           # UI configuration
+│   └── secrets.toml          # Frontend secrets (gitignored)
+├── api/
+│   └── models.py             # Pydantic models
+├── config/                   # Configuration modules
+│   ├── backend/
+│   ├── frontend/
+│   └── shared/
+├── pages/                    # Streamlit pages
+│   ├── chat.py              # Chat interface
+│   ├── home.py              # Dashboard
+│   ├── loading.py           # Loading screens
+│   ├── login.py             # Authentication
+│   └── students.py          # Student selection
+├── prompts/                 # AI prompt templates
+│   ├── backend.py
+│   └── frontend.py
+├── services/
+│   ├── ec2-linux/           # Systemd service files
+│   └── lambda/              # Lambda function code
+├── static/                  # Static assets
+│   ├── privacy.html
+│   ├── terms-of-service.html
+│   └── images/
+├── utils/                   # Utility modules
+│   ├── backend/
+│   ├── frontend/
+│   └── shared/
+├── .env                     # Environment variables (gitignored)
+├── .gitignore
+├── app.py                   # Streamlit entry point
+├── requirements.txt         # Python dependencies
+├── server.py               # FastAPI entry point
+└── setup_db.py             # Database initialization
 ```
 
-## 📥 Installation & Setup (Local)
+## Installation & Setup
 
 ### Prerequisites
 - Python 3.9 or higher
-- AWS account with configured credentials
-- Google AI Platform API key
-- Google Cloud Platform account with Translation API enabled
-- Google OAuth client ID and secret
+- AWS CLI configured with appropriate credentials
+- Google Cloud account with Translation API enabled
+- Google OAuth 2.0 client credentials
 
-### Step-by-Step Setup
+### Local Development Setup
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/projectagastya/agastya-connect.git
-   cd agastya-connect
-   ```
+git clone https://github.com/projectagastya/agastya-connect.git
+cd agastya-connect
+```
 
-2. **Create and Activate Virtual Environment**
+2. **Create Virtual Environment**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
 3. **Install Dependencies**
    ```bash
-   pip install -r requirements.txt
-   ```
+pip install -r requirements.txt
+```
 
 4. **Create Required Directories**
    ```bash
-   mkdir -p logs/backend_logs logs/frontend_logs
-   mkdir -p local-student-vectorstores
-   ```
+mkdir -p logs/backend_logs logs/frontend_logs
+mkdir -p local-student-vectorstores
+```
 
 5. **Configure Environment Variables**
-   Create a `.env` file based on the configuration section below.
+   Create `.env` file with required variables (see Configuration section)
 
 6. **Configure Streamlit Secrets**
-   Create `.streamlit/secrets.toml` based on the configuration section below.
+   Create `.streamlit/secrets.toml` with frontend configuration
 
-7. **Initialize the Database**
+7. **Initialize Database**
    ```bash
    python setup_db.py
    ```
 
-8. **Start the Backend Server**
+8. **Start Services**
    ```bash
+   # Terminal 1 - Backend
    uvicorn server:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-9. **Start the Frontend Server**
-   ```bash
+   
+   # Terminal 2 - Frontend
    streamlit run app.py
    ```
 
-10. **Access the Application**
-     Open your browser and navigate to `http://localhost:8501`
+9. **Access Application**
+   Navigate to `http://localhost:8501`
 
-## ⚙️ Configuration
+## Configuration
 
-### Environment Variables (`.env`)
+### Environment Variables (.env)
 
-```
+```bash
 # AWS Configuration
-AWS_ACCESS_KEY_ID=<your-aws-access-key-id>
-AWS_SECRET_ACCESS_KEY=<your-aws-secret-access-key>
-AWS_DEFAULT_REGION=<your-aws-region>
-AWS_REGION=<your-aws-region>
-MAIN_S3_BUCKET_NAME=<your-s3-bucket-name>
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_DEFAULT_REGION=us-east-1
+AWS_REGION=us-east-1
+MAIN_S3_BUCKET_NAME=your-s3-bucket
 
-# Backend API
-BACKEND_API_KEY=<your-secure-backend-api-key>
-BACKEND_ORIGINS=<comma-separated-allowed-origins>
+# API Configuration
+BACKEND_API_KEY=your-secure-api-key
+BACKEND_ORIGINS=https://agastyaconnect.com,http://localhost:8501
 
-# DynamoDB Configuration
-DYNAMODB_STUDENT_TABLE_BILLING_MODE=PAY_PER_REQUEST
-DYNAMODB_STUDENT_TABLE_NAME=<your-choice-of-student-table-name>
-DYNAMODB_CHAT_SESSIONS_TABLE_NAME=<your-choice-of-chat-sessions-table-name>
-DYNAMODB_CHAT_MESSAGES_TABLE_NAME=<your-choice-of-chat-messages-table-name>
+# DynamoDB Tables
+DYNAMODB_STUDENT_TABLE_NAME=agastya-students
+DYNAMODB_CHAT_SESSIONS_TABLE_NAME=agastya-chat-sessions
+DYNAMODB_CHAT_MESSAGES_TABLE_NAME=agastya-chat-messages
 
 # Google AI Configuration
-GOOGLE_API_KEY=<your-google-api-key>
-DOCUMENT_EMBEDDING_MODEL_ID=<your-choice-of-embedding-model>
-RESPONSE_GENERATION_MODEL_ID=<your-choice-of-generation-model>
-RESPONSE_GENERATION_MODEL_TEMPERATURE=<your-choice-of-model-temperature>
-RESPONSE_GENERATION_MODEL_MAX_TOKENS=<your-choice-of-max-tokens>
-RAG_MAX_DOC_RETRIEVE=<number-of-docs-to-retrieve>
+GOOGLE_API_KEY=your-google-api-key
+DOCUMENT_EMBEDDING_MODEL_ID=models/embedding-001
+RESPONSE_GENERATION_MODEL_ID=gemini-pro
+RESPONSE_GENERATION_MODEL_TEMPERATURE=0.7
+RESPONSE_GENERATION_MODEL_MAX_TOKENS=512
+RAG_MAX_DOC_RETRIEVE=5
 
 # Google Cloud Translation
 GCP_TYPE=service_account
-GCP_PROJECT_ID=<your-gcp-project-id>
-GCP_PRIVATE_KEY_ID=<your-gcp-private-key-id>
-GCP_PRIVATE_KEY=<your-gcp-private-key>
-GCP_CLIENT_EMAIL=<your-gcp-client-email>
-GCP_CLIENT_ID=<your-gcp-client-id>
-GCP_AUTH_URI=<your-gcp-auth-uri>
-GCP_TOKEN_URI=<your-gcp-token-uri>
-GCP_AUTH_PROVIDER_X509_CERT_URL=<your-gcp-auth-provider-url>
-GCP_CLIENT_X509_CERT_URL=<your-gcp-client-cert-url>
-GCP_UNIVERSE_DOMAIN=<your-gcp-universe-domain>
+GCP_PROJECT_ID=your-project-id
+GCP_PRIVATE_KEY_ID=your-key-id
+GCP_PRIVATE_KEY=your-private-key
+GCP_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+GCP_CLIENT_ID=your-client-id
+GCP_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+GCP_TOKEN_URI=https://oauth2.googleapis.com/token
+GCP_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
+GCP_CLIENT_X509_CERT_URL=your-cert-url
+GCP_UNIVERSE_DOMAIN=googleapis.com
 
-# Storage Paths
+# Application Paths
 LOGS_FOLDER_PATH=logs
 LOCAL_VECTORSTORES_DIRECTORY=local-student-vectorstores
 STUDENT_METADATA_FILE_NAME=students.json
 STUDENT_METADATA_FOLDER_PATH=metadata/students
 STUDENT_VECTORSTORE_FOLDER_PATH=vectorstores
 CHAT_TRANSCRIPTS_FOLDER_PATH=chat-transcripts
+
+# Application Configuration
+TIMEZONE=UTC
+APP_LOGO_URL=https://{domain}/static/logo.png
+DEFAULT_PROFILE_IMAGE_URL=https://{domain}/static/silhouette.png
+STUDENT_IMAGE_URL=https://{domain}/static/students/{student_name}.png
+
+# Frontend LLM Configuration
+QUESTIONS_GENERATION_MODEL_ID=gemini-pro
+QUESTIONS_GENERATION_MODEL_TEMPERATURE=0.8
+QUESTIONS_GENERATION_MODEL_MAX_TOKENS=256
 ```
 
-### Streamlit Secrets (`.streamlit/secrets.toml`)
+### Streamlit Configuration (.streamlit/secrets.toml)
 
 ```toml
 [auth]
-redirect_uri = "<your-redirect-uri>"
-cookie_secret = "<your-cookie-secret>"
-client_id = "<your-google-oauth-client-id>"
-client_secret = "<your-google-oauth-client-secret>"
+redirect_uri = "https://agastyaconnect.com/app"
+cookie_secret = "your-cookie-secret"
+client_id = "your-google-oauth-client-id"
+client_secret = "your-google-oauth-client-secret"
 server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
 
 [BACKEND]
-API_URL = "http://localhost:8000"  # Local development
-API_KEY = "<your-backend-api-key>"  # Must match BACKEND_API_KEY in .env
+API_URL = "http://localhost:8000"
+API_KEY = "your-backend-api-key"
+
+[SERVERLESS]
+API_URL = "https://api.agastyaconnect.com"
 
 [SECURITY]
-ALLOWED_EMAILS = ["user1@example.com", "user2@example.com"]
+ALLOWED_EMAILS = ["instructor1@agastya.org", "instructor2@agastya.org"]
 
 [LLM]
-API_KEY = "<your-google-ai-api-key>"
-QUESTIONS_GENERATION_MODEL_ID = "<your-choice-of-model>"
-QUESTIONS_GENERATION_MODEL_TEMPERATURE = <your-choice-of-temperature>
-QUESTIONS_GENERATION_MODEL_MAX_TOKENS = <your-choice-of-max-tokens>
+API_KEY = "your-google-api-key"
+QUESTIONS_GENERATION_MODEL_ID = "gemini-pro"
+QUESTIONS_GENERATION_MODEL_TEMPERATURE = 0.8
+QUESTIONS_GENERATION_MODEL_MAX_TOKENS = 256
 
 [LOGS]
 FOLDER_PATH = "./logs/frontend_logs"
 ```
 
-### Student Profile Format
-Student profiles in the metadata file should follow this structure:
-```json
-[
-  {
-    "student_name": "student-name",
-    "student_sex": "male",
-    "student_age": 14,
-    "student_state": "karnataka",
-    "student_image": "https://path-to-image.jpg"
-  }
-]
-```
+## Deployment
 
-## 🚀 Deployment (AWS)
+### Infrastructure Components
 
-The application is deployed on AWS using a combination of EC2, DynamoDB, S3, and Lambda services with GitHub Actions for CI/CD.
+1. **CloudFront Distribution**
+   - Origin: S3 bucket for static content
+   - Behaviors: Configured for privacy.html and terms-of-service.html
+   - Caching: Optimized TTL settings
 
-### Infrastructure Setup
+2. **Route 53 Configuration**
+   - Hosted Zone: agastyaconnect.com
+   - A Record: Alias to Application Load Balancer
+   - Health Checks: Configured for high availability
 
-1. **EC2 Instance**:
-   - Ubuntu Server 20.04 LTS
-   - t2.medium or larger recommended
-   - Security group allowing inbound traffic from ALB only
+3. **Application Load Balancer**
+   - Listeners: HTTPS (443) with SSL certificate
+   - Target Group: EC2 instance on port 8000
+   - Health Check: /health endpoint
 
-2. **Application Load Balancer**:
-   - HTTP (port 80) → HTTPS (port 443) redirection
-   - Target group pointing to EC2 instance on port 8000
-   - Health check path: `/health`
+4. **EC2 Instance**
+   - OS: Ubuntu 22.04 LTS
+   - Instance Type: t3.medium or larger
+   - Security Group: Restricted inbound from ALB only
+   - Services: FastAPI (port 8000) and Streamlit (port 8501)
 
-3. **DynamoDB Tables**:
-   - `students`: For student profile data
-   - `chat-sessions`: For session metadata
-   - `chat-messages`: For conversation history
+5. **Lambda Functions**
+   - get-student-profiles: Retrieves student data
+   - start-chat: Initializes chat sessions
+   - get-chat-history: Fetches conversation history
+   - end-all-chats: Closes active sessions
+   - export-chat: Generates Excel transcripts
 
-4. **S3 Bucket**:
-   - Used for storing vectorstores and exported chat transcripts
-   - Properly configured IAM permissions for EC2 and Lambda access
+6. **DynamoDB Tables**
+   - agastya-students: Student profile data
+   - agastya-chat-sessions: Session metadata
+   - agastya-chat-messages: Conversation history
 
-5. **Lambda Function**:
-   - Triggers from DynamoDB stream to process chat exports when sessions end
-   - Environment variables configured for S3 and DynamoDB access
-
-6. **Route 53**:
-   - DNS management for agastyaconnect.com
-   - A record pointing to the ALB
+7. **S3 Bucket**
+   - /vectorstores: Preprocessed student data
+   - /chat-transcripts: Exported conversations
+   - /static: Static website content
 
 ### Deployment Process
 
-The application uses GitHub Actions for CI/CD. The workflow in `.github/workflows/deploy.yml` automatically:
+The application uses GitHub Actions for continuous deployment:
 
-1. Connects to EC2 via SSH
-2. Pulls the latest code from the main branch
-3. Updates dependencies if requirements.txt has changed
-4. Updates systemd service files with safety measures:
-   - Backs up existing service files
-   - Validates new service files before applying
-   - Automatically rolls back if validation fails
-5. Restarts the FastAPI and Streamlit services
+1. **Trigger**: Push to main branch
+2. **Process**:
+   - SSH connection to EC2 instance
+   - Git pull latest changes
+   - Update dependencies if requirements.txt changed
+   - Update systemd service files
+   - Restart FastAPI and Streamlit services
+3. **Validation**: Health check verification
 
-### Setting Up Services
+### Service Configuration
 
-Create systemd service files for both backend and frontend:
+Create systemd service files on EC2:
 
 **FastAPI Service** (`/etc/systemd/system/fastapi.service`):
-
-> The template for this service is versioned in `services/ec2-linux/fastapi.service`.
-
 ```ini
 [Unit]
 Description=Agastya Backend FastAPI Service
@@ -423,18 +412,16 @@ After=network.target
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/home/ubuntu/agastya-connect
-Environment="PATH=/home/ubuntu/agastya-connect/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Environment="PATH=/home/ubuntu/agastya-connect/venv/bin"
 ExecStart=/home/ubuntu/agastya-connect/venv/bin/uvicorn server:app --host 0.0.0.0 --port 8000
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
 
 **Streamlit Service** (`/etc/systemd/system/streamlit.service`):
-
-> The template for this service is versioned in `services/ec2-linux/streamlit.service`.
-
 ```ini
 [Unit]
 Description=Agastya Frontend Streamlit Service
@@ -444,94 +431,103 @@ After=network.target
 User=ubuntu
 Group=ubuntu
 WorkingDirectory=/home/ubuntu/agastya-connect
-Environment="PATH=/home/ubuntu/agastya-connect/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-ExecStart=/home/ubuntu/agastya-connect/venv/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+Environment="PATH=/home/ubuntu/agastya-connect/venv/bin"
+ExecStart=/home/ubuntu/agastya-connect/venv/bin/streamlit run app.py
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Enable and start the services:
+Enable and start services:
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable fastapi.service streamlit.service
-sudo systemctl start fastapi.service streamlit.service
+sudo systemctl enable fastapi streamlit
+sudo systemctl start fastapi streamlit
 ```
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### For Instructors
 
-#### Getting Started
-1. **Access the Platform**: Navigate to agastyaconnect.com
-2. **Sign In**: Click "Sign in with Google" and authenticate
-3. **Home Page**: View the welcome screen with information about the platform
-4. **Select a Student**: Click "Get Started" and choose a student profile
-5. **Start Chatting**: Engage in conversation with the AI-simulated student
+1. **Getting Started**
+   - Visit https://agastyaconnect.com
+   - Click "Sign in with Google"
+   - Use your authorized email address
 
-#### Chat Interface
-- **Student Responses**: Appear as messages with the student's avatar
-- **Suggested Questions**: Available in the sidebar for quick selection
-- **Input Box**: Type your own questions or select from suggestions
-- **Resume Chats**: Continue previous conversations with students
-- **Multilingual Support**: Type in Kannada if preferred
+2. **Selecting a Student**
+   - Browse available student profiles
+   - Review student details (age, location, background)
+   - Click "Start Chat" to begin conversation
 
-#### Best Practices
-- Ask open-ended questions to encourage detailed responses
-- Follow up on interesting points to explore student perspectives
-- Use suggested questions when unsure what to ask next
-- Try different approaches with multiple students
-- Keep conversations focused on educational topics and student experiences
+3. **Engaging in Conversation**
+   - Type questions in the chat interface
+   - Use suggested questions for guidance
+   - Switch between English and Kannada as needed
+   - Practice various teaching scenarios
+
+4. **Managing Sessions**
+   - Resume previous conversations
+   - Start new sessions with different students
+   - Review chat history
+   - Export transcripts for analysis
 
 ### For Administrators
 
-#### Accessing Logs
-- Backend logs: Located in `/home/ubuntu/agastya-connect/logs/backend_logs/`
-- Frontend logs: Located in `/home/ubuntu/agastya-connect/logs/frontend_logs/`
+1. **User Management**
+   - Add authorized emails in `.streamlit/secrets.toml`
+   - Monitor active sessions via CloudWatch
+   - Review usage metrics in DynamoDB
 
-#### Managing Users
-- Add allowed email addresses in `.streamlit/secrets.toml` for access control
-- Update the application by pushing to the main branch on GitHub
-- Monitor active sessions through AWS CloudWatch
+2. **Content Management**
+   - Update student profiles in S3
+   - Modify vectorstores for new content
+   - Adjust AI prompts in configuration
 
-## 🔒 Security Considerations
+3. **System Monitoring**
+   - Check application logs in CloudWatch
+   - Monitor Lambda function performance
+   - Review DynamoDB capacity metrics
+   - Track S3 storage usage
 
-The application implements several security measures:
+## Security
 
-- **API Authentication**: All backend endpoints are protected with API key authentication
-- **User Authentication**: Frontend uses Google OAuth with email allowlist
-- **HTTPS**: All traffic is encrypted using SSL/TLS
-- **Input Validation**: All user inputs are validated with Pydantic models
-- **Environment Variables**: Sensitive configuration is stored in environment variables
-- **AWS IAM**: Least privilege principle for all AWS service access
-- **CORS Protection**: Backend restricts cross-origin requests to allowed origins
-- **Error Handling**: Errors are logged but not exposed to users in detail
+### Implementation Details
 
-## 🤝 Contributing
+- **Authentication**: Google OAuth 2.0 with email allowlist
+- **API Security**: API key required for all backend endpoints
+- **Data Encryption**: TLS 1.3 for all communications
+- **Access Control**: IAM roles with least privilege principle
+- **Input Validation**: Pydantic models for all API requests
+- **Session Management**: Secure session tokens with expiration
+- **Error Handling**: Sanitized error messages for users
+- **Logging**: Comprehensive audit trails without sensitive data
 
-We welcome contributions to the Agastya Connect platform! Here's how you can contribute:
+### Best Practices
 
-1. **Fork the Repository**: Create your own copy of the project
-2. **Create a Feature Branch**: Make your changes in a new branch
-3. **Follow Coding Standards**: Ensure code adheres to PEP 8 style guidelines
-4. **Write Meaningful Commit Messages**: Clearly describe your changes
-5. **Submit a Pull Request**: For review and integration into the main branch
+- Regular security updates for all dependencies
+- Rotating API keys and secrets periodically
+- Monitoring for unusual access patterns
+- Regular backups of critical data
+- Incident response plan documentation
 
-### Development Guidelines
-- Follow PEP 8 style guidelines for Python code
-- Write meaningful commit messages
-- Update documentation to reflect your changes
-- Test your changes thoroughly before submitting
+## Support
 
-## 📞 Contact Information
-
-For questions, support, or feedback:
-
+### Contact Information
 - **Email**: info@agastya.org
 - **Phone**: +91-8041124132
-- **Website**: [agastya.org](https://agastya.org)
+- **Website**: [https://www.agastya.org](https://www.agastya.org)
+- **Technical Support**: projectagastya2024@gmail.com
+
+### Resources
+- **Documentation**: Available in project repository
+- **Issue Tracking**: Contact technical support
+- **Feature Requests**: Email project team
+- **Security Issues**: Report to projectagastya2024@gmail.com
 
 ---
 
-*This platform is developed exclusively for Agastya International Foundation. Unauthorized access or use is prohibited.*
+**© 2025 Agastya International Foundation. All rights reserved.**
+
+*This platform is proprietary software developed exclusively for Agastya International Foundation's instructor training program. Unauthorized access, use, or distribution is strictly prohibited.*
