@@ -235,7 +235,9 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
 async def render_next_questions(next_questions):
     current_chat_session = st.session_state["active_chat_session"]
     student_profile = current_chat_session["student_profile"]
-
+    student_name = student_profile["student_name"]
+    student_avatar = STUDENT_IMAGE_URL.format(domain=urlparse(st.context.url).netloc, student_name=student_name)
+    
     with st.sidebar:
         st.markdown("<br>", unsafe_allow_html=True)
         add_text(content="You may also ask:", alignment="center", size=24, bold=True)
@@ -245,8 +247,8 @@ async def render_next_questions(next_questions):
             await handle_user_input(
                 user_input=question,
                 current_chat_session=current_chat_session,
-                student_name=student_profile["student_name"],
-                student_avatar=student_profile["student_image"],
+                student_name=student_name,
+                student_avatar=student_avatar,
                 input_type="button"
             )
 
