@@ -13,6 +13,9 @@ from utils.frontend.all import (
 )
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
+from config.frontend.other import (
+    STUDENT_IMAGE_URL
+)
 
 setup_page(initial_sidebar_state="expanded")
 
@@ -25,7 +28,7 @@ async def render_chat_page():
     current_chat_session = st.session_state["active_chat_session"]
     if current_chat_session:
         student_name = current_chat_session["student_profile"]["student_name"]
-        student_avatar = current_chat_session["student_profile"]["student_image"]
+        student_avatar = STUDENT_IMAGE_URL.format(domain=st.context.url, student_name=student_name)
     else:
         frontend_logger.error(f"render_chat_page | No active chat session found for user {getattr(st.user, 'email')}")
         st.error(get_user_error())

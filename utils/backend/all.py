@@ -335,7 +335,7 @@ def validate_student(student_name: str, student_sex: str, student_age: int, stud
     return success, message
 
 # Function to insert or update a student's profile in the DynamoDB table.
-def insert_student(student_name: str, student_sex: str, student_age: int, student_state: str, student_image: str) -> Tuple[bool, str, Optional[bool], Optional[str]]:
+def insert_student(student_name: str, student_sex: str, student_age: int, student_state: str) -> Tuple[bool, str, Optional[bool], Optional[str]]:
     success = False
     message = ""
     result = False
@@ -366,8 +366,7 @@ def insert_student(student_name: str, student_sex: str, student_age: int, studen
                 'student_name': student_name,
                 'student_sex': student_sex,
                 'student_age': student_age,
-                'student_state': student_state,
-                'student_image': student_image
+                'student_state': student_state
             }
         )
         success = True
@@ -402,8 +401,7 @@ def get_single_student_profile(student_name: str) -> Tuple[bool, str, Optional[b
                 "student_name": student.get('student_name'),
                 "student_sex": student.get('student_sex'),
                 "student_age": student.get('student_age'),
-                "student_state": student.get('student_state'),
-                "student_image": student.get('student_image')
+                "student_state": student.get('student_state')
             }
             backend_logger.info(f"get_single_student | {message}")
         else:
@@ -437,10 +435,9 @@ def populate_student_table() -> Tuple[bool, str]:
         student_sex = student.get('student_sex')
         student_age = student.get('student_age', None)
         student_state = student.get('student_state')
-        student_image = student.get('student_image', None)
         
         insert_success, insert_message, insert_result, _ = insert_student(
-            student_name, student_sex, student_age, student_state, student_image
+            student_name, student_sex, student_age, student_state
         )
         
         if not insert_success:

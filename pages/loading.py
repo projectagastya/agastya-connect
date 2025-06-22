@@ -10,6 +10,9 @@ from utils.frontend.all import (
 )
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
+from config.frontend.other import (
+    STUDENT_IMAGE_URL
+)
 
 setup_page()
 
@@ -26,6 +29,7 @@ async def render_loading_page():
         st.session_state["loading_page"] = True
 
     student_choice = st.session_state["student_choice"]
+    student_image = STUDENT_IMAGE_URL.format(domain=st.context.url, student_name=student_choice['student_name'])
 
     with st.container(border=True):
         st.markdown("<br>", unsafe_allow_html=True)
@@ -33,7 +37,7 @@ async def render_loading_page():
         st.markdown("<br>", unsafe_allow_html=True)
         cols = st.columns([1, 1, 1, 1, 1])
         with cols[2]:
-            st.image(image=student_choice["student_image"], use_container_width=True)
+            st.image(image=student_image, use_container_width=True)
             st.markdown(f"**Name:** {formatted(student_choice['student_name'])}")
             st.markdown(f"**Age:** {student_choice['student_age']}")
             st.markdown(f"**State:** {formatted(student_choice['student_state'])}")

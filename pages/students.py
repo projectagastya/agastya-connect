@@ -9,7 +9,9 @@ from utils.frontend.all import (
     security_check,
     setup_page,
 )
-from datetime import datetime
+from config.frontend.other import (
+    STUDENT_IMAGE_URL
+)
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 
@@ -58,6 +60,7 @@ def render_students_page():
                 student_age = student["student_age"]
                 student_state = student["student_state"]
                 student_sex = student["student_sex"]
+                student_image = STUDENT_IMAGE_URL.format(domain=st.context.url, student_name=student_name)
                 
                 with st.container(border=True):
                     add_text(content=formatted(student_name), alignment="center", size=20, bold=True)
@@ -65,7 +68,7 @@ def render_students_page():
                     
                     with subcols[0]:
                         st.markdown("<br>", unsafe_allow_html=True)
-                        st.image(image=student["student_image"], use_container_width=True)
+                        st.image(image=student_image, use_container_width=True)
                         
                         has_active_session = student_name in active_session_map
                         button_label = "Resume Chat" if has_active_session else "Start Chat"
