@@ -23,10 +23,8 @@ from utils.backend.all import (
 )
 from fastapi import FastAPI, HTTPException, Depends, Request, Security, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security.api_key import APIKeyHeader
-from fastapi.staticfiles import StaticFiles
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from utils.shared.errors import get_user_error
 from utils.shared.logger import backend_logger
 
@@ -74,20 +72,6 @@ def get_api_key(api_key: str = Security(api_key_header)):
             detail=get_user_error()
         )
     return api_key
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.get("/", response_class=FileResponse, summary="Serve the welcome page")
-async def get_welcome_page():
-    return 'static/welcome.html'
-
-@app.get("/privacy", response_class=FileResponse, summary="Serve the privacy policy")
-async def get_privacy_page():
-    return 'static/privacy.html'
-
-@app.get("/terms-of-service", response_class=FileResponse, summary="Serve the terms of service")
-async def get_terms_of_service_page():
-    return 'static/terms-of-service.html'
 
 # Endpoint for simple health check.
 @app.get("/health", summary="Check API health")
@@ -175,14 +159,3 @@ def chat_endpoint(api_request: ChatMessageRequest):
     except Exception as e:
         backend_logger.error(f"Chat endpoint error: {str(e)} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
         raise HTTPException(status_code=500, detail=get_user_error())
-
-@app.get("/{full_path:path}", include_in_schema=False)
-async def catch_all(full_path: str):
-    streamlit_pages = ["home", "login", "chat", "students", "loading"]
-    
-    if any(full_path.startswith(page) for page in streamlit_pages):
-        backend_logger.info(f"Redirecting {full_path} to /app/{full_path}")
-        return RedirectResponse(url=f"/app/{full_path}", status_code=301)
-    
-    backend_logger.warning(f"Undefined path accessed: {full_path}")
-    return FileResponse('static/404.html', status_code=404)
