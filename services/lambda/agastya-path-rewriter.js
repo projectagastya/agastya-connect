@@ -2,6 +2,24 @@
 This functions is called agastya-path-rewriter and is in a file named index.js. It is in the us-east-1 region.
 IAM role attached: agastya-path-rewriter-role
 Permissions attached to IAM role: AWSLambdaBasicExecutionRole
+
+Trust relationship: 
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": [
+                    "lambda.amazonaws.com",
+                    "edgelambda.amazonaws.com"
+                ]
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
 **/
 
 exports.handler = async (event) => {
