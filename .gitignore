@@ -6,4 +6,5 @@ venv/
 misc/
 local-student-vectorstores
 static/welcome.html
+static/404.html
 logs/
