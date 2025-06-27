@@ -25,7 +25,7 @@ async def render_chat_page():
     current_chat_session = st.session_state["active_chat_session"]
     if current_chat_session:
         student_name = current_chat_session["student_profile"]["student_name"]
-        student_avatar = current_chat_session["student_profile"]["student_image"]
+        student_avatar = f"https://agastyaconnect.com/headshots/{student_name}.png"
     else:
         frontend_logger.error(f"render_chat_page | No active chat session found for user {getattr(st.user, 'email')}")
         st.error(get_user_error())

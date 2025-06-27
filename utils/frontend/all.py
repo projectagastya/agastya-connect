@@ -70,7 +70,7 @@ async def initialize_chat_session(student_choice: dict):
     user_first_name = getattr(st.user, "given_name")
     user_last_name = getattr(st.user, "family_name")
     student_name = student_choice['student_name']
-    student_avatar = student_choice['student_image']
+    student_avatar = f"https://agastyaconnect.com/headshots/{student_name}.png"
     is_resuming = st.session_state["active_chat_session"]["id"] is not None
     
     chat_session_id = st.session_state["active_chat_session"]["id"] if is_resuming else generate_uuid()
@@ -116,7 +116,7 @@ async def initialize_chat_session(student_choice: dict):
             "role": "assistant", 
             "content": first_message,
             "content-en": first_message,
-            "avatar": student_choice["student_image"]
+            "avatar": student_avatar
         })
 
     st.session_state["active_chat_session"]["next_questions"] = await generate_next_questions(
@@ -236,7 +236,7 @@ async def render_next_questions(next_questions):
                 user_input=question,
                 current_chat_session=current_chat_session,
                 student_name=student_profile["student_name"],
-                student_avatar=student_profile["student_image"],
+                student_avatar=f"https://agastyaconnect.com/headshots/{student_profile['student_name']}.png",
                 input_type="button"
             )
 

@@ -58,6 +58,7 @@ def render_students_page():
                 student_age = student["student_age"]
                 student_state = student["student_state"]
                 student_sex = student["student_sex"]
+                student_image = f"https://agastyaconnect.com/headshots/{student_name}.png"
                 
                 with st.container(border=True):
                     add_text(content=formatted(student_name), alignment="center", size=20, bold=True)
@@ -65,14 +66,14 @@ def render_students_page():
                     
                     with subcols[0]:
                         st.markdown("<br>", unsafe_allow_html=True)
-                        st.image(image=student["student_image"], use_container_width=True)
+                        st.image(image=student_image, use_container_width=True)
                         
                         has_active_session = student_name in active_session_map
                         button_label = "Resume Chat" if has_active_session else "Start Chat"
                         
                         if st.button(
                             label=button_label,
-                            key=f"{'resume' if has_active_session else 'start'}_chat_{student['student_name']}",
+                            key=f"{'resume' if has_active_session else 'start'}_chat_{student_name}",
                             type="secondary" if has_active_session else "primary",
                             use_container_width=True
                         ):

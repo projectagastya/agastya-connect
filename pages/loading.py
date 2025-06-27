@@ -26,14 +26,14 @@ async def render_loading_page():
         st.session_state["loading_page"] = True
 
     student_choice = st.session_state["student_choice"]
-
+    student_image = f"https://agastyaconnect.com/headshots/{student_choice['student_name']}.png"
     with st.container(border=True):
         st.markdown("<br>", unsafe_allow_html=True)
         add_text(content=f"Setting up chat session with {formatted(student_choice['student_name'])}", alignment="center", size=36, bold=True)
         st.markdown("<br>", unsafe_allow_html=True)
         cols = st.columns([1, 1, 1, 1, 1])
         with cols[2]:
-            st.image(image=student_choice["student_image"], use_container_width=True)
+            st.image(image=student_image, use_container_width=True)
             st.markdown(f"**Name:** {formatted(student_choice['student_name'])}")
             st.markdown(f"**Age:** {student_choice['student_age']}")
             st.markdown(f"**State:** {formatted(student_choice['student_state'])}")
