@@ -8,9 +8,6 @@ from utils.shared.logger import frontend_logger
 backend_api_url = st.secrets.BACKEND.API_URL
 backend_api_key = st.secrets.BACKEND.API_KEY
 
-# Serverless API URL loaded from Streamlit secrets.
-serverless_api_url = st.secrets.SERVERLESS.API_URL
-
 # Headers including the API key for backend requests.
 headers = {
     "X-API-Key": backend_api_key
@@ -26,7 +23,7 @@ def get_student_profiles(count: int) -> tuple[bool, str, list]:
         payload = {
             "count": count
         }
-        response = requests.post(f"{serverless_api_url}/get-student-profiles", json=payload, headers=headers)
+        response = requests.post(f"{backend_api_url}/get-student-profiles", json=payload, headers=headers)
 
         if response.status_code == 200:
             success = True
@@ -62,7 +59,7 @@ def start_chat(user_first_name: str, user_last_name: str, user_email: str, login
             "chat_session_id": chat_session_id,
             "student_name": student_name
         }
-        response = requests.post(f"{serverless_api_url}/start-chat", json=payload, headers=headers)
+        response = requests.post(f"{backend_api_url}/start-chat", json=payload, headers=headers)
 
         if response.status_code == 500:
             message = get_user_error()
@@ -103,7 +100,7 @@ def chat(login_session_id: str, chat_session_id: str, question: str, question_ka
             "user_full_name": user_full_name,
             "student_name": student_name
         }
-        response = requests.post(f"{serverless_api_url}/chat", json=payload, headers=headers)
+        response = requests.post(f"{backend_api_url}/chat", json=payload, headers=headers)
 
         if response.status_code == 500:
             message = get_user_error()
@@ -133,7 +130,7 @@ def end_all_chats(user_email: str, login_session_id: str) -> tuple[bool, str]:
             "user_email": user_email,
             "login_session_id": login_session_id
         }
-        response = requests.post(f"{serverless_api_url}/end-all-chats", json=payload, headers=headers)
+        response = requests.post(f"{backend_api_url}/end-all-chats", json=payload, headers=headers)
 
         if response.status_code == 200:
             success = True
@@ -158,7 +155,7 @@ def get_active_sessions(user_email: str, login_session_id: str) -> tuple[bool, s
             "user_email": user_email,
             "login_session_id": login_session_id
         }
-        response = requests.post(f"{serverless_api_url}/get-active-sessions", json=payload, headers=headers)
+        response = requests.post(f"{backend_api_url}/get-active-sessions", json=payload, headers=headers)
 
         if response.status_code == 200:
             success = True
@@ -184,7 +181,7 @@ def get_chat_history_messages(login_session_id: str, chat_session_id: str) -> tu
             "login_session_id": login_session_id,
             "chat_session_id": chat_session_id
         }
-        response = requests.post(f"{serverless_api_url}/get-chat-history", json=payload, headers=headers)
+        response = requests.post(f"{backend_api_url}/get-chat-history", json=payload, headers=headers)
 
         if response.status_code == 200:
             success = True
