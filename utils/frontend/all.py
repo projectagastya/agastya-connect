@@ -320,10 +320,6 @@ def reset_session_state():
 
     if "student_choice" not in st.session_state:
         st.session_state["student_choice"] = None
-    if "next_questions" not in st.session_state:
-        st.session_state["next_questions"] = []
-    if "recent_questions" not in st.session_state:
-        st.session_state["recent_questions"] = []
     if "loading_page" not in st.session_state:
         st.session_state["loading_page"] = False
 
