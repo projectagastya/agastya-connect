@@ -69,9 +69,3 @@ You are meeting your instructor for the first time. The chat history is below, f
 
 THINK STEP BY STEP AND THEN ANSWER.
 """
-
-# System prompt for reformulating user questions based on chat history.
-SYSTEM_PROMPT_CONTEXTUALIZED_QUESTION = """
-Given a chat history and the latest user question which might reference context in the chat history, formulate a standalone question which can be understood without the chat history.
-Do NOT answer the question, just reformulate it if needed and otherwise return it as is.
-"""
