@@ -1,6 +1,5 @@
 import streamlit as st
 
-from utils.frontend.api_calls import healthy
 from utils.frontend.all import (
     add_text,
     authenticated,
@@ -11,10 +10,6 @@ from utils.shared.errors import get_user_error
 setup_page()
 
 def render_login_page():
-    if not healthy():
-        st.error(get_user_error())
-        st.stop()
-    
     if authenticated():
         reset_session_state()
         st.switch_page(page="pages/home.py")

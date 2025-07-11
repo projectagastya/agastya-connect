@@ -16,7 +16,6 @@ from config.frontend.other import (
 from config.shared.timezone import get_current_datetime
 from utils.frontend.api_calls import (
     chat,
-    healthy,
     start_chat,
     get_active_sessions,
     get_chat_history_messages,
@@ -310,13 +309,9 @@ def authenticated():
     else:
         return False
 
-# Function to perform security checks (authentication, backend health).
+# Function to perform security checks (authentication).
 def security_check():
-    if not healthy():
-        frontend_logger.error("security_check | Health check failed")
-        st.error(get_user_error())
-        st.stop()
-    elif not authenticated():
+    if not authenticated():
         st.switch_page(page="pages/login.py")
 
 # Function to reset the session state, ending active chats.

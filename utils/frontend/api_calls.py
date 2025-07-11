@@ -16,15 +16,6 @@ headers = {
     "X-API-Key": backend_api_key
 }
 
-# Function to check the health of the backend API.
-def healthy() -> bool:
-    try:
-        response = requests.get(f"{backend_api_url}/health", headers=headers)
-        return response.status_code == 200
-    except Exception as e:
-        frontend_logger.error(f"healthy | Server error | Error: {str(e)}")
-        return False
-
 # Function to fetch student profiles from the backend API (/get-student-profiles).
 @st.cache_resource(ttl=3600, show_spinner=False)
 def get_student_profiles(count: int) -> tuple[bool, str, list]:
@@ -112,7 +103,7 @@ def chat(login_session_id: str, chat_session_id: str, question: str, question_ka
             "user_full_name": user_full_name,
             "student_name": student_name
         }
-        response = requests.post(f"{backend_api_url}/chat", json=payload, headers=headers)
+        response = requests.post(f"{serverless_api_url}/chat", json=payload, headers=headers)
 
         if response.status_code == 500:
             message = get_user_error()

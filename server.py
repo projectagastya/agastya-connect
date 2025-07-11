@@ -73,15 +73,6 @@ def get_api_key(api_key: str = Security(api_key_header)):
         )
     return api_key
 
-# Endpoint for simple health check.
-@app.get("/health", summary="Check API health")
-def health_endpoint():
-    try:
-        return {"success": True, "message": "Backend is healthy", "timestamp": get_current_timestamp()}
-    except Exception as e:
-        backend_logger.error(f"Health check error: {str(e)}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
 # Endpoint to handle a user's chat message, generate a response using RAG, and store the interaction.
 @app.post(path="/chat", summary="Chat with student", response_model=ChatMessageResponse, dependencies=[Depends(get_api_key)])
 def chat_endpoint(api_request: ChatMessageRequest):
