@@ -292,9 +292,6 @@ DYNAMODB_CHAT_MESSAGES_TABLE_NAME=<your-choice-of-chat-messages-table-name>
 # Google AI Configuration
 GOOGLE_API_KEY=<your-google-api-key>
 DOCUMENT_EMBEDDING_MODEL_ID=<your-choice-of-embedding-model>
-RESPONSE_GENERATION_MODEL_ID=<your-choice-of-generation-model>
-RESPONSE_GENERATION_MODEL_TEMPERATURE=<your-choice-of-model-temperature>
-RESPONSE_GENERATION_MODEL_MAX_TOKENS=<your-choice-of-max-tokens>
 RAG_MAX_DOC_RETRIEVE=<number-of-docs-to-retrieve>
 
 # Google Cloud Translation
@@ -374,7 +371,6 @@ The application is deployed on AWS using a combination of EC2, DynamoDB, S3, and
 2. **Application Load Balancer**:
    - HTTP (port 80) → HTTPS (port 443) redirection
    - Target group pointing to EC2 instance on port 8000
-   - Health check path: `/health`
 
 3. **DynamoDB Tables**:
    - `students`: For student profile data

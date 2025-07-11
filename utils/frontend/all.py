@@ -1,5 +1,6 @@
 import ast
 import os
+import random
 import re
 import streamlit as st
 
@@ -7,14 +8,13 @@ from config.frontend.llm import QUESTIONS_GENERATION_MODEL_ID, QUESTIONS_GENERAT
 from config.shared.timezone import get_current_datetime
 from utils.frontend.api_calls import (
     chat,
-    healthy,
     start_chat,
     get_active_sessions,
     get_chat_history_messages,
     end_all_chats
 )
 from prompts.frontend import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_aws.chat_models import ChatBedrock
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 from utils.shared.translate import translate_text
@@ -190,7 +190,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     try:
         user_full_name = getattr(st.user, "given_name") + " " + getattr(st.user,"family_name")
 
-        llm = ChatGoogleGenerativeAI(
+        llm = ChatBedrock(
             model=QUESTIONS_GENERATION_MODEL_ID, 
             temperature=QUESTIONS_GENERATION_MODEL_TEMPERATURE,
             max_tokens=QUESTIONS_GENERATION_MODEL_MAX_TOKENS
@@ -214,7 +214,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
 
         match = re.search(r'\[.*?\]', generated_text, re.DOTALL)
         questions = ast.literal_eval(match.group(0)) if match else []
-
+        random.shuffle(questions)
         return questions[:num_questions]
     except Exception as e:
         message = get_user_error()
@@ -298,13 +298,9 @@ def authenticated():
     else:
         return False
 
-# Function to perform security checks (authentication, backend health).
+# Function to perform security checks (authentication).
 def security_check():
-    if not healthy():
-        frontend_logger.error("security_check | Health check failed")
-        st.error(get_user_error())
-        st.stop()
-    elif not authenticated():
+    if not authenticated():
         st.switch_page(page="pages/login.py")
 
 # Function to reset the session state, ending active chats.

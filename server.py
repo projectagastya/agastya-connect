@@ -1,25 +1,10 @@
-import os
-
 from config.backend.api import (
     BACKEND_API_KEY,
     BACKEND_ORIGINS
 )
-from config.backend.vectorstores import (
-    LOCAL_VECTORSTORES_DIRECTORY,
-    MAX_DOCS_TO_RETRIEVE
-)
-from config.shared.timezone import get_current_timestamp
 from api.models import (
     ChatMessageRequest,
     ChatMessageResponse
-)
-from utils.backend.all import (
-    fetch_vectorstore_from_s3,
-    formatted,
-    get_chat_history,
-    get_rag_chain,
-    insert_chat_message,
-    load_vectorstore_from_path
 )
 from fastapi import FastAPI, HTTPException, Depends, Request, Security, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -88,101 +73,3 @@ async def get_privacy_page():
 @app.get("/terms-of-service", response_class=FileResponse, summary="Serve the terms of service")
 async def get_terms_of_service_page():
     return 'static/terms-of-service.html'
-
-# Endpoint for simple health check.
-@app.get("/health", summary="Check API health")
-def health_endpoint():
-    try:
-        return {"success": True, "message": "Backend is healthy", "timestamp": get_current_timestamp()}
-    except Exception as e:
-        backend_logger.error(f"Health check error: {str(e)}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
-# Endpoint to handle a user's chat message, generate a response using RAG, and store the interaction.
-@app.post(path="/chat", summary="Chat with student", response_model=ChatMessageResponse, dependencies=[Depends(get_api_key)])
-def chat_endpoint(api_request: ChatMessageRequest):
-    try:
-        login_session_id = api_request.login_session_id.strip()
-        chat_session_id = api_request.chat_session_id.strip()
-        question = api_request.question.strip()
-        if api_request.question_kannada:
-            question_kannada = api_request.question_kannada.strip()
-        else:
-            question_kannada = None
-        input_type = api_request.input_type.strip()
-        student_name = api_request.student_name.strip()
-        user_full_name = api_request.user_full_name.strip()
-
-        global_session_id = f"{login_session_id}#{chat_session_id}"
-        
-        local_dir = os.path.join(LOCAL_VECTORSTORES_DIRECTORY, student_name)
-        load_vectorstore_success, load_vectorstore_message, rag_vectorstore = load_vectorstore_from_path(local_dir)
-        if not load_vectorstore_success:
-            backend_logger.error(f"Error in loading {student_name} vectorstore from path: {load_vectorstore_message} | global_session_id={global_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        
-        get_chat_history_success, get_chat_history_message, get_chat_history_result, chat_history = get_chat_history(login_session_id=login_session_id, chat_session_id=chat_session_id)
-        if not get_chat_history_success:
-            backend_logger.error(f"Database error in getting chat history for global_session_id={global_session_id}: {get_chat_history_message}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        if not get_chat_history_result:
-            backend_logger.error(f"Chat history not found for global_session_id={global_session_id}")
-            raise HTTPException(status_code=404, detail=get_user_error())
-
-        retriever = rag_vectorstore.as_retriever(
-            search_kwargs={
-                "k": MAX_DOCS_TO_RETRIEVE
-            }
-        )
-        if not retriever:
-            backend_logger.error(f"Error in creating session retriever for global_session_id={global_session_id}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        
-        get_rag_chain_success, get_rag_chain_message, rag_chain = get_rag_chain(retriever=retriever)
-        if not get_rag_chain_success:
-            backend_logger.error(f"Error in getting RAG chain for global_session_id={global_session_id}: {get_rag_chain_message}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        
-        rag_response = rag_chain.invoke({
-            "input": question,
-            "chat_history": chat_history,
-            "user_full_name": user_full_name,
-            "student_name": formatted(student_name)
-        })
-        
-        answer = rag_response.get("answer", None)
-
-        if answer is None:
-            backend_logger.error(f"Error in getting RAG chain answer for global_session_id={global_session_id} with question: {question}, question_kannada: {question_kannada}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-        
-        insert_chat_message_success, insert_chat_message_message = insert_chat_message(
-            login_session_id=login_session_id,
-            chat_session_id=chat_session_id,
-            user_input=question,
-            user_input_kannada=question_kannada,
-            input_type=input_type,
-            assistant_output=answer
-        )
-        if not insert_chat_message_success:
-            backend_logger.error(f"Failed to insert chat history for global_session_id={global_session_id}: {insert_chat_message_message}")
-            raise HTTPException(status_code=500, detail=get_user_error())
-
-        backend_logger.info(f"Chat history inserted for global_session_id={global_session_id}")
-        return ChatMessageResponse(success=True, message=f"Chat history inserted successfully for global_session_id={global_session_id}", result=True, data=answer, timestamp=get_current_timestamp())
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        backend_logger.error(f"Chat endpoint error: {str(e)} | global_session_id={api_request.login_session_id}#{api_request.chat_session_id}")
-        raise HTTPException(status_code=500, detail=get_user_error())
-
-@app.get("/{full_path:path}", include_in_schema=False)
-async def catch_all(full_path: str):
-    streamlit_pages = ["home", "login", "chat", "students", "loading"]
-    
-    if any(full_path.startswith(page) for page in streamlit_pages):
-        backend_logger.info(f"Redirecting {full_path} to /app/{full_path}")
-        return RedirectResponse(url=f"/app/{full_path}", status_code=301)
-    
-    backend_logger.warning(f"Undefined path accessed: {full_path}")
-    return FileResponse('static/404.html', status_code=404)

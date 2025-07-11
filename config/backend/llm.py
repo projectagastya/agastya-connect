@@ -1,7 +1,0 @@
-from utils.shared.env import validate_env_var, validate_int_env_var, validate_float_env_var
-
-DOCUMENT_EMBEDDING_MODEL_ID = validate_env_var("DOCUMENT_EMBEDDING_MODEL_ID")
-
-RESPONSE_GENERATION_MODEL_ID = validate_env_var("RESPONSE_GENERATION_MODEL_ID")
-RESPONSE_GENERATION_MODEL_TEMPERATURE = validate_float_env_var("RESPONSE_GENERATION_MODEL_TEMPERATURE")
-RESPONSE_GENERATION_MODEL_MAX_TOKENS = validate_int_env_var("RESPONSE_GENERATION_MODEL_MAX_TOKENS")
