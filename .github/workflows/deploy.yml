@@ -95,18 +95,15 @@ jobs:
               echo "Checking and updating systemd service files..."
               
               # Verify service files exist before copying
-              if [ -f "services/ec2-linux/fastapi.service" ] && [ -f "services/ec2-linux/streamlit.service" ]; then
+              if [ -f "services/ec2-linux/streamlit.service" ]; then
                 # Backup existing service files
-                sudo cp /etc/systemd/system/fastapi.service /etc/systemd/system/fastapi.service.backup 2>/dev/null || true
                 sudo cp /etc/systemd/system/streamlit.service /etc/systemd/system/streamlit.service.backup 2>/dev/null || true
                 
                 # Copy the service files to systemd directory
-                sudo cp -f services/ec2-linux/fastapi.service /etc/systemd/system/fastapi.service
                 sudo cp -f services/ec2-linux/streamlit.service /etc/systemd/system/streamlit.service
                 
                 # Verify new service files are valid
-                if sudo systemd-analyze verify /etc/systemd/system/fastapi.service && \
-                   sudo systemd-analyze verify /etc/systemd/system/streamlit.service; then
+                if sudo systemd-analyze verify /etc/systemd/system/streamlit.service; then
                   # Reload systemd to recognize changes
                   sudo systemctl daemon-reload
                   echo "Systemd service files updated and daemon reloaded."
@@ -115,7 +112,6 @@ jobs:
                 else
                   echo "ERROR: New service files are invalid! Rolling back..."
                   # Restore from backup
-                  sudo cp -f /etc/systemd/system/fastapi.service.backup /etc/systemd/system/fastapi.service 2>/dev/null || true
                   sudo cp -f /etc/systemd/system/streamlit.service.backup /etc/systemd/system/streamlit.service 2>/dev/null || true
                   sudo systemctl daemon-reload
                   sudo rm -f /etc/systemd/system/*.backup
@@ -128,9 +124,9 @@ jobs:
               
               # Restart services
               echo "Restarting services..."
-              sudo systemctl status fastapi streamlit || true
-              sudo systemctl restart fastapi streamlit
-              sudo systemctl status fastapi streamlit || true
+              sudo systemctl status streamlit || true
+              sudo systemctl restart streamlit
+              sudo systemctl status streamlit || true
               
               echo "====== DEPLOYMENT COMPLETED SUCCESSFULLY: $(date) ======"
             else

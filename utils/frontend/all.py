@@ -21,8 +21,8 @@ from utils.frontend.api_calls import (
     get_chat_history_messages,
     end_all_chats
 )
+from langchain_aws.chat_models import ChatBedrock
 from prompts.frontend import SYSTEM_PROMPT_GENERATE_NEXT_QUESTIONS
-from langchain_google_genai import ChatGoogleGenerativeAI
 from urllib.parse import urlparse
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
@@ -199,7 +199,7 @@ async def generate_next_questions(chat_history, student_name, num_questions=4):
     try:
         user_full_name = getattr(st.user, "given_name") + " " + getattr(st.user,"family_name")
 
-        llm = ChatGoogleGenerativeAI(
+        llm = ChatBedrock(
             model=QUESTIONS_GENERATION_MODEL_ID, 
             temperature=QUESTIONS_GENERATION_MODEL_TEMPERATURE,
             max_tokens=QUESTIONS_GENERATION_MODEL_MAX_TOKENS

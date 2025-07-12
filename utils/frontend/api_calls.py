@@ -1,12 +1,16 @@
 import requests
 import streamlit as st
 
+from config.frontend.api_calls import (
+    BACKEND_API_URL,
+    BACKEND_API_KEY
+)
 from utils.shared.errors import get_user_error
 from utils.shared.logger import frontend_logger
 
 # Backend API URL and Key loaded from Streamlit secrets.
-backend_api_url = st.secrets.BACKEND.API_URL
-backend_api_key = st.secrets.BACKEND.API_KEY
+backend_api_url = BACKEND_API_URL
+backend_api_key = BACKEND_API_KEY
 
 # Headers including the API key for backend requests.
 headers = {

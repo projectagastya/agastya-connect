@@ -265,7 +265,6 @@ MAIN_S3_BUCKET_NAME=your-s3-bucket
 
 # API Configuration
 BACKEND_API_KEY=your-secure-api-key
-BACKEND_ORIGINS=https://agastyaconnect.com,http://localhost:8501
 
 # DynamoDB Tables
 DYNAMODB_STUDENT_TABLE_NAME=agastya-students
